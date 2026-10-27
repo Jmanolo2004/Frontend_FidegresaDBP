@@ -1,0 +1,142 @@
+/* Estilos de los componentes nuevos de la versión React.
+   Usan los mismos tokens de color, radios y tipografía de base.css. */
+
+/* ---------- Navegación ---------- */
+.nav-group { display: grid; gap: 4px; }
+.breadcrumb a { color: var(--muted); }
+.breadcrumb a:hover { color: var(--brown); text-decoration: underline; }
+.sidebar-backdrop { display: none; }
+@media (max-width: 860px) {
+  .sidebar-backdrop { position: fixed; inset: 0; z-index: 4; display: block; border: 0; background: rgb(34 25 19 / 40%); }
+}
+.page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.back-link { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 14px; color: #8d6847; font-size: 11px; font-weight: 650; }
+.back-link:hover { text-decoration: underline; }
+.toolbar-status { color: var(--muted); font-size: 11px; }
+
+/* ---------- Botones y estados ---------- */
+button:disabled { cursor: not-allowed; opacity: .6; transform: none !important; }
+.inline-spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: loading-spin .7s linear infinite; }
+.auth-primary .inline-spinner, .primary-button .inline-spinner, .danger-button .inline-spinner { margin-right: 8px; }
+.inline-link { padding: 0; border: 0; background: none; color: var(--brown); font: inherit; font-weight: 700; text-decoration: underline; }
+a.text-button { display: inline-flex; align-items: center; }
+a.text-button:hover, .text-button:hover { text-decoration: underline; }
+.is-refreshing { opacity: .55; transition: opacity .2s; pointer-events: none; }
+
+/* ---------- Esqueletos de carga ---------- */
+.skeleton { display: block; background: linear-gradient(90deg, #efe6dc 0%, #f8f3ed 45%, #efe6dc 90%); background-size: 220% 100%; animation: skeleton-shine 1.3s ease-in-out infinite; }
+.skeleton-gap { margin-top: 12px; }
+.skeleton-block { margin-bottom: 16px; }
+.skeleton-panel { padding: 18px; }
+.page-skeleton { display: grid; gap: 6px; }
+.page-skeleton .stats-grid { margin-top: 18px; }
+.table-skeleton { display: grid; gap: 14px; padding: 10px 2px; }
+.table-skeleton-row { display: grid; grid-template-columns: 30px 1.4fr 1fr .7fr .5fr; align-items: center; gap: 16px; }
+@keyframes skeleton-shine { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+.dark-theme .skeleton { background: linear-gradient(90deg, #3a332e 0%, #48403a 45%, #3a332e 90%); background-size: 220% 100%; }
+
+/* ---------- Estados de error y vacío ---------- */
+.error-state { display: flex; align-items: center; gap: 14px; padding: 22px; border: 1px solid #ecd2cc; border-radius: 13px; background: #fcf4f2; color: var(--text); }
+.error-state.compact { margin-top: 6px; }
+.error-state > div { flex: 1; }
+.error-state strong { display: block; color: #8e3f34; font-size: 13px; }
+.error-state p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.error-state-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 50%; background: #f6e1dc; color: var(--danger); }
+.empty-state { display: grid; justify-items: center; gap: 12px; }
+.empty-state-text { margin: 0; }
+.inline-error-boundary, .embedded-not-found { display: grid; justify-items: center; gap: 8px; padding: 46px 24px; text-align: center; }
+.inline-error-boundary h2, .embedded-not-found h1 { margin: 0; color: var(--brown-dark); font: 600 24px Georgia, serif; }
+.inline-error-boundary p, .embedded-not-found p { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+.embedded-not-found .error-illustration svg { width: 96px; height: 96px; }
+.dark-theme .error-state { border-color: #5a3d36; background: #3a2b27; }
+
+/* ---------- Formularios ---------- */
+.auth-field { display: grid; align-content: start; gap: 7px; }
+.auth-form .auth-field label { margin-top: 5px; }
+.field-error { color: var(--danger); font-size: 10px; font-weight: 600; line-height: 1.4; }
+.auth-form .field-error { font-size: 10px; }
+.auth-form .field-hint { color: var(--muted); font-size: 9px; }
+.is-invalid, .auth-form input[aria-invalid="true"], .auth-form select[aria-invalid="true"], .form-control[aria-invalid="true"] { border-color: #c98a80 !important; box-shadow: 0 0 0 3px rgb(165 77 64 / 10%) !important; }
+.form-alert { margin: 0 0 14px; padding: 11px 13px; border: 1px solid #ecd2cc; border-radius: 8px; background: #fcf4f2; color: #8e3f34; font-size: 11px; line-height: 1.5; }
+.form-alert.info { border-color: #ead9c4; background: #fbf5ec; color: #7a5636; }
+.password-wrap { position: relative; }
+.password-wrap input { padding-right: 44px !important; }
+.password-toggle { position: absolute; top: 50%; right: 6px; display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 7px; background: none; color: var(--muted); transform: translateY(-50%); }
+.password-toggle:hover { background: var(--cream); color: var(--brown); }
+.terms-check { display: flex; align-items: flex-start; gap: 9px; margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.auth-form .terms-check input { width: 16px; min-height: 16px; height: 16px; margin: 2px 0 0; padding: 0; accent-color: var(--brown); }
+.terms-check a { color: var(--brown); font-weight: 650; text-decoration: underline; }
+a.link-button { display: inline; }
+a.connection-link { width: fit-content; text-align: center; }
+
+/* ---------- Acceso con Google y Apple ---------- */
+.social-auth { margin-top: 18px; }
+.auth-divider { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; color: var(--muted); font-size: 10px; }
+.auth-divider::before, .auth-divider::after { flex: 1; height: 1px; background: var(--line); content: ""; }
+.register-divider { margin: 16px 0 14px; }
+.social-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.social-button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 12px; font-weight: 650; transition: background .15s, border-color .15s, transform .15s; }
+.social-button:hover:not(:disabled) { border-color: #d3c1ae; background: #fbf8f4; transform: translateY(-1px); }
+.social-apple { border-color: #1d1d1f; background: #1d1d1f; color: #fff; }
+.social-apple:hover:not(:disabled) { border-color: #000; background: #000; }
+.social-button .inline-spinner { width: 16px; height: 16px; }
+@media (max-width: 420px) {
+  .social-buttons { grid-template-columns: 1fr; }
+}
+
+/* ---------- Paginación ---------- */
+.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.pagination-info strong { color: var(--text); }
+.pagination-pages { display: flex; align-items: center; gap: 4px; }
+.page-button { display: grid; min-width: 32px; height: 32px; place-items: center; padding: 0 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--brown); font-size: 11px; font-weight: 650; }
+.page-button:hover:not(:disabled) { background: var(--cream); }
+.page-button.current { border-color: var(--brown); background: var(--brown); color: #fff; }
+.page-gap { padding: 0 4px; }
+.page-size { display: flex; align-items: center; gap: 8px; }
+.page-size .filter-select { min-height: 32px; }
+@media (max-width: 640px) {
+  .pagination { justify-content: center; }
+  .pagination-info { width: 100%; text-align: center; }
+}
+
+/* ---------- Tablas y listas ---------- */
+.customer-link { color: inherit; font-weight: 600; }
+.customer-link:hover { color: var(--brown); text-decoration: underline; }
+.recent-copy { display: grid; min-width: 0; }
+.recent-copy:hover strong { text-decoration: underline; }
+.review-author { color: inherit; }
+.review-author:hover { text-decoration: underline; }
+button.sentiment-card { width: 100%; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, transform .15s; }
+button.sentiment-card:hover { transform: translateY(-1px); }
+.sentiment-card.selected { border-color: var(--caramel); box-shadow: 0 0 0 3px rgb(200 137 79 / 16%); }
+.reply-quote { margin: 0 0 16px; padding: 12px 14px; border-left: 3px solid var(--caramel); border-radius: 0 8px 8px 0; background: var(--cream); color: var(--text); font-size: 12px; line-height: 1.6; }
+
+/* ---------- Detalle de cliente ---------- */
+.customer-detail-grid { grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+.customer-detail-grid > .panel { padding: 20px; }
+.customer-profile { display: flex; align-items: flex-start; gap: 18px; }
+.customer-avatar.large { width: 58px; height: 58px; font-size: 18px; }
+.detail-list { display: grid; flex: 1; gap: 12px; margin: 0; }
+.detail-list div { display: grid; gap: 3px; }
+.detail-list dt { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 650; }
+.detail-list dd { margin: 0; color: var(--text); font-size: 13px; }
+.detail-list a { color: var(--brown); }
+.mini-review-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.mini-review-list li { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.mini-review-list li:last-child { border-bottom: 0; }
+.mini-review-list p { margin: 6px 0 0; color: var(--text); font-size: 12px; line-height: 1.5; }
+.mini-review-list .review-top { display: flex; align-items: center; justify-content: space-between; }
+@media (max-width: 860px) {
+  .customer-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* La tabla original aplicaba flex/grid directamente a dos <td> vecinos, lo que hace que el
+   navegador los fusione en una sola celda. En escritorio se vuelven celdas normales y el
+   flex/grid pasa a un contenedor interno. */
+@media (min-width: 861px) {
+  .customer-table td.customer-cell, .customer-table td.customer-contact { display: table-cell; }
+}
+.cell-inline { display: flex; align-items: center; gap: 8px; }
+.cell-stack { display: grid; min-width: 0; gap: 4px; }
+.cell-stack a { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; }
+.cell-stack a:hover { color: var(--brand-primary); text-decoration: underline; }
