@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 88">
+  <g transform="translate(4 12)">
+    <rect width="64" height="64" rx="16" fill="#603f2a"/>
+    <path d="M17 26h29v17a9 9 0 0 1-9 9h-11a9 9 0 0 1-9-9V26Z" fill="none" stroke="#f7f3ee" stroke-linejoin="round" stroke-width="3"/>
+    <path d="M46 30h3a6 6 0 0 1 0 12h-4M23 18c3 2 3 4 0 6m10-8c3 2 3 4 0 6m10-4c3 2 3 4 0 6" fill="none" stroke="#c8894f" stroke-linecap="round" stroke-width="3"/>
+  </g>
+  <text x="82" y="48" fill="#4a2f20" font-family="Georgia,serif" font-size="31" font-weight="700">Fidegresa</text>
+  <text x="84" y="68" fill="#8d8177" font-family="Segoe UI,Arial,sans-serif" font-size="12" letter-spacing="1">FIDELIZA Y REGRESA</text>
+</svg>
