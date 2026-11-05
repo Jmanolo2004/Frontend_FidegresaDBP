@@ -17,9 +17,6 @@ import { formatMoney } from "../../utils/format";
 
 const KpiWithSparkline = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.KpiWithSparkline })));
 const ComboChart = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.ComboChart })));
-const TrafficHeatmap = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.TrafficHeatmap })));
-const LoyaltyFunnel = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.LoyaltyFunnel })));
-const CohortTable = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.CohortTable })));
 const BranchRanking = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.BranchRanking })));
 const InsightList = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.InsightList })));
 const ProgramBreakdown = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.ProgramBreakdown })));
@@ -34,10 +31,40 @@ const DATE_LABELS = { today: "Hoy", "7days": "Los últimos 7 días", "30days": "
 
 function TrendText({ metric, compareLabel }) {
   const trend = metric?.change;
-  if (trend === null || trend === undefined) return <span className="metrics-no-comparison" title={metric?.explanation || "No hay datos comparables para este periodo."}>Nuevo · sin datos del periodo anterior</span>;
-  return <span className={trend < 0 ? "trend-down" : "trend-up"} title={`Comparado con ${compareLabel}`}>{trend > 0 ? "+" : ""}{trend}% vs. {compareLabel}</span>;
+  if (trend === null || trend === undefined) return <span className="metrics-no-comparison" tabIndex={0} title={metric?.explanation || "No hay datos comparables para este periodo."}>—</span>;
+  return <span className={trend < 0 ? "trend-down" : "trend-up"} tabIndex={0} title={`Comparado con ${compareLabel}`}>{trend > 0 ? "+" : ""}{trend}% vs. {compareLabel}</span>;
 }
 TrendText.propTypes = { metric: PropTypes.object, compareLabel: PropTypes.string.isRequired };
+
+function comparisonLabel(filters) {
+  const parse = value => {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+  const from = parse(filters.from);
+  const to = parse(filters.to);
+  let comparisonFrom;
+  let comparisonTo;
+
+  if (filters.compare === "lastYear") {
+    comparisonFrom = new Date(from.getFullYear() - 1, from.getMonth(), from.getDate());
+    comparisonTo = new Date(to.getFullYear() - 1, to.getMonth(), to.getDate());
+  } else if (filters.range === "month") {
+    comparisonFrom = new Date(from.getFullYear(), from.getMonth() - 1, 1);
+    comparisonTo = new Date(comparisonFrom.getFullYear(), comparisonFrom.getMonth(), Math.min(to.getDate(), new Date(comparisonFrom.getFullYear(), comparisonFrom.getMonth() + 1, 0).getDate()));
+  } else {
+    const duration = Math.max(1, Math.round((to - from) / 86400000) + 1);
+    comparisonTo = new Date(from);
+    comparisonTo.setDate(comparisonTo.getDate() - 1);
+    comparisonFrom = new Date(comparisonTo);
+    comparisonFrom.setDate(comparisonFrom.getDate() - duration + 1);
+  }
+
+  const format = date => new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short" }).format(date).replace(/\./g, "").toLocaleLowerCase("es-PE");
+  return comparisonFrom.getMonth() === comparisonTo.getMonth()
+    ? `${comparisonFrom.getDate()}–${comparisonTo.getDate()} ${format(comparisonTo)}`
+    : `${format(comparisonFrom)}–${format(comparisonTo)}`;
+}
 
 function MetricContent({ data, filters }) {
   const { kpis, series, breakdowns, programs } = data;
@@ -67,7 +94,7 @@ function MetricContent({ data, filters }) {
   }
 
   return <>
-    <section className="metrics-kpi-grid" aria-label="Indicadores del negocio">
+    <section className="metrics-kpi-grid metrics-content-section" aria-label="Indicadores del negocio">
       {[
         ["Ventas con tarjeta", currentValue("sales"), "sales", "#603f2a"],
         ["Visitas", currentValue("visits"), "visits", "#c8894f"],
@@ -76,11 +103,11 @@ function MetricContent({ data, filters }) {
         ["Tasa de retorno", currentValue("returningRate"), "returningRate", "#4e8066"],
         ["Ticket promedio", currentValue("ticket"), "ticket", "#c8894f"]
       ].map(([label, value, key, color]) => <Suspense fallback={<Skeleton key={key} height={118} />} key={key}>
-        <KpiWithSparkline label={label} value={value} trend={kpis[key].change} explanation={kpis[key].explanation} series={seriesFor(key)} color={color} />
+        <KpiWithSparkline label={label} value={value} trend={kpis[key].change} explanation={kpis[key].explanation} series={seriesFor(key)} color={color} helpText={key === "active" ? "Usa una ventana fija de 60 días y no cambia al modificar el periodo seleccionado." : undefined} changeUnit={key === "returningRate" ? "pp" : "%"} />
       </Suspense>)}
     </section>
 
-    <section className="panel metrics-chart-panel">
+    <section className="panel metrics-chart-panel metrics-content-section">
       <PanelHeading title="Visitas, clientes nuevos y ventas" subtitle={`${dateTitle} · compara actividad y valor en una sola vista`}>
         <TrendText metric={kpis.sales} compareLabel={compareLabel} />
       </PanelHeading>
@@ -93,31 +120,14 @@ function MetricContent({ data, filters }) {
       <ProgramBreakdown programs={breakdowns.programs} totalSales={breakdowns.totalSales} />
     </Suspense>
 
-    <div className="metrics-two-column">
-      <article className="panel">
-        <PanelHeading title="Mapa de calor de afluencia" subtitle="Día de la semana y hora para organizar al equipo" />
-        <Suspense fallback={<Skeleton height={240} />}><TrafficHeatmap data={data.traffic} /></Suspense>
-      </article>
-      <article className="panel">
-        <PanelHeading title="Embudo de fidelización" subtitle="Del registro al canje de una recompensa" />
-        <Suspense fallback={<Skeleton height={240} />}><LoyaltyFunnel items={data.funnel} /></Suspense>
-      </article>
-    </div>
+    <article className="panel metrics-branch-panel metrics-content-section">
+      <PanelHeading title="Rendimiento por local" subtitle="Ventas, visitas, retorno y reseña promedio">
+        <Link className="text-button" to="/panel/ubicaciones">Ver locales</Link>
+      </PanelHeading>
+      <Suspense fallback={<Skeleton height={260} />}><BranchRanking branches={breakdowns.branches} /></Suspense>
+    </article>
 
-    <div className="metrics-two-column metrics-bottom-grid">
-      <article className="panel">
-        <PanelHeading title="Retención por cohortes" subtitle="Porcentaje de clientes activos según su mes de alta" />
-        <Suspense fallback={<Skeleton height={260} />}><CohortTable rows={data.cohorts} /></Suspense>
-      </article>
-      <article className="panel">
-        <PanelHeading title="Rendimiento por local" subtitle="Ventas, visitas, retorno y reseña promedio">
-          <Link className="text-button" to="/panel/ubicaciones">Ver locales</Link>
-        </PanelHeading>
-        <Suspense fallback={<Skeleton height={260} />}><BranchRanking branches={breakdowns.branches} /></Suspense>
-      </article>
-    </div>
-
-    <article className="panel metrics-insights-panel">
+    <article className="panel metrics-insights-panel metrics-content-section">
       <PanelHeading title="Qué hacer esta semana" subtitle="Sugerencias priorizadas a partir de tus datos" />
       <Suspense fallback={<Skeleton height={160} />}><InsightList insights={data.insights} /></Suspense>
     </article>
@@ -132,6 +142,7 @@ export default function MetricsPage() {
   const { showError } = useToast();
   const overviewParams = useMemo(() => ({
     program: filters.program,
+    range: filters.range,
     from: filters.from,
     to: filters.to,
     branchId: filters.branchId,
@@ -167,12 +178,13 @@ export default function MetricsPage() {
   return <>
     <PageHeader title={`Hola, ${data?.owner || "bienvenido"}`} summary={summary} />
     <MetricsFilters filters={filters} update={update} branches={branches} onExport={exportCsv} />
+    <p className="metrics-comparison-label">Comparado con {comparisonLabel(filters)}.</p>
     {loading && data && <p className="metrics-loading-note" role="status">Actualizando indicadores…</p>}
     {data
       ? <MetricContent data={data} filters={filters} />
       : <section className="metrics-kpi-grid">{Array.from({ length: 6 }, (_, index) => <Skeleton height={118} key={index} />)}</section>}
 
-    <article className="panel metrics-activity-panel">
+    <article className="panel metrics-activity-panel metrics-content-section">
       <PanelHeading title="Actividad reciente" subtitle="Movimientos de tus clientes en todos los programas" />
       <ActivityTable program={filters.program} branchId={filters.branchId} from={filters.from} to={filters.to} />
     </article>

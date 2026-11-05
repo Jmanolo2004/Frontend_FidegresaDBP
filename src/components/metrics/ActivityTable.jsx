@@ -45,7 +45,14 @@ export function ActivityTable({ program, branchId, from, to }) {
   }, [refresh]);
 
   const events = ["all", "Se registró", "+1 sello", "Canjeó premio", "Usó cashback", "Subió de nivel", "Compró gift card", "Registró una visita"];
-  const nowText = timeAgo(new Date(updatedAt).toISOString());
+  const updatedMinutes = Math.floor((Date.now() - updatedAt) / 60000);
+  const updatedText = updatedMinutes < 1
+    ? "Actualizado hace menos de 1 min"
+    : updatedMinutes < 60
+      ? `Actualizado hace ${updatedMinutes} min`
+      : updatedMinutes < 1440
+        ? `Actualizado hace ${Math.floor(updatedMinutes / 60)} h`
+        : `Actualizado ${timeAgo(new Date(updatedAt).toISOString())}`;
   if (error && !data) return <ErrorState error={error} onRetry={reload} />;
 
   return (
@@ -56,7 +63,7 @@ export function ActivityTable({ program, branchId, from, to }) {
             {events.map(event => <option key={event} value={event}>{event === "all" ? "Todos los eventos" : event}</option>)}
           </select>
         </label>
-        <span className="metrics-updated" aria-live="polite">Actualizado hace {nowText}</span>
+        <span className="metrics-updated" aria-live="polite">{updatedText}</span>
       </div>
       {loading && !data ? <Skeleton height={280} /> : data?.content?.length ? <>
         <div className="table-wrap">

@@ -13,12 +13,9 @@ function periodBounds(period, shift = 0) {
     period === "year"
       ? new Date(now.getFullYear() - shift, 0, 1)
       : new Date(now.getFullYear(), now.getMonth() - (period === "quarter" ? 2 : 0) - monthOffset, 1);
-  const end = new Date(now);
-  if (shift) {
-    end.setDate(1);
-    end.setMonth(end.getMonth() - monthOffset);
-    end.setDate(Math.min(now.getDate(), new Date(end.getFullYear(), end.getMonth() + 1, 0).getDate()));
-  }
+  const endMonth = now.getMonth() - monthOffset;
+  const endDay = Math.min(now.getDate(), new Date(now.getFullYear(), endMonth + 1, 0).getDate()) + 1;
+  const end = new Date(now.getFullYear(), endMonth, endDay);
   return { start, end };
 }
 

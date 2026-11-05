@@ -35,12 +35,19 @@ function getRange(query) {
   const to = addDays(parseDate(query.to, new Date(now.getFullYear(), now.getMonth(), now.getDate())), 1);
   const from = parseDate(query.from, new Date(now.getFullYear(), now.getMonth(), 1));
   const duration = Math.max(1, Math.ceil((to - from) / DAY));
-  const compareFrom = query.compare === "lastYear"
-    ? new Date(from.getFullYear() - 1, from.getMonth(), from.getDate())
-    : addDays(from, -duration);
-  const compareTo = query.compare === "lastYear"
-    ? new Date(to.getFullYear() - 1, to.getMonth(), to.getDate())
-    : from;
+  let compareFrom;
+  let compareTo;
+  if (query.compare === "lastYear") {
+    compareFrom = new Date(from.getFullYear() - 1, from.getMonth(), from.getDate());
+    compareTo = new Date(to.getFullYear() - 1, to.getMonth(), to.getDate());
+  } else if (query.range === "month") {
+    compareFrom = new Date(from.getFullYear(), from.getMonth() - 1, 1);
+    const previousMonthDays = new Date(compareFrom.getFullYear(), compareFrom.getMonth() + 1, 0).getDate();
+    compareTo = addDays(compareFrom, Math.min(duration, previousMonthDays));
+  } else {
+    compareFrom = addDays(from, -duration);
+    compareTo = from;
+  }
   return { from, to, compareFrom, compareTo, duration };
 }
 
@@ -95,7 +102,9 @@ function summarize(current, previous) {
     {
       current: Number((currentValues[key] || 0).toFixed?.(1) ?? currentValues[key] ?? 0),
       previous: Number((previousValues[key] || 0).toFixed?.(1) ?? previousValues[key] ?? 0),
-      change: changeOf(currentValues[key] || 0, previousValues[key] || 0),
+      change: key === "returningRate"
+        ? previous.visitCount ? Number(((currentValues[key] || 0) - (previousValues[key] || 0)).toFixed(1)) : null
+        : changeOf(currentValues[key] || 0, previousValues[key] || 0),
       explanation: previousValues[key] ? "" : "No hubo actividad en el periodo de comparación."
     }
   ]));

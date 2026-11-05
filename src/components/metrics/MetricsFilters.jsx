@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Icon } from "../common/Icon";
 
@@ -29,8 +30,16 @@ export function ProgramTabs({ value, onChange }) {
 ProgramTabs.propTypes = { value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired };
 
 export function MetricsFilters({ filters, update, branches, onExport }) {
+  const [compact, setCompact] = useState(() => window.scrollY > 80);
+
+  useEffect(() => {
+    const updateCompact = () => setCompact(window.scrollY > 80);
+    window.addEventListener("scroll", updateCompact, { passive: true });
+    return () => window.removeEventListener("scroll", updateCompact);
+  }, []);
+
   return (
-    <section className="metrics-filters panel" aria-label="Filtros de métricas">
+    <section className={`metrics-filters panel${compact ? " is-compact" : ""}`} aria-label="Filtros de métricas">
       <ProgramTabs value={filters.program} onChange={program => update({ program })} />
       <div className="metrics-filter-controls">
         <label>Periodo

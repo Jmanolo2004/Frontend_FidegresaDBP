@@ -5,29 +5,35 @@ import { EmptyState } from "../common/EmptyState";
 import { PanelHeading } from "../common/PanelHeading";
 import { formatMoney } from "../../utils/format";
 
-export function KpiWithSparkline({ label, value, trend, explanation, series = [], color = "#603f2a" }) {
+function formatTrend(value) {
+  const formatted = Math.abs(value).toLocaleString("es-PE", { maximumFractionDigits: 1 });
+  return `${value > 0 ? "+" : value < 0 ? "−" : "+"}${formatted}`;
+}
+
+export function KpiWithSparkline({ label, value, trend, explanation, series = [], color = "#603f2a", helpText, changeUnit = "%" }) {
   const points = series.length ? series : [1, 2, 1, 3, 2, 4, 3];
   const max = Math.max(1, ...points);
   const polyline = points.map((point, index) => `${index * 100 / Math.max(1, points.length - 1)},${24 - point / max * 20}`).join(" ");
-  const numericValue = Number(String(value).replace(/[^\d.-]/g, "")) || 0;
+  const hasTrend = trend !== null && trend !== undefined;
   return (
     <article className="metrics-kpi">
-      <span>{label}</span>
+      <span className="metrics-kpi-label">{label}{helpText && <button className="metrics-help" type="button" aria-label={`${label}: ${helpText}`} title={helpText}>?</button>}</span>
       <strong>{value}</strong>
       <div className="metrics-kpi-bottom">
-        <span className={trend === null ? "trend-new" : trend < 0 ? "trend-down" : "trend-up"} title={explanation || undefined}>
-          {trend === null ? (numericValue > 0 ? "Nuevo" : "—") : `${trend > 0 ? "+" : ""}${trend}%`}
+        <span className={!hasTrend ? "trend-new" : trend < 0 ? "trend-down" : "trend-up"} tabIndex={0} title={!hasTrend ? explanation || "Sin datos comparables para este periodo." : explanation || undefined}>
+          {hasTrend ? `${formatTrend(trend)} ${changeUnit}` : "—"}
         </span>
         <svg viewBox="0 0 100 28" aria-hidden="true"><polyline points={polyline} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </div>
-      {trend === null && <small className="metrics-kpi-explanation">{explanation || "Sin datos en el periodo de comparación."}</small>}
+      {!hasTrend && <small className="metrics-kpi-explanation">{explanation || "Sin datos en el periodo de comparación."}</small>}
     </article>
   );
 }
 
 KpiWithSparkline.propTypes = {
   label: PropTypes.string.isRequired, value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  trend: PropTypes.number, explanation: PropTypes.string, series: PropTypes.arrayOf(PropTypes.number), color: PropTypes.string
+  trend: PropTypes.number, explanation: PropTypes.string, series: PropTypes.arrayOf(PropTypes.number), color: PropTypes.string,
+  helpText: PropTypes.string, changeUnit: PropTypes.string
 };
 
 function DataTable({ rows, headers }) {
@@ -38,14 +44,40 @@ function DataTable({ rows, headers }) {
 }
 DataTable.propTypes = { rows: PropTypes.arrayOf(PropTypes.array).isRequired, headers: PropTypes.arrayOf(PropTypes.string).isRequired };
 
+function niceStep(value, targetTicks = 4) {
+  if (value <= 0) return 1;
+  const rawStep = value / targetTicks;
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalized = rawStep / magnitude;
+  return (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
+}
+
+function axisTicks(maxValue) {
+  if (maxValue <= 0) return [0];
+  const step = niceStep(maxValue);
+  const max = Math.max(step, Math.ceil(maxValue / step) * step);
+  return Array.from({ length: Math.round(max / step) + 1 }, (_, index) => index * step);
+}
+
+function axisMoney(value) {
+  return `S/ ${Math.round(value).toLocaleString("es-PE")}`;
+}
+
 export function ComboChart({ series }) {
   const [hidden, setHidden] = useState([]);
   const [active, setActive] = useState(null);
   const visible = key => !hidden.includes(key);
   const toggle = key => setHidden(previous => previous.includes(key) ? previous.filter(item => item !== key) : [...previous, key]);
-  const maxVisits = Math.max(1, ...series.items.map(item => Math.max(item.visitas, item.clientesNuevos)));
-  const maxSales = Math.max(1, ...series.items.map(item => item.ventas));
-  const width = 720, height = 250, left = 44, right = 42, top = 18, bottom = 32;
+  const rawMaxActivity = Math.max(0, ...series.items.map(item => Math.max(item.visitas, item.clientesNuevos)));
+  const rawMaxSales = Math.max(0, ...series.items.map(item => item.ventas));
+  const activityTicks = axisTicks(rawMaxActivity);
+  const salesTicks = axisTicks(rawMaxSales);
+  const maxVisits = Math.max(1, activityTicks.at(-1));
+  const maxSales = Math.max(1, salesTicks.at(-1));
+  const hasVisits = series.items.some(item => item.visitas > 0);
+  const hasNewCustomers = series.items.some(item => item.clientesNuevos > 0);
+  const hasSales = series.items.some(item => item.ventas > 0);
+  const width = 780, height = 250, left = 58, right = 76, top = 18, bottom = 32;
   const plotWidth = width - left - right, plotHeight = height - top - bottom;
   const step = plotWidth / Math.max(1, series.items.length);
   const salesPoints = series.items.map((item, index) => `${left + step * (index + .5)},${top + plotHeight - item.ventas / maxSales * plotHeight}`).join(" ");
@@ -53,23 +85,33 @@ export function ComboChart({ series }) {
     const barWidth = Math.max(3, step * .27);
     const x = left + index * step + step * .2;
     return [
-      { key: "visitas", x, value: item.visitas, fill: "#603f2a", dx: 0 },
-      { key: "clientesNuevos", x: x + barWidth + 2, value: item.clientesNuevos, fill: "#c8894f", dx: 0 }
-    ].filter(bar => visible(bar.key)).map(bar => ({ ...bar, y: top + plotHeight - bar.value / maxVisits * plotHeight, width: barWidth, height: bar.value / maxVisits * plotHeight, label: item.label, index }));
+      { key: "visitas", x, value: item.visitas, fill: "#603f2a" },
+      { key: "clientesNuevos", x: x + barWidth + 2, value: item.clientesNuevos, fill: "#c8894f" }
+    ].filter(bar => visible(bar.key) && (bar.key === "visitas" ? hasVisits : hasNewCustomers)).map(bar => ({ ...bar, y: top + plotHeight - bar.value / maxVisits * plotHeight, width: barWidth, height: bar.value / maxVisits * plotHeight, label: item.label, index }));
   });
-  const legend = [["visitas", "Visitas", "#603f2a"], ["clientesNuevos", "Clientes nuevos", "#c8894f"], ["ventas", "Ventas (S/)", "#4e8066"]];
+  const legend = [
+    ["visitas", "Visitas", "#603f2a", hasVisits],
+    ["clientesNuevos", "Clientes nuevos", "#c8894f", hasNewCustomers],
+    ["ventas", "Ventas (S/)", "#4e8066", hasSales]
+  ];
   const current = active === null ? null : series.items[active];
   const tableRows = series.items.map(item => [item.label, item.visitas, item.clientesNuevos, formatMoney(item.ventas)]);
   return <>
-    <div className="metrics-chart-legend">{legend.map(([key, label, color]) => <button key={key} type="button" className={hidden.includes(key) ? "muted" : ""} onClick={() => toggle(key)}><i style={{ background: color }} />{label}</button>)}</div>
+    <div className="metrics-chart-legend">{legend.map(([key, label, color, hasData]) => <button key={key} type="button" className={`${hidden.includes(key) || !hasData ? "muted" : ""}${!hasData ? " no-data" : ""}`} onClick={() => hasData && toggle(key)} disabled={!hasData} aria-label={`${label}${hasData ? "" : ", sin datos"}`}><i style={{ background: hasData ? color : "var(--line)" }} />{label}{!hasData && <small>sin datos</small>}</button>)}</div>
     <div className="metrics-combo-chart">
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Visitas y clientes nuevos como barras, ventas como línea">
-        {[0, 1, 2, 3, 4].map(tick => <g key={tick}><line x1={left} x2={width - right} y1={top + plotHeight * tick / 4} y2={top + plotHeight * tick / 4} className="metrics-grid-line" /><text x="0" y={top + plotHeight * tick / 4 + 4}>{Math.round(maxVisits * (4 - tick) / 4)}</text></g>)}
+        {activityTicks.map(tick => {
+          const y = top + plotHeight - tick / maxVisits * plotHeight;
+          return <g key={`activity-${tick}`}><line x1={left} x2={width - right} y1={y} y2={y} className="metrics-grid-line" /><text x={left - 8} y={y + 4} textAnchor="end">{tick}</text></g>;
+        })}
+        {salesTicks.map(tick => {
+          const y = top + plotHeight - tick / maxSales * plotHeight;
+          return <text key={`sales-${tick}`} x={width - right + 8} y={y + 4} className="metrics-right-axis">{axisMoney(tick)}</text>;
+        })}
         {bars.map(bar => <rect key={`${bar.key}-${bar.index}`} x={bar.x} y={bar.y} width={bar.width} height={Math.max(1, bar.height)} rx="2" fill={bar.fill} tabIndex={0} aria-label={`${bar.label}, ${bar.key === "visitas" ? "visitas" : "clientes nuevos"}: ${bar.value}`} onPointerEnter={() => setActive(bar.index)} onFocus={() => setActive(bar.index)} />)}
-        {visible("ventas") && <polyline points={salesPoints} fill="none" stroke="#4e8066" strokeWidth="3" strokeLinejoin="round" />}
-        {visible("ventas") && series.items.map((item, index) => <circle key={item.label} cx={left + step * (index + .5)} cy={top + plotHeight - item.ventas / maxSales * plotHeight} r="3" fill="#4e8066" tabIndex={0} aria-label={`${item.label}, ventas ${formatMoney(item.ventas)}`} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} />)}
+        {visible("ventas") && hasSales && <polyline points={salesPoints} fill="none" stroke="#4e8066" strokeWidth="3" strokeLinejoin="round" />}
+        {visible("ventas") && hasSales && series.items.map((item, index) => <circle key={item.label} cx={left + step * (index + .5)} cy={top + plotHeight - item.ventas / maxSales * plotHeight} r="3" fill="#4e8066" tabIndex={0} aria-label={`${item.label}, ventas ${formatMoney(item.ventas)}`} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} />)}
         {series.items.map((item, index) => index % Math.max(1, Math.ceil(series.items.length / 9)) === 0 || index === series.items.length - 1 ? <text key={item.label} x={left + step * (index + .5)} y={height - 7} textAnchor="middle">{item.label}</text> : null)}
-        <text x={width - right + 3} y={top + 8} className="metrics-right-axis">S/</text>
       </svg>
       {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {current.visitas} visitas · {current.clientesNuevos} clientes nuevos · {formatMoney(current.ventas)}</p>}
     </div>
@@ -78,41 +120,13 @@ export function ComboChart({ series }) {
 }
 ComboChart.propTypes = { series: PropTypes.shape({ items: PropTypes.arrayOf(PropTypes.object).isRequired, interval: PropTypes.string }).isRequired };
 
-export function TrafficHeatmap({ data }) {
-  const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-  const max = Math.max(1, ...data.flat().map(item => item.count));
-  return <div className="metrics-heatmap-scroll"><table className="metrics-heatmap" aria-label="Afluencia por día y hora">
-    <thead><tr><th>Día</th>{Array.from({ length: 15 }, (_, index) => <th key={index}>{index + 8}:00</th>)}</tr></thead>
-    <tbody>{days.map((day, row) => <tr key={day}><th>{day}</th>{data[row]?.map(cell => <td key={cell.hour} title={`${day} ${cell.hour}:00 · ${cell.count} visitas`} style={{ "--heat": .12 + cell.count / max * .78 }}>{cell.count || ""}</td>)}</tr>)}</tbody>
-  </table></div>;
-}
-TrafficHeatmap.propTypes = { data: PropTypes.arrayOf(PropTypes.array).isRequired };
-
-export function LoyaltyFunnel({ items }) {
-  const max = Math.max(1, ...items.map(item => item.value));
-  return <ol className="metrics-funnel">{items.map((item, index) => <li key={item.label}>
-    <div className="metrics-funnel-label"><span>{item.label}</span><strong>{item.value}</strong>{index > 0 && <small>{items[index - 1].value ? Math.round(item.value / items[index - 1].value * 100) : 0}% conversión</small>}</div>
-    <i style={{ width: `${Math.max(8, item.value / max * 100)}%` }} />
-  </li>)}</ol>;
-}
-LoyaltyFunnel.propTypes = { items: PropTypes.arrayOf(PropTypes.shape({ label: PropTypes.string, value: PropTypes.number })).isRequired };
-
-export function CohortTable({ rows }) {
-  return <div className="table-wrap"><table className="metrics-cohort-table"><thead><tr><th>Mes de alta</th>{["M0", "M1", "M2", "M3", "M4", "M5"].map(month => <th key={month}>{month}</th>)}</tr></thead>
-    <tbody>{rows.map(row => <tr key={row.month}><th>{row.month}</th>{Array.from({ length: 6 }, (_, index) => {
-      const value = row.values[index];
-      return <td key={index} style={{ "--cohort": value === undefined ? 0 : .12 + value / 100 * .78 }}>{value === undefined ? "—" : `${value}%`}</td>;
-    })}</tr>)}</tbody>
-  </table></div>;
-}
-CohortTable.propTypes = { rows: PropTypes.arrayOf(PropTypes.shape({ month: PropTypes.string, values: PropTypes.arrayOf(PropTypes.number) })).isRequired };
-
 export function BranchRanking({ branches }) {
-  const max = Math.max(1, ...branches.map(branch => branch.sales));
-  return <ol className="metrics-branch-ranking">{branches.map((branch, index) => <li key={branch.id}>
+  const rankedBranches = [...branches].sort((first, second) => Number(second.sales > 0) - Number(first.sales > 0) || second.sales - first.sales);
+  const max = Math.max(1, ...rankedBranches.map(branch => branch.sales));
+  return <ol className="metrics-branch-ranking">{rankedBranches.map((branch, index) => <li key={branch.id} className={branch.sales <= 0 ? "no-sales" : ""}>
     <span className="metrics-rank">{index + 1}</span><div className="metrics-branch-info"><Link to={`/panel/ubicaciones?local=${branch.id}`}>{branch.name}</Link>
-      <div className="metrics-ranking-bar"><i style={{ width: `${branch.sales / max * 100}%` }} /></div>
-      <small>{branch.visits} visitas · {branch.returnRate}% retorno · ★ {branch.rating.toFixed(1)}</small></div><strong>{formatMoney(branch.sales)}</strong>
+      <div className="metrics-ranking-line"><div className="metrics-ranking-bar"><i style={{ width: `${branch.sales / max * 100}%` }} /></div><strong>{formatMoney(branch.sales)}</strong></div>
+      <small>{branch.visits} visitas · {branch.returnRate}% retorno · ★ {branch.rating.toFixed(1)}</small></div>
   </li>)}</ol>;
 }
 BranchRanking.propTypes = { branches: PropTypes.arrayOf(PropTypes.object).isRequired };
@@ -139,10 +153,11 @@ function StampHistogram({ rows }) {
 StampHistogram.propTypes = { rows: PropTypes.arrayOf(PropTypes.object).isRequired };
 
 function ProgramPanel({ title, subtitle, stats, cardId, children, trend, compareLabel }) {
-  return <article className="panel metrics-program-panel">
+  const hasTrend = trend !== null && trend !== undefined;
+  return <article className="panel metrics-program-panel metrics-content-section">
     <PanelHeading title={title} subtitle={subtitle}>{cardId && <Link className="text-button" to={`/panel/tarjetas/${cardId}`}>Ver tarjeta</Link>}</PanelHeading>
-    <p className="metrics-program-comparison" title={trend === null ? "Sin datos en el periodo de comparación." : `Comparado con ${compareLabel}`}>
-      Ventas del programa: {trend === null ? "Nuevo · sin datos comparables" : `${trend > 0 ? "+" : ""}${trend}% vs. ${compareLabel}`}
+    <p className={`metrics-program-comparison ${!hasTrend ? "trend-new" : trend < 0 ? "trend-down" : "trend-up"}`} tabIndex={0} title={!hasTrend ? "Sin datos en el periodo de comparación." : `Comparado con ${compareLabel}`}>
+      Ventas del programa: {hasTrend ? `${formatTrend(trend)}% vs. ${compareLabel}` : "—"}
     </p>
     <div className="metrics-program-stats">{stats.map(item => <ProgramStat key={item.label} {...item} />)}</div>
     {children}
@@ -238,14 +253,14 @@ function SeasonalityChart({ series }) {
 SeasonalityChart.propTypes = { series: PropTypes.arrayOf(PropTypes.object).isRequired };
 
 export function ProgramBreakdown({ programs, totalSales }) {
-  const denominator = Math.max(1, totalSales);
-  return <section className="panel metrics-breakdown"><PanelHeading title="Rendimiento por programa" subtitle="Compara la contribución de cada tipo de tarjeta" />
+  const percentage = program => totalSales > 0 ? Math.round(program.sales / totalSales * 100) : 0;
+  return <section className="panel metrics-breakdown metrics-content-section"><PanelHeading title="Rendimiento por programa" subtitle="Compara la contribución de cada tipo de tarjeta" />
     <div className="metrics-breakdown-cards">{programs.map(program => <article key={program.key} style={{ "--program-accent": program.color }}>
-      <span>{program.label}</span><strong>{program.customers} clientes</strong><small>{program.visits} visitas · {formatMoney(program.sales)} · {program.redemptions} canjes</small>      <span className="metrics-trend" title={program.trend === null ? "No hubo datos de comparación para este programa." : "Variación de ventas"}>{program.trend === null ? (program.sales > 0 ? "Nuevo" : "—") : `${program.trend > 0 ? "+" : ""}${program.trend}%`}</span>
+      <span>{program.label}</span><strong>{program.customers} clientes</strong><small>{program.visits} visitas · {formatMoney(program.sales)} · {program.redemptions} canjes</small>      <span className={`metrics-trend ${program.trend === null || program.trend === undefined ? "trend-new" : program.trend < 0 ? "trend-down" : "trend-up"}`} tabIndex={0} title={program.trend === null || program.trend === undefined ? "No hubo datos de comparación para este programa." : "Variación de ventas"}>{program.trend === null || program.trend === undefined ? "—" : `${formatTrend(program.trend)}%`}</span>
       <Link to={program.card?.id ? `/panel/tarjetas/${program.card.id}` : "/panel/tarjetas"}>Ver programa</Link>
     </article>)}</div>
-    <h3>Participación en ventas</h3><div className="metrics-stacked-bar" role="img" aria-label="Participación de ventas por programa">{programs.map(program => <span key={program.key} title={`${program.label}: ${Math.round(program.sales / denominator * 100)}%`} style={{ width: `${program.sales / denominator * 100}%`, background: program.color }} />)}</div>
-    <div className="metrics-chart-legend">{programs.map(program => <span key={program.key}><i style={{ background: program.color }} />{program.label}</span>)}</div>
+    <h3>Participación en ventas</h3><div className="metrics-stacked-bar" aria-label="Participación de ventas por programa">{programs.filter(program => percentage(program) > 0).map(program => <span key={program.key} tabIndex={0} title={`${program.label}: ${percentage(program)}% de las ventas (${formatMoney(program.sales)})`} aria-label={`${program.label}: ${percentage(program)}% de las ventas`} style={{ width: `${program.sales / Math.max(1, totalSales) * 100}%`, background: program.color }} />)}</div>
+    <div className="metrics-chart-legend">{programs.map(program => <span key={program.key} className={percentage(program) === 0 ? "no-data" : ""} tabIndex={0} aria-label={`${program.label}: ${percentage(program)}%${percentage(program) === 0 ? ", sin ventas" : ""}`} title={`${program.label}: ${percentage(program)}%${percentage(program) === 0 ? ", sin ventas" : ""}`}><i style={{ background: percentage(program) === 0 ? "var(--line)" : program.color }} />{percentage(program) === 0 ? `${program.label} 0% · sin ventas` : `${program.label} ${percentage(program)}%`}</span>)}</div>
   </section>;
 }
 ProgramBreakdown.propTypes = { programs: PropTypes.arrayOf(PropTypes.object).isRequired, totalSales: PropTypes.number.isRequired };
