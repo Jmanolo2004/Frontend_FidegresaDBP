@@ -1,144 +1,226 @@
-import { useState } from "react";
-import { PageHeader } from "../../components/common/PageHeader";
-import { KpiCard } from "../../components/common/KpiCard";
-import { PanelHeading } from "../../components/common/PanelHeading";
-import { FilterSelect } from "../../components/common/FilterSelect";
+import { useMemo, useState } from "react";
+import PropTypes from "prop-types";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
-import { ConfirmDialog } from "../../components/common/ConfirmDialog";
+import { FilterSelect } from "../../components/common/FilterSelect";
 import { Icon } from "../../components/common/Icon";
-import { KpiSkeletonGrid, Skeleton } from "../../components/common/Skeleton";
-import { LoyaltyCard } from "../../components/cards/LoyaltyCard";
-import { CardDesignerDialog } from "../../components/cards/CardDesignerDialog";
+import { KpiCard } from "../../components/common/KpiCard";
+import { PageHeader } from "../../components/common/PageHeader";
+import { SearchInput } from "../../components/common/SearchInput";
+import { Skeleton } from "../../components/common/Skeleton";
+import { CardFront } from "../../components/cards/CardFront";
+import { CARD_TYPE_CONFIG, CARD_TYPE_KEYS } from "../../components/cards/cardTypes";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
 import { useToast } from "../../hooks/useToast";
-import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { loyaltyProgramService } from "../../services/loyaltyProgramService";
-import { branchService } from "../../services/branchService";
-import { CARD_TYPES, CARD_TYPE_ICONS } from "../../utils/constants";
+import { formatMoney } from "../../utils/format";
 
-const TYPE_OPTIONS = [{ value: "Todas", label: "Todas" }, ...CARD_TYPES.map(type => ({ value: type, label: type === "Giftcard" ? "Gift cards" : type }))];
+const STATUS_OPTIONS = [
+  { value: "Todos", label: "Todos los estados" },
+  { value: "Activa", label: "Activas" },
+  { value: "En pausa", label: "En pausa" },
+  { value: "Borrador", label: "Borradores" }
+];
+
+const SORT_OPTIONS = [
+  { value: "recent", label: "Más recientes" },
+  { value: "name", label: "Nombre (A-Z)" },
+  { value: "customers", label: "Más clientes" }
+];
+
+function CardTile({ card, onStatusChange, onDuplicate, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const statusClass = card.estado === "Activa" ? "active" : card.estado === "En pausa" ? "paused" : "draft";
+  return (
+    <article className="card-gallery-item">
+      <Link to={`/panel/tarjetas/${card.id}`} className="card-gallery-preview" aria-label={`Ver detalle de ${card.nombre}`}>
+        <CardFront card={card} size="md" />
+      </Link>
+      <div className="card-gallery-meta">
+        <div className="card-gallery-title">
+          <div><h2>{card.nombre}</h2><span>{CARD_TYPE_CONFIG[card.tipo]?.label} · {card.negocio}</span></div>
+          <span className={`program-status ${statusClass}`}><i />{card.estado}</span>
+        </div>
+        <div className="card-gallery-stats">
+          <span><strong>{card.metricas?.clientesActivos || 0}</strong> clientes activos</span>
+          <span><strong>{card.metricas?.canjes || 0}</strong> canjes</span>
+          <span>{formatMoney(card.metricas?.ventasAsociadas || 0)}</span>
+        </div>
+        <div className="card-gallery-actions">
+          <Link className="secondary-button" to={`/panel/tarjetas/${card.id}`}>Ver detalle</Link>
+          <Link className="small-action" to={`/panel/tarjetas/${card.id}/editar`} aria-label={`Editar ${card.nombre}`}><Icon name="settings" size={15} />Editar</Link>
+          <details className="card-action-menu" open={menuOpen} onToggle={event => setMenuOpen(event.currentTarget.open)}>
+            <summary aria-label={`Más acciones para ${card.nombre}`} aria-expanded={menuOpen}>⋯</summary>
+            <div className="card-action-menu-items">
+              <button type="button" onClick={() => { setMenuOpen(false); onDuplicate(card); }}>Duplicar</button>
+              <button type="button" onClick={() => { setMenuOpen(false); onStatusChange(card, card.estado === "Activa" ? "En pausa" : "Activa"); }}>
+                {card.estado === "Activa" ? "Pausar" : "Activar"}
+              </button>
+              <button type="button" className="danger-text" onClick={() => { setMenuOpen(false); onDelete(card); }}>Eliminar</button>
+            </div>
+          </details>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+CardTile.propTypes = {
+  card: PropTypes.object.isRequired,
+  onStatusChange: PropTypes.func.isRequired,
+  onDuplicate: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired
+};
 
 export default function CardsPage() {
   useDocumentTitle("Tarjetas");
   const { showToast, showError } = useToast();
-  const [typeFilter, setTypeFilter] = useState("Todas");
-  const [designer, setDesigner] = useState({ open: false, card: null });
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [cardToDelete, setCardToDelete] = useState(null);
+  const type = CARD_TYPE_KEYS.includes(searchParams.get("tipo")) ? searchParams.get("tipo") : "Todas";
+  const status = STATUS_OPTIONS.some(option => option.value === searchParams.get("estado")) ? searchParams.get("estado") : "Todos";
+  const search = searchParams.get("q") || "";
+  const order = SORT_OPTIONS.some(option => option.value === searchParams.get("orden")) ? searchParams.get("orden") : "recent";
+  const query = useFetch(({ signal }) => loyaltyProgramService.getAll({ type: type === "Todas" ? "" : type, status, search }, { signal }), [type, status, search]);
+  const allPrograms = useFetch(({ signal }) => loyaltyProgramService.getAll({}, { signal }), []);
 
-  const programs = useFetch(({ signal }) => loyaltyProgramService.getAll({}, { signal }), []);
-  const locations = useFetch(({ signal }) => branchService.getAll({ signal }), []);
-
-  const allCards = programs.data || [];
-  const cards = allCards.filter(card => typeFilter === "Todas" || card.tipo === typeFilter);
-  const countOf = type => allCards.filter(card => card.tipo === type).length;
-
-  const handleSaved = () => {
-    setDesigner({ open: false, card: null });
-    programs.refresh();
+  const updateQuery = (key, value, defaultValue = "") => {
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      if (!value || value === defaultValue) next.delete(key);
+      else next.set(key, value);
+      return next;
+    }, { replace: true });
   };
 
-  const deleteCard = async () => {
+  const cards = useMemo(() => {
+    const filtered = (query.data || []).filter(card => type === "Todas" || card.tipo === type);
+    return filtered.sort((first, second) => {
+      if (order === "name") return first.nombre.localeCompare(second.nombre, "es");
+      if (order === "customers") return (second.metricas?.clientesActivos || 0) - (first.metricas?.clientesActivos || 0);
+      return new Date(second.actualizadaEn || second.creadaEn) - new Date(first.actualizadaEn || first.creadaEn);
+    });
+  }, [order, query.data, type]);
+  const totals = allPrograms.data || [];
+  const countOf = cardType => totals.filter(card => card.tipo === cardType).length;
+  const activePrograms = totals.filter(card => card.estado === "Activa").length;
+  const activeCustomers = totals.reduce((sum, card) => sum + (card.metricas?.clientesActivos || 0), 0);
+  const monthlyRedemptions = totals.reduce((sum, card) => sum + (card.metricas?.canjesMes || 0), 0);
+
+  const handleStatusChange = async (card, nextStatus) => {
     try {
-      await loyaltyProgramService.remove(cardToDelete.id);
-      programs.setData(current => current.filter(card => card.id !== cardToDelete.id));
-      showToast(`Tarjeta “${cardToDelete.nombre}” eliminada.`);
-      setCardToDelete(null);
+      await loyaltyProgramService.setStatus(card.id, nextStatus);
+      showToast(`La tarjeta ahora está ${nextStatus.toLowerCase()}.`);
+      query.refresh();
+      allPrograms.refresh();
     } catch (error) {
       showError(error.message);
     }
   };
 
+  const handleDuplicate = async card => {
+    try {
+      const duplicate = await loyaltyProgramService.duplicate(card.id);
+      showToast("Se creó un borrador duplicado.");
+      await Promise.all([query.refresh(), allPrograms.refresh()]);
+      navigate(`/panel/tarjetas/${duplicate.id}/editar`);
+    } catch (error) {
+      showError(error.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!cardToDelete) return;
+    try {
+      await loyaltyProgramService.remove(cardToDelete.id);
+      showToast(`Tarjeta “${cardToDelete.nombre}” eliminada.`);
+      setCardToDelete(null);
+      query.refresh();
+      allPrograms.refresh();
+    } catch (error) {
+      showError(error.message);
+    }
+  };
+
+  const createLabel = type === "Todas" ? "" : ` de ${CARD_TYPE_CONFIG[type].label}`;
+
   return (
     <>
       <PageHeader
         title="Tarjetas"
-        summary="Diseña las tarjetas digitales que reemplazan a las tarjetas físicas de sellos de tu negocio."
-        actions={
-          <button type="button" className="primary-button" onClick={() => setDesigner({ open: true, card: null })} disabled={!locations.data?.length}>
-            <Icon name="card" size={16} />
-            Crear programa
-          </button>
-        }
+        summary="Diseña y administra los programas digitales de fidelización para tus clientes."
+        actions={<Link className="primary-button" to="/panel/tarjetas/nueva"><Icon name="plus" size={16} />Crear tarjeta</Link>}
       />
 
-      {programs.data ? (
+      {allPrograms.data ? (
         <div className="stats-grid card-program-stats">
-          <KpiCard label="Programas creados" value={allCards.length} explanation="Tarjetas de lealtad listas para tus clientes." icon="card" />
-          <KpiCard label="Estampillas" value={countOf("Estampillas")} explanation="Premia visitas y compras frecuentes." icon="star" />
-          <KpiCard label="Cashback" value={countOf("Cashback")} explanation="Devuelve un porcentaje de cada compra." icon="reward" />
-          <KpiCard label="Niveles y gift cards" value={countOf("Niveles") + countOf("Giftcard")} explanation="Reconoce progreso y ofrece saldo de regalo." icon="users" />
+          <KpiCard label="Programas" value={totals.length} icon="card" />
+          <KpiCard label="Activos" value={activePrograms} icon="chart" />
+          <KpiCard label="Clientes en programas" value={activeCustomers} icon="users" />
+          <KpiCard label="Canjes del mes" value={monthlyRedemptions} icon="reward" />
         </div>
       ) : (
-        !programs.error && <KpiSkeletonGrid />
+        <div className="stats-grid card-program-stats">{[0, 1, 2, 3].map(index => <Skeleton key={index} height={95} radius={13} />)}</div>
       )}
 
-      <section className="card-builder-intro">
-        <div>
-          <span className="card-builder-kicker">DISEÑADOR DE PROGRAMAS</span>
-          <h2>Una experiencia que lleva tu marca.</h2>
-          <p>Adiós a las tarjetas de cartón que se pierden: personaliza beneficios, colores e imagen, y tus clientes llevarán su progreso en el celular.</p>
-        </div>
-        <div className="card-type-chips">
-          {CARD_TYPES.map(type => (
-            <span key={type}>
-              <Icon name={CARD_TYPE_ICONS[type]} size={14} />
-              {type === "Giftcard" ? "Gift card" : type}
-            </span>
+      <article className="panel card-gallery-panel">
+        <div className="card-type-tabs" role="tablist" aria-label="Filtrar tarjetas por tipo">
+          {[{ value: "Todas", label: "Todas" }, ...CARD_TYPE_KEYS.map(cardType => ({ value: cardType, label: CARD_TYPE_CONFIG[cardType].label }))].map((tab, index, tabs) => (
+            <button
+              type="button"
+              role="tab"
+              key={tab.value}
+              tabIndex={type === tab.value ? 0 : -1}
+              aria-selected={type === tab.value}
+              className={type === tab.value ? "selected" : ""}
+              onClick={() => updateQuery("tipo", tab.value, "Todas")}
+              onKeyDown={event => {
+                const nextIndex = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index - 1 + tabs.length) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
+                if (nextIndex < 0) return;
+                event.preventDefault();
+                const nextTab = tabs[nextIndex];
+                updateQuery("tipo", nextTab.value, "Todas");
+                event.currentTarget.parentElement.children[nextIndex]?.focus();
+              }}
+            >
+              {tab.label} <span>{tab.value === "Todas" ? totals.length : allPrograms.data ? countOf(tab.value) : "…"}</span>
+            </button>
           ))}
         </div>
-      </section>
 
-      <article className="panel card-program-panel">
-        <PanelHeading title="Tus programas" subtitle="Diseña, edita o elimina tarjetas de lealtad">
-          <FilterSelect value={typeFilter} onChange={setTypeFilter} options={TYPE_OPTIONS} label="Filtrar programas" />
-        </PanelHeading>
-        {programs.error && !programs.data ? (
-          <ErrorState error={programs.error} onRetry={programs.reload} compact />
-        ) : !programs.data ? (
-          <div className="cards-grid">
-            {[0, 1, 2].map(index => (
-              <Skeleton key={index} height={230} radius={16} />
-            ))}
+        <div className="card-gallery-toolbar">
+          <SearchInput value={search} onSearch={value => updateQuery("q", value)} label="Buscar por nombre de tarjeta o local" placeholder="Buscar tarjeta o local" />
+          <FilterSelect value={status} onChange={value => updateQuery("estado", value, "Todos")} options={STATUS_OPTIONS} label="Filtrar tarjetas por estado" />
+          <FilterSelect value={order} onChange={value => updateQuery("orden", value, "recent")} options={SORT_OPTIONS} label="Ordenar tarjetas" />
+        </div>
+
+        {query.error && !query.data ? (
+          <ErrorState error={query.error} onRetry={query.reload} />
+        ) : !query.data ? (
+          <div className="cards-grid">{[0, 1, 2, 3].map(index => <Skeleton key={index} height={330} radius={16} />)}</div>
+        ) : cards.length ? (
+          <div className="cards-grid card-gallery-grid">
+            {cards.map(card => <CardTile key={card.id} card={card} onStatusChange={handleStatusChange} onDuplicate={handleDuplicate} onDelete={setCardToDelete} />)}
           </div>
-        ) : cards.length === 0 ? (
-          <EmptyState message="No hay programas en esta categoría. Crea uno para comenzar." actionLabel="Crear programa" onAction={() => setDesigner({ open: true, card: null })} />
         ) : (
-          <div className="cards-grid">
-            {cards.map(card => (
-              <article className="program-card" key={card.id}>
-                <LoyaltyCard card={card} />
-                <div className="program-card-meta">
-                  <span className={`program-status${card.activa ? "" : " paused"}`}>
-                    <i />
-                    {card.activa ? "Activa" : "En pausa"}
-                  </span>
-                  <span>{card.clientes} clientes</span>
-                  <span>{card.negocio}</span>
-                </div>
-                <div className="program-card-actions">
-                  <button type="button" className="small-action" onClick={() => setDesigner({ open: true, card })}>
-                    <Icon name="settings" size={14} />
-                    Diseñar
-                  </button>
-                  <button type="button" className="small-action danger-text" onClick={() => setCardToDelete(card)}>
-                    <Icon name="close" size={14} />
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+          <EmptyState
+            message={`No hay tarjetas${type === "Todas" ? "" : ` de ${CARD_TYPE_CONFIG[type].label}`} que coincidan con estos filtros.`}
+            actionLabel={`Crear tarjeta${createLabel}`}
+            onAction={() => navigate(`/panel/tarjetas/nueva${type === "Todas" ? "" : `?tipo=${encodeURIComponent(type)}`}`)}
+          />
         )}
       </article>
 
-      <CardDesignerDialog open={designer.open && Boolean(locations.data)} card={designer.card} locations={locations.data || []} onClose={() => setDesigner({ open: false, card: null })} onSaved={handleSaved} />
       <ConfirmDialog
         open={Boolean(cardToDelete)}
         title="Eliminar tarjeta"
-        description={cardToDelete ? `¿Quieres eliminar “${cardToDelete.nombre}”? Los clientes ya no verán este programa.` : ""}
-        confirmLabel="Eliminar"
-        onConfirm={deleteCard}
+        description={cardToDelete ? `¿Quieres eliminar “${cardToDelete.nombre}”? Los clientes ya no podrán consultar este programa.` : ""}
+        confirmLabel="Eliminar tarjeta"
+        onConfirm={handleDelete}
         onClose={() => setCardToDelete(null)}
       />
     </>

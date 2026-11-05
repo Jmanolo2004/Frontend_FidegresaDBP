@@ -8,7 +8,7 @@ import { Stars } from "../../components/common/Stars";
 import { Icon } from "../../components/common/Icon";
 import { ErrorState } from "../../components/common/ErrorState";
 import { PageSkeleton } from "../../components/common/Skeleton";
-import { LoyaltyCard } from "../../components/cards/LoyaltyCard";
+import { CardFront } from "../../components/cards/CardFront";
 import { useFetch } from "../../hooks/useFetch";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { customerService } from "../../services/customerService";
@@ -104,7 +104,7 @@ export default function CustomerDetailPage() {
         </article>
         <article className="panel">
           <PanelHeading title="Tarjeta digital" subtitle="Así ve su tarjeta en el celular" />
-          {card ? <LoyaltyCard card={card} stamps={customer.estampillas} /> : <div className="empty-state">Este cliente aún no tiene una tarjeta asignada.</div>}
+          {card ? <CardFront card={card} size="md" /> : <div className="empty-state">Este cliente aún no tiene una tarjeta asignada.</div>}
         </article>
       </div>
 

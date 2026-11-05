@@ -5,6 +5,8 @@ import { RouteErrorScreen } from "./RouteErrorScreen";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { PublicOnlyRoute } from "./PublicOnlyRoute";
 import { DashboardLayout } from "../components/layout/DashboardLayout";
+import { tokenStorage } from "../api/tokenStorage";
+import { loyaltyProgramService } from "../services/loyaltyProgramService";
 
 // Cada pantalla se descarga solo cuando se visita (code splitting con React.lazy).
 const LandingPage = lazy(() => import("../pages/public/LandingPage"));
@@ -20,6 +22,8 @@ const CustomersPage = lazy(() => import("../pages/dashboard/CustomersPage"));
 const CustomerDetailPage = lazy(() => import("../pages/dashboard/CustomerDetailPage"));
 const ReviewsPage = lazy(() => import("../pages/dashboard/ReviewsPage"));
 const CardsPage = lazy(() => import("../pages/dashboard/CardsPage"));
+const CardWizardPage = lazy(() => import("../pages/dashboard/CardWizardPage"));
+const CardDetailPage = lazy(() => import("../pages/dashboard/CardDetailPage"));
 const LocationsPage = lazy(() => import("../pages/dashboard/LocationsPage"));
 const GeolocationPage = lazy(() => import("../pages/dashboard/GeolocationPage"));
 const SettingsPage = lazy(() => import("../pages/dashboard/SettingsPage"));
@@ -33,6 +37,16 @@ export const ROUTES = {
   connectionError: "/sin-conexion",
   dashboard: "/panel/metricas"
 };
+
+async function loadCard({ params, request }) {
+  if (!tokenStorage.getAccessToken()) return null;
+  try {
+    return await loyaltyProgramService.getById(params.programId, { signal: request.signal });
+  } catch (error) {
+    if (error.status === 404) return { notFound: true };
+    throw error;
+  }
+}
 
 export const router = createBrowserRouter([
   {
@@ -68,7 +82,16 @@ export const router = createBrowserRouter([
                 ]
               },
               { path: "resenas", element: <ReviewsPage />, handle: { crumb: "Reseñas" } },
-              { path: "tarjetas", element: <CardsPage />, handle: { crumb: "Tarjetas" } },
+              {
+                path: "tarjetas",
+                handle: { crumb: "Tarjetas" },
+                children: [
+                  { index: true, element: <CardsPage /> },
+                  { path: "nueva", element: <CardWizardPage />, handle: { crumb: "Nueva tarjeta" } },
+                  { path: ":programId", loader: loadCard, element: <CardDetailPage />, handle: { crumb: (_, data) => data?.nombre || "Tarjeta" } },
+                  { path: ":programId/editar", loader: loadCard, element: <CardWizardPage />, handle: { crumb: (_, data) => data?.nombre ? `Editar ${data.nombre}` : "Editar tarjeta" } }
+                ]
+              },
               { path: "ubicaciones", element: <LocationsPage />, handle: { crumb: "Ubicaciones" } },
               { path: "geolocalizacion", element: <GeolocationPage />, handle: { crumb: "Geolocalización" } },
               { path: "configuracion", element: <SettingsPage />, handle: { crumb: "Configuración" } },

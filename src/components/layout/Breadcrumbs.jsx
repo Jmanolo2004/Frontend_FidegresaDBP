@@ -5,7 +5,7 @@ import { Link, useMatches } from "react-router-dom";
 export function Breadcrumbs() {
   const crumbs = useMatches()
     .filter(match => match.handle?.crumb)
-    .map(match => ({ path: match.pathname, label: typeof match.handle.crumb === "function" ? match.handle.crumb(match.params) : match.handle.crumb }));
+    .map(match => ({ path: match.pathname, label: typeof match.handle.crumb === "function" ? match.handle.crumb(match.params, match.data) : match.handle.crumb }));
 
   return (
     <nav className="breadcrumb" aria-label="Ubicación actual">
