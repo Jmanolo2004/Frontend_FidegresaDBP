@@ -44,8 +44,7 @@ a { color: inherit; text-decoration: none; }
 .brand-copy strong, .brand-copy small { display: block; }
 .brand-copy strong { font: 700 22px Georgia, serif; letter-spacing: -.35px; }
 .brand-copy small { margin-top: 4px; color: #d1bba6; font-size: 12px; letter-spacing: .7px; }
-.main-nav { display: grid; gap: 4px; }
-.nav-label { padding: 12px 12px 7px; color: #b8a390; font-size: 12px; font-weight: 700; letter-spacing: 1.1px; }
+.main-nav { display: grid; gap: 12px; }
 .nav-link { display: flex; align-items: center; gap: 13px; min-height: 42px; padding: 0 12px; border-radius: 9px; color: #dbcdbf; font-size: 13px; transition: background .18s, color .18s; }
 .nav-link:hover { background: #624632; color: white; }
 .nav-link.active { background: #806044; color: #fff; }
@@ -96,8 +95,11 @@ a { color: inherit; text-decoration: none; }
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, .9fr); gap: 15px; margin-bottom: 15px; }
 .metrics-toolbar { display: flex; align-items: center; gap: 9px; margin: -3px 0 13px; color: var(--muted); font-size: 12px; }
 .metrics-toolbar label:not(:first-child) { margin-left: 8px; }
-.metrics-primary-grid { grid-template-columns: minmax(0, 1.65fr) minmax(260px, .85fr); }
 .metrics-secondary-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.metrics-activity-panel, .activity-recent-panel { margin-bottom: 15px; }
+.activity-customer-cell { display: flex; align-items: center; gap: 8px; }
+.activity-location { display: block; color: var(--text); }
+.activity-district { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
 .weekly-actions ul, .recent-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
 .weekly-actions li { display: grid; gap: 8px; padding: 13px 0; border-bottom: 1px solid var(--line); color: var(--text); font-size: 12px; line-height: 1.5; }
 .weekly-actions li:first-child { padding-top: 0; }
@@ -121,11 +123,9 @@ a { color: inherit; text-decoration: none; }
 .chart-wrap svg { width: 100%; height: 100%; overflow: visible; }
 .chart-grid { stroke: var(--line); stroke-dasharray: 3 4; stroke-width: 1; }
 .chart-label { fill: #a1988f; font: 11px "Segoe UI", sans-serif; }
-.chart-area { fill: url(#chart-fill); }
-.chart-line { fill: none; stroke: var(--caramel); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.chart-dot { fill: var(--surface); stroke: var(--caramel); stroke-width: 2; }
-.chart-dot:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
-.chart-dot:hover { r: 6; }
+.chart-bar { fill: var(--caramel); transition: fill .15s; }
+.chart-bar:hover, .chart-bar.active { fill: var(--brown); }
+.chart-bar:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
 .chart-tooltip { position: absolute; top: 5px; right: 8px; padding: 6px 8px; border-radius: 5px; background: var(--brown); color: white; font-size: 12px; }
 .chart-data { margin-top: 6px; color: var(--muted); font-size: 12px; }
 .chart-data summary { width: fit-content; cursor: pointer; }
@@ -155,6 +155,7 @@ a { color: inherit; text-decoration: none; }
 .status-pill.inactive { background: #f4f1ee; color: #988c80; }
 .status-pill.pending { background: #fbf3e6; color: #8f5a22; }
 .section-toolbar { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+.section-toolbar-filters { display: flex; align-items: center; gap: 9px; margin-left: auto; }
 .search-wrap { position: relative; flex: 1; max-width: 390px; }
 .search-icon { position: absolute; top: 10px; left: 10px; color: #9a9086; }
 .search-input { width: 100%; padding-left: 35px; }
@@ -396,6 +397,7 @@ body.dark-theme {
   .location-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .section-toolbar { flex-wrap: wrap; }
   .search-wrap { max-width: none; flex-basis: 100%; }
+  .section-toolbar-filters { justify-content: flex-end; width: 100%; }
   .map-drag-hint { display: none; }
   .customer-table { overflow: visible; }
   .customer-table .data-table, .customer-table .data-table tbody, .customer-table .data-table tr, .customer-table .data-table td { display: block; width: 100%; }

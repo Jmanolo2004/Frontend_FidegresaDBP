@@ -108,8 +108,10 @@ export default function CustomersPage() {
         <PanelHeading title="Directorio de clientes" subtitle="Encuentra a alguien y revisa cómo participa" />
         <div className="section-toolbar">
           <SearchInput value={filters.q} onSearch={value => setFilter("q", value)} label="Buscar clientes por nombre, correo, teléfono, local o distrito" placeholder="Nombre, correo, teléfono o local" />
-          <FilterSelect value={filters.estado} onChange={value => setFilter("estado", value)} options={STATUS_OPTIONS} label="Filtrar por actividad" />
-          <FilterSelect value={filters.orden} onChange={value => setFilter("orden", value)} options={SORT_OPTIONS} label="Ordenar clientes" />
+          <div className="section-toolbar-filters">
+            <FilterSelect value={filters.estado} onChange={value => setFilter("estado", value)} options={STATUS_OPTIONS} label="Filtrar por actividad" />
+            <FilterSelect value={filters.orden} onChange={value => setFilter("orden", value)} options={SORT_OPTIONS} label="Ordenar clientes" />
+          </div>
         </div>
         <div aria-live="polite" aria-busy={customers.loading}>
           {customers.error ? (

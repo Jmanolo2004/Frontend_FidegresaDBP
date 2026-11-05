@@ -117,6 +117,24 @@ export const metricsHandlers = [
           count: db.clientes.filter(customer => customer.localId === location.id).length
         }))
         .sort((first, second) => second.count - first.count);
+      const recentActivity = [...db.visitas]
+        .sort((first, second) => new Date(second.fecha) - new Date(first.fecha))
+        .slice(0, 8)
+        .flatMap(visit => {
+          const customer = db.clientes.find(item => item.id === visit.clienteId);
+          if (!customer) return [];
+          const location = db.ubicaciones.find(item => item.id === visit.ubicacionId);
+          return [{
+            id: visit.id,
+            clienteId: customer.id,
+            nombre: customer.nombre,
+            iniciales: customer.iniciales,
+            local: location?.nombre || customer.tarjeta,
+            distrito: location?.distrito || customer.distrito,
+            fecha: visit.fecha,
+            monto: visit.monto
+          }];
+        });
       const recentCustomers = [...db.clientes]
         .sort((first, second) => new Date(second.ultimaVisita) - new Date(first.ultimaVisita))
         .slice(0, 4)
@@ -129,6 +147,7 @@ export const metricsHandlers = [
         series: seriesFor(db, period, metric),
         categories: [...categoryCounts.entries()].map(([name, count]) => ({ name, count, share: (count / total) * 100 })),
         topLocations: locations,
+        recentActivity,
         recentCustomers,
         totalCustomers: db.clientes.length,
         suggestions: buildSuggestions(db).slice(0, 3)

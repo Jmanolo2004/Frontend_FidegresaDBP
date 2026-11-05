@@ -35,7 +35,6 @@ export function Sidebar({ open, profileName, onNavigate, onOpenProfile, onLogout
       <nav className="main-nav" aria-label="Navegación principal">
         {NAVIGATION_GROUPS.map(group => (
           <div className="nav-group" key={group.label}>
-            <span className="nav-label">{group.label}</span>
             {group.items.map(item => (
               <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} onClick={onNavigate}>
                 <span className="sidebar-icon">

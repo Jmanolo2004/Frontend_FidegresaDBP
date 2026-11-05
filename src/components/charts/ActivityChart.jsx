@@ -3,13 +3,13 @@ import PropTypes from "prop-types";
 import { formatMoney, formatNumber } from "../../utils/format";
 
 const WIDTH = 650;
-const HEIGHT = 185;
+const HEIGHT = 200;
 const LEFT = 58;
 const TOP = 15;
 const PLOT_WIDTH = 569;
-const PLOT_HEIGHT = 137;
+const PLOT_HEIGHT = 150;
 
-/** Gráfico de línea en SVG (sin librerías) con tooltip accesible por teclado. */
+/** Gráfico de barras en SVG con valores accesibles por teclado. */
 export function ActivityChart({ series, metric, period }) {
   const isSales = metric === "ventas";
   const formatValue = value => (isSales ? formatMoney(value) : formatNumber(value));
@@ -24,32 +24,34 @@ export function ActivityChart({ series, metric, period }) {
         : maxValue > 20000 ? 10000 : maxValue > 5000 ? 2500 : 1000
       : Math.max(5, Math.ceil(maxValue / 4 / 5) * 5);
     const axisMaximum = Math.max(step * 4, Math.ceil(maxValue / (step * 4)) * step * 4);
-    const xFor = index => LEFT + (series.length === 1 ? PLOT_WIDTH / 2 : (index * PLOT_WIDTH) / (series.length - 1));
-    const yFor = value => TOP + PLOT_HEIGHT - (value / axisMaximum) * PLOT_HEIGHT;
-    const points = values.map((value, index) => `${xFor(index)},${yFor(value)}`).join(" ");
-    const area = values.length > 1 ? `M ${LEFT},${TOP + PLOT_HEIGHT} L ${points.replaceAll(" ", " L ")} L ${LEFT + PLOT_WIDTH},${TOP + PLOT_HEIGHT} Z` : "";
+    const slotWidth = PLOT_WIDTH / Math.max(1, series.length);
+    const barWidth = Math.max(2, Math.min(26, slotWidth * 0.68));
+    const bars = series.map((item, index) => {
+      const height = (item.value / axisMaximum) * PLOT_HEIGHT;
+      return {
+        ...item,
+        x: LEFT + slotWidth * index + (slotWidth - barWidth) / 2,
+        y: TOP + PLOT_HEIGHT - height,
+        width: barWidth,
+        height
+      };
+    });
     const ticks = [0, 1, 2, 3, 4].map(index => ({
       y: TOP + (index * PLOT_HEIGHT) / 4,
       value: Math.round((axisMaximum * (1 - index / 4)) / step) * step
     }));
-    return { xFor, yFor, points, area, ticks, labelStride: Math.max(1, Math.ceil(series.length / 6)) };
+    return { bars, ticks, labelStride: Math.max(1, Math.ceil(series.length / 8)) };
   }, [series, isSales, period]);
 
   const axisLabel = value => (isSales ? (value >= 1000 ? `S/ ${value / 1000} mil` : formatMoney(value)) : formatNumber(value));
-  const tooltipIndex = activeIndex ?? series.length - 1;
+  const tooltipIndex = activeIndex !== null && activeIndex < series.length ? activeIndex : series.length - 1;
   const tooltip = series.length ? `${series[tooltipIndex].label} · ${formatValue(series[tooltipIndex].value)}` : "Sin actividad en este periodo";
   const periodLabel = period === "month" ? "este mes" : period === "quarter" ? "los últimos tres meses" : "este año";
 
   return (
     <>
       <div className="chart-wrap">
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={`${isSales ? "Ventas en soles" : "Visitas"} durante ${periodLabel}`} preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="chart-fill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="#ad8059" stopOpacity=".25" />
-              <stop offset="1" stopColor="#ad8059" stopOpacity=".01" />
-            </linearGradient>
-          </defs>
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={`${isSales ? "Ventas en soles" : "Visitas"} durante ${periodLabel}, gráfico de barras`} preserveAspectRatio="none">
           {chart.ticks.map(tick => (
             <g key={tick.y}>
               <line className="chart-grid" x1={LEFT} y1={tick.y} x2={LEFT + PLOT_WIDTH} y2={tick.y} />
@@ -58,27 +60,27 @@ export function ActivityChart({ series, metric, period }) {
               </text>
             </g>
           ))}
-          <path className="chart-area" d={chart.area} />
-          <polyline className="chart-line" points={chart.points} />
-          {series.map((item, index) => (
-            <circle
-              key={item.label}
-              className="chart-dot"
-              cx={chart.xFor(index)}
-              cy={chart.yFor(item.value)}
-              r="4"
+          {chart.bars.map((bar, index) => (
+            <rect
+              key={bar.label}
+              className={`chart-bar${index === activeIndex ? " active" : ""}`}
+              x={bar.x}
+              y={bar.y}
+              width={bar.width}
+              height={Math.max(bar.height, 1)}
+              rx="3"
               tabIndex={0}
-              aria-label={`${item.label} · ${formatValue(item.value)}`}
+              aria-label={`${bar.label} · ${formatValue(bar.value)}`}
               onPointerEnter={() => setActiveIndex(index)}
               onFocus={() => setActiveIndex(index)}
             >
-              <title>{`${item.label} · ${formatValue(item.value)}`}</title>
-            </circle>
+              <title>{`${bar.label} · ${formatValue(bar.value)}`}</title>
+            </rect>
           ))}
-          {series.map((item, index) =>
+          {chart.bars.map((bar, index) =>
             index % chart.labelStride === 0 || index === series.length - 1 ? (
-              <text key={`label-${item.label}`} className="chart-label" textAnchor="middle" x={chart.xFor(index)} y={HEIGHT - 5}>
-                {item.short}
+              <text key={`label-${bar.label}`} className="chart-label" textAnchor="middle" x={bar.x + bar.width / 2} y={HEIGHT - 5}>
+                {bar.short}
               </text>
             ) : null
           )}

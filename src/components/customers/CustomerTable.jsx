@@ -21,7 +21,6 @@ export function CustomerTable({ customers }) {
         </thead>
         <tbody>
           {customers.map(customer => {
-            const phoneNumber = String(customer.telefono || "").replace(/\D/g, "");
             return (
               <tr key={customer.id}>
                 <td className="customer-cell" data-label="Cliente">
@@ -35,7 +34,6 @@ export function CustomerTable({ customers }) {
                 <td className="customer-contact" data-label="Contacto">
                   <span className="cell-stack">
                     {customer.correo ? <a href={`mailto:${customer.correo}`}>{customer.correo}</a> : <span>Sin correo</span>}
-                    {phoneNumber ? <a href={`tel:${phoneNumber}`}>{customer.telefono}</a> : <span>Sin teléfono</span>}
                   </span>
                 </td>
                 <td data-label="Local">{customer.localNombre}</td>
