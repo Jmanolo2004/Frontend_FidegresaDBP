@@ -1,6 +1,6 @@
 import { getDatabase, saveDatabase } from "../database";
 import { badRequest, conflict, nextId, notFound, requireText, respond } from "../http";
-import { DISTRICT_NAMES } from "../../utils/constants";
+import { DISTRICT_NAMES, MAP_METERS_PER_UNIT } from "../../utils/constants";
 import { clampMapPoint, coordinatesFromMap, mapPositionFor } from "../../utils/geo";
 
 function withCustomerCount(db, location) {
@@ -105,9 +105,22 @@ export const branchHandlers = [
     handler: ({ params, body }) => {
       const db = getDatabase();
       const branch = findBranch(db, params.id);
-      branch.mapX = clampMapPoint(Number(body.mapX), 45, 955);
-      branch.mapY = clampMapPoint(Number(body.mapY), 45, 655);
-      Object.assign(branch, coordinatesFromMap(branch.distrito, branch.mapX, branch.mapY));
+      if (body.latitud !== undefined || body.longitud !== undefined) {
+        const latitud = Number(body.latitud);
+        const longitud = Number(body.longitud);
+        if (!Number.isFinite(latitud) || !Number.isFinite(longitud) || latitud < -12.4 || latitud > -11.7 || longitud < -77.4 || longitud > -76.5) {
+          throw badRequest("Selecciona una ubicación válida dentro de Lima.");
+        }
+        const origin = mapPositionFor(branch.distrito);
+        branch.mapX = clampMapPoint(origin.x + ((longitud - origin.longitud) * 111320 * Math.cos((origin.latitud * Math.PI) / 180)) / MAP_METERS_PER_UNIT, 45, 955);
+        branch.mapY = clampMapPoint(origin.y - ((latitud - origin.latitud) * 111320) / MAP_METERS_PER_UNIT, 45, 655);
+        branch.latitud = latitud;
+        branch.longitud = longitud;
+      } else {
+        branch.mapX = clampMapPoint(Number(body.mapX), 45, 955);
+        branch.mapY = clampMapPoint(Number(body.mapY), 45, 655);
+        Object.assign(branch, coordinatesFromMap(branch.distrito, branch.mapX, branch.mapY));
+      }
       saveDatabase();
       return respond(withCustomerCount(db, branch));
     }

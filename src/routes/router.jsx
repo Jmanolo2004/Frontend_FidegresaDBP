@@ -7,6 +7,7 @@ import { PublicOnlyRoute } from "./PublicOnlyRoute";
 import { DashboardLayout } from "../components/layout/DashboardLayout";
 import { tokenStorage } from "../api/tokenStorage";
 import { loyaltyProgramService } from "../services/loyaltyProgramService";
+import { audienceService } from "../services/audienceService";
 
 // Cada pantalla se descarga solo cuando se visita (code splitting con React.lazy).
 const LandingPage = lazy(() => import("../pages/public/LandingPage"));
@@ -26,6 +27,8 @@ const CardWizardPage = lazy(() => import("../pages/dashboard/CardWizardPage"));
 const CardDetailPage = lazy(() => import("../pages/dashboard/CardDetailPage"));
 const LocationsPage = lazy(() => import("../pages/dashboard/LocationsPage"));
 const GeolocationPage = lazy(() => import("../pages/dashboard/GeolocationPage"));
+const AudienceWizardPage = lazy(() => import("../pages/dashboard/AudienceWizardPage"));
+const AudienceDetailPage = lazy(() => import("../pages/dashboard/AudienceDetailPage"));
 const SettingsPage = lazy(() => import("../pages/dashboard/SettingsPage"));
 
 export const ROUTES = {
@@ -42,6 +45,17 @@ async function loadCard({ params, request }) {
   if (!tokenStorage.getAccessToken()) return null;
   try {
     return await loyaltyProgramService.getById(params.programId, { signal: request.signal });
+  } catch (error) {
+    if (error.status === 404) return { notFound: true };
+    throw error;
+  }
+}
+
+async function loadAudience({ params, request }) {
+  if (!params.audienceId) return null;
+  if (!tokenStorage.getAccessToken()) return null;
+  try {
+    return await audienceService.getById(params.audienceId, { signal: request.signal });
   } catch (error) {
     if (error.status === 404) return { notFound: true };
     throw error;
@@ -93,7 +107,22 @@ export const router = createBrowserRouter([
                 ]
               },
               { path: "ubicaciones", element: <LocationsPage />, handle: { crumb: "Ubicaciones" } },
-              { path: "geolocalizacion", element: <GeolocationPage />, handle: { crumb: "Geolocalización" } },
+              {
+                path: "geolocalizacion",
+                handle: { crumb: "Geolocalización" },
+                children: [
+                  { index: true, element: <GeolocationPage /> },
+                  {
+                    path: "audiencias",
+                    handle: { crumb: "Audiencias" },
+                    children: [
+                      { path: "nueva", loader: loadAudience, element: <AudienceWizardPage />, handle: { crumb: "Nueva audiencia" } },
+                      { path: ":audienceId", loader: loadAudience, element: <AudienceDetailPage />, handle: { crumb: (_, data) => data?.nombre || "Audiencia" } },
+                      { path: ":audienceId/editar", loader: loadAudience, element: <AudienceWizardPage />, handle: { crumb: (_, data) => data?.nombre ? `Editar ${data.nombre}` : "Editar audiencia" } }
+                    ]
+                  }
+                ]
+              },
               { path: "configuracion", element: <SettingsPage />, handle: { crumb: "Configuración" } },
               { path: "*", element: <NotFoundPage embedded />, handle: { crumb: "No encontrado" } }
             ]

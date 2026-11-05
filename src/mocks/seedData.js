@@ -75,6 +75,10 @@ export function createSeedData() {
       estampillas:location.id % 2 ? visits.length % 10 : 0,
       saldoCashback:location.id % 2 === 0 ? Number((visits.reduce((sum,visit)=>sum+visit.monto,0)*0.05).toFixed(2)) : 0,
       cumpleanos:index % 3 === 0 ? `${String((index%27)+1).padStart(2,"0")}/${String((index%12)+1).padStart(2,"0")}` : null,
+      lastKnownZone:location.distrito,
+      consentimientoUbicacion:index % 5 !== 0,
+      notificacionesActivas:index % 6 !== 0,
+      tipoTarjeta:["Estampillas","Cashback","Niveles","Giftcard"][index % 4],
       iniciales:name.split(/\s+/).slice(0,2).map(part=>part[0]).join("").toUpperCase(),
       foto:null,
       estado:lastDays <= 60 ? "Activa" : "Inactiva"
