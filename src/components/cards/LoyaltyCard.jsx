@@ -4,8 +4,9 @@ import { Icon } from "../common/Icon";
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 const IMAGE_DATA = /^data:image\/(?:png|jpeg|webp);base64,/i;
 const LEVEL_NAMES = ["BRONCE", "PLATA", "ORO", "DIAMANTE"];
+const SAMPLE_STAMPS = 3;
 
-function RewardProgress({ card }) {
+function RewardProgress({ card, stamps }) {
   if (card.mostrarProgreso === false) return null;
   if (card.tipo === "Cashback") {
     return (
@@ -37,21 +38,22 @@ function RewardProgress({ card }) {
     );
   }
   const total = Math.max(2, Math.min(12, Number(card.estampillas) || 10));
+  const collected = Math.min(total, Math.max(0, Number(stamps)));
   return (
-    <div className="loyalty-progress-stamps" aria-label={`${total} espacios para visitas`}>
+    <div className="loyalty-progress-stamps" role="img" aria-label={`${collected} de ${total} estampillas`}>
       {Array.from({ length: total }, (_, index) => (
-        <span key={index} className={`loyalty-stamp${index < 3 ? " collected" : ""}`}>
-          {index < 3 && <Icon name="star" size={12} />}
+        <span key={index} className={`loyalty-stamp${index < collected ? " collected" : ""}`}>
+          {index < collected && <Icon name="star" size={12} />}
         </span>
       ))}
     </div>
   );
 }
 
-RewardProgress.propTypes = { card: PropTypes.object.isRequired };
+RewardProgress.propTypes = { card: PropTypes.object.isRequired, stamps: PropTypes.number.isRequired };
 
 /** Vista de la tarjeta digital de fidelización que reemplaza a la tarjeta física. */
-export function LoyaltyCard({ card }) {
+export function LoyaltyCard({ card, stamps = SAMPLE_STAMPS }) {
   const primary = HEX_COLOR.test(card.color || "") ? card.color : "#603f2a";
   const accent = HEX_COLOR.test(card.colorAcento || "") ? card.colorAcento : "#c8894f";
   const image = typeof card.imagen === "string" && IMAGE_DATA.test(card.imagen) ? card.imagen : null;
@@ -74,14 +76,14 @@ export function LoyaltyCard({ card }) {
         <h3>{card.nombre || "Nombre de tu programa"}</h3>
         <p>{card.descripcion || "Tu beneficio aparecerá aquí"}</p>
       </div>
-      <RewardProgress card={card} />
+      <RewardProgress card={card} stamps={stamps} />
       <div className="loyalty-card-bottom">
         <span>
           <small>BENEFICIO</small>
           <strong>{card.premio || card.descripcion || "Tu recompensa"}</strong>
         </span>
         {card.mostrarQr !== false && (
-          <span className="loyalty-demo-code" aria-label="Código decorativo no escaneable">
+          <span className="loyalty-demo-code" role="img" aria-label="Código decorativo no escaneable">
             <i />
             <b>DEMO</b>
           </span>
@@ -108,5 +110,6 @@ LoyaltyCard.propTypes = {
     saldo: PropTypes.number,
     mostrarProgreso: PropTypes.bool,
     mostrarQr: PropTypes.bool
-  }).isRequired
+  }).isRequired,
+  stamps: PropTypes.number
 };

@@ -158,7 +158,7 @@ export default function GeolocationPage() {
               en {location.distrito} dentro de {radius} m
             </small>
           </div>
-          <div className="nearby-list">
+          <div className="nearby-list" tabIndex={0} aria-label="Clientes ordenados por distancia">
             <strong className="panel-title">Clientes por distancia</strong>
             {nearby.length ? (
               nearby.map(person => (

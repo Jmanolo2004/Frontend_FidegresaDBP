@@ -83,7 +83,7 @@ export default function SettingsPage() {
               <strong>Paleta</strong>
               <small>Café y crema</small>
             </div>
-            <span className="theme-swatch" aria-label="Paleta café" />
+            <span className="theme-swatch" role="img" aria-label="Paleta café" />
           </div>
         </SettingsCard>
 

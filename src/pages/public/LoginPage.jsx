@@ -10,9 +10,8 @@ import { useForm } from "../../hooks/useForm";
 import { useToast } from "../../hooks/useToast";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { email, required } from "../../utils/validators";
-import { USE_MOCK } from "../../api/apiClient";
 
-const DEMO_ACCOUNT = { email: "maria@fidegresa.com", password: "Fidegresa2026" };
+const DEMO_ACCOUNT = import.meta.env.VITE_USE_MOCK === "true" ? { email: "maria@fidegresa.com", password: "Fidegresa2026" } : null;
 
 const rules = {
   email: [required("Escribe tu correo electrónico."), email()],
@@ -89,7 +88,7 @@ export default function LoginPage() {
       <Link className="connection-link" to="/sin-conexion">
         ¿Problemas para conectarte?
       </Link>
-      {USE_MOCK && (
+      {DEMO_ACCOUNT && (
         <p className="prototype-note">
           Modo demostración · cuenta de prueba {DEMO_ACCOUNT.email} ·{" "}
           <button type="button" className="inline-link" onClick={useDemoAccount}>

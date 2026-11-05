@@ -35,7 +35,7 @@ const SORT_OPTIONS = [
 export default function CustomersPage() {
   useDocumentTitle("Clientes");
   const { showToast, showError } = useToast();
-  const { page, size, filters, setPage, setSize, setFilter } = usePagination({ q: "", estado: "Todos", orden: "recent" });
+  const { page, size, filters, setPage, setSize, setFilter, setFilters } = usePagination({ q: "", estado: "Todos", orden: "recent" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -112,7 +112,7 @@ export default function CustomersPage() {
           <FilterSelect value={filters.orden} onChange={value => setFilter("orden", value)} options={SORT_OPTIONS} label="Ordenar clientes" />
         </div>
         <div aria-live="polite" aria-busy={customers.loading}>
-          {customers.error && !pageData ? (
+          {customers.error ? (
             <ErrorState error={customers.error} onRetry={customers.reload} compact />
           ) : !pageData ? (
             <TableSkeleton rows={size > 10 ? 10 : size} />
@@ -120,7 +120,7 @@ export default function CustomersPage() {
             <EmptyState
               message={hasFilters ? "No encontramos clientes para esta búsqueda. Prueba con otro nombre, correo, teléfono o local." : "Aún no tienes clientes. Agrega al primero para empezar tu programa."}
               actionLabel={hasFilters ? "Limpiar filtros" : "Agregar cliente"}
-              onAction={hasFilters ? () => { setFilter("q", ""); setFilter("estado", "Todos"); } : () => setDialogOpen(true)}
+              onAction={hasFilters ? () => setFilters({ q: "", estado: "Todos" }) : () => setDialogOpen(true)}
             />
           ) : (
             <div className={customers.loading ? "is-refreshing" : ""}>

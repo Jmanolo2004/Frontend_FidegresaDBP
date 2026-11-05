@@ -31,7 +31,7 @@ const REPLY_OPTIONS = [
 export default function ReviewsPage() {
   useDocumentTitle("Reseñas");
   const { refreshNotices } = useSettings();
-  const { page, size, filters, setPage, setSize, setFilter } = usePagination({ opinion: "Todas", respuesta: "Todas" });
+  const { page, size, filters, setPage, setSize, setFilter, setFilters } = usePagination({ opinion: "Todas", respuesta: "Todas" });
   const [replyingTo, setReplyingTo] = useState(null);
 
   const summary = useFetch(({ signal }) => reviewService.getSummary({ signal }), []);
@@ -108,12 +108,12 @@ export default function ReviewsPage() {
           </div>
         </PanelHeading>
         <div aria-live="polite" aria-busy={reviews.loading}>
-          {reviews.error && !pageData ? (
+          {reviews.error ? (
             <ErrorState error={reviews.error} onRetry={reviews.reload} compact />
           ) : !pageData ? (
             <TableSkeleton rows={4} />
           ) : pageData.content.length === 0 ? (
-            <EmptyState message="No hay reseñas con estos filtros." actionLabel="Ver todas" onAction={() => { setFilter("opinion", "Todas"); setFilter("respuesta", "Todas"); }} />
+            <EmptyState message="No hay reseñas con estos filtros." actionLabel="Ver todas" onAction={() => setFilters({ opinion: "Todas", respuesta: "Todas" })} />
           ) : (
             <div className={reviews.loading ? "is-refreshing" : ""}>
               <div className="review-list">

@@ -41,6 +41,7 @@ export function usePagination(filterDefaults = {}) {
     filters,
     setPage: nextPage => update({ page: nextPage + 1 }),
     setSize: nextSize => update({ size: nextSize, page: 1 }),
-    setFilter: (key, value) => update({ [key]: value, page: 1 })
+    setFilter: (key, value) => update({ [key]: value, page: 1 }),
+    setFilters: changes => update({ ...changes, page: 1 })
   };
 }

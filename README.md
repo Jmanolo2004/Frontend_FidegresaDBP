@@ -14,6 +14,7 @@ Este repositorio contiene la **aplicación web** (React) del proyecto CS2031 · 
 | Tipado de props | PropTypes |
 | Build | Vite |
 | Estilos | CSS propio con tokens de diseño (paleta café y crema, tema claro/oscuro) |
+| Tipografía de la landing | Bricolage Grotesque e Instrument Sans, servidas con Fontsource |
 
 ## Cómo ejecutarlo
 
@@ -30,13 +31,13 @@ Cuenta de demostración: `maria@fidegresa.com` · `Fidegresa2026` (en el login t
 | Variable | Descripción |
 | --- | --- |
 | `VITE_API_URL` | URL base del backend, por ejemplo `https://api.midominio.com/api/v1` |
-| `VITE_USE_MOCK` | `true` usa el servidor de demostración integrado; `false` envía todas las peticiones al backend |
+| `VITE_USE_MOCK` | Solo `true` activa el servidor de demostración. Si falta o tiene otro valor, las peticiones van al backend |
 
 Con `VITE_USE_MOCK=true` la app funciona sin backend: un adaptador de Axios (`src/mocks/`) responde con la **misma forma** que la API REST (rutas `/api/v1`, páginas tipo Spring y `ErrorResponseDto`), con latencia, cancelación y códigos HTTP reales (400, 401, 404, 409, 500). Así la demo nunca depende de que el servidor esté encendido. Para conectar el backend real basta con poner `VITE_USE_MOCK=false`.
 
 ## Pantallas
 
-**Públicas:** página informativa (landing), iniciar sesión, crear cuenta, continuar con Google y con Apple, términos y condiciones, política de privacidad, pantalla de carga, pantalla sin conexión y error 404.
+**Públicas:** landing con historia animada por scroll, selector de tarjetas y demo del panel, iniciar sesión, crear cuenta, continuar con Google y con Apple, términos y condiciones, política de privacidad, pantalla de carga, pantalla sin conexión y error 404.
 
 **Panel (rutas protegidas):**
 
@@ -64,14 +65,14 @@ src/
 │   ├── layout/     DashboardLayout, Sidebar, Topbar, Breadcrumbs
 │   ├── auth/       AuthLayout, SocialAuthButtons, PasswordInput
 │   ├── errors/     ErrorBoundary, ErrorScreen
-│   └── cards/ customers/ reviews/ locations/ geo/ settings/ charts/ public/
+│   └── cards/ customers/ reviews/ locations/ geo/ settings/ charts/ public/ landing/
 ├── pages/
 │   ├── public/     Landing, Login, Register, Terms, Privacy, ConnectionError, NotFound
 │   └── dashboard/  Metrics, Customers, CustomerDetail, Reviews, Cards, Locations, Geolocation, Settings
 ├── routes/         router.jsx (configuración centralizada), ProtectedRoute, PublicOnlyRoute
 ├── mocks/          Servidor de demostración (adaptador de axios + datos)
 ├── utils/          Formato en soles (es-PE), validadores, geografía, CSV
-└── styles/         base.css (sistema visual) y components.css
+└── styles/         base.css (sistema visual), components.css y landing.css
 ```
 
 ## Cómo cubre la rúbrica (Web)

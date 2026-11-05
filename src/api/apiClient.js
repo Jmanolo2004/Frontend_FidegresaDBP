@@ -1,12 +1,18 @@
 import axios from "axios";
 import { tokenStorage } from "./tokenStorage";
 import { toApiError } from "./apiErrors";
-import { mockAdapter } from "../mocks/mockAdapter";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api/v1";
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== "false";
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 const MAX_RETRIES = 2;
+
+// El servidor de demostración se descarga solo cuando VITE_USE_MOCK=true; no entra en el build real.
+async function demoAdapter(config) {
+  const { mockAdapter } = await import("../mocks/mockAdapter");
+  return mockAdapter(config);
+}
+
 const sessionListeners = new Set();
 
 export function onSessionExpired(listener) {
@@ -22,7 +28,7 @@ export const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 15000,
   headers: { "Content-Type": "application/json", Accept: "application/json" },
-  ...(USE_MOCK ? { adapter: mockAdapter } : {})
+  ...(USE_MOCK ? { adapter: demoAdapter } : {})
 });
 
 // Agrega el JWT a cada petición autenticada.

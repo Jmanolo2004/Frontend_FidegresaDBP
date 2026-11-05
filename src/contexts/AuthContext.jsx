@@ -31,8 +31,13 @@ export function AuthProvider({ children }) {
       })
       .catch(error => {
         if (error?.code === "CANCELED") return;
-        tokenStorage.clear();
-        setStatus("anonymous");
+        // Solo una sesión rechazada cierra la cuenta; una caída de red o del servidor no.
+        if ([401, 403].includes(error?.status)) {
+          tokenStorage.clear();
+          setStatus("anonymous");
+          return;
+        }
+        setStatus("authenticated");
       });
     return () => controller.abort();
   }, []);

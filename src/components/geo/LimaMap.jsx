@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Icon } from "../common/Icon";
 import { MAP_METERS_PER_UNIT } from "../../utils/constants";
-import { clampMapPoint } from "../../utils/geo";
+import { clampMapPoint, mapPointForCustomer } from "../../utils/geo";
 
 const DISTRICT_LABELS = [
   { name: "BARRANCO", x: 230, y: 615 },
@@ -17,12 +17,17 @@ const ROADS = [
   "M400 0C414 143 452 257 489 367S556 569 578 700",
   "M740 0C705 144 719 269 748 385S818 597 850 700"
 ];
+const MAP_WIDTH = 1000;
+const MAP_HEIGHT = 700;
 const KEY_STEPS = { ArrowLeft: [-12, 0], ArrowRight: [12, 0], ArrowUp: [0, -12], ArrowDown: [0, 12] };
 
 /** Mapa vectorial de Lima con un pin arrastrable (mouse, táctil o flechas del teclado). */
 export function LimaMap({ location, customers, radius, onMove, onMoveEnd, onCenter }) {
   const svgRef = useRef(null);
   const [dragging, setDragging] = useState(false);
+  const markers = customers
+    .map(person => ({ ...person, point: mapPointForCustomer(location, person) }))
+    .filter(({ point }) => point.x >= 0 && point.x <= MAP_WIDTH && point.y >= 0 && point.y <= MAP_HEIGHT);
 
   const pointFromEvent = event => {
     const matrix = svgRef.current?.getScreenCTM();
@@ -64,9 +69,9 @@ export function LimaMap({ location, customers, radius, onMove, onMoveEnd, onCent
       <svg
         ref={svgRef}
         className={`lima-map-svg${dragging ? " is-dragging" : ""}`}
-        viewBox="0 0 1000 700"
+        viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
         preserveAspectRatio="xMidYMid meet"
-        role="img"
+        role="group"
         aria-label="Mapa de Barranco, Miraflores, San Isidro, San Borja y Surco. Arrastra el pin marrón para medir el alcance."
         onPointerMove={drag}
         onPointerUp={endDrag}
@@ -109,8 +114,8 @@ export function LimaMap({ location, customers, radius, onMove, onMoveEnd, onCent
             LIMA · PERÚ
           </text>
           <circle className="map-reach-circle" cx={location.mapX} cy={location.mapY} r={radius / MAP_METERS_PER_UNIT} />
-          {customers.map(person => (
-            <g key={person.id} className={`lima-customer-marker${person.distance <= radius ? " in-range" : " out-of-range"}`} transform={`translate(${person.mapX} ${person.mapY})`} aria-hidden="true">
+          {markers.map(person => (
+            <g key={person.id} className={`lima-customer-marker${person.distance <= radius ? " in-range" : " out-of-range"}`} transform={`translate(${person.point.x} ${person.point.y})`} aria-hidden="true">
               <circle r="18" />
               <text y="4">{person.iniciales}</text>
               <title>{`${person.nombre} · ${person.distrito} · ${person.distance} m`}</title>
@@ -140,7 +145,7 @@ export function LimaMap({ location, customers, radius, onMove, onMoveEnd, onCent
           Centrar mapa
         </button>
       </div>
-      <span className="map-credit">Mapa ilustrativo · ubicaciones aproximadas por distrito</span>
+      <span className="map-credit">Mapa ilustrativo. Se muestran {markers.length} de {customers.length} clientes; el resto está fuera de esta zona.</span>
       <span className="map-drag-hint">Arrastra el pin marrón para mover tu local</span>
     </div>
   );

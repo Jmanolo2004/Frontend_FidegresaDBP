@@ -4,6 +4,7 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { Icon } from "../common/Icon";
 import { LoadingScreen } from "../common/LoadingScreen";
+import { OfflineBanner } from "../common/OfflineBanner";
 import { PageSkeleton } from "../common/Skeleton";
 import { ErrorBoundary } from "../errors/ErrorBoundary";
 import { ErrorScreen } from "../errors/ErrorScreen";
@@ -66,6 +67,7 @@ function DashboardShell() {
           onOpenNotices={() => setNoticesOpen(true)}
           onOpenProfile={() => setProfileOpen(true)}
         />
+        <OfflineBanner />
         <section className="page-content">
           <ErrorBoundary inline resetKey={location.pathname}>
             <Suspense fallback={<PageSkeleton />}>

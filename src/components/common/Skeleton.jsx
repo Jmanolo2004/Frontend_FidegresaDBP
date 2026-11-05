@@ -13,7 +13,7 @@ Skeleton.propTypes = {
 
 export function KpiSkeletonGrid({ count = 4 }) {
   return (
-    <div className="stats-grid" aria-busy="true" aria-label="Cargando indicadores">
+    <div className="stats-grid" role="status" aria-busy="true" aria-label="Cargando indicadores">
       {Array.from({ length: count }, (_, index) => (
         <article className="kpi-card" key={index}>
           <Skeleton width="55%" height={12} />
@@ -29,7 +29,7 @@ KpiSkeletonGrid.propTypes = { count: PropTypes.number };
 
 export function TableSkeleton({ rows = 6 }) {
   return (
-    <div className="table-skeleton" aria-busy="true" aria-label="Cargando registros">
+    <div className="table-skeleton" role="status" aria-busy="true" aria-label="Cargando registros">
       {Array.from({ length: rows }, (_, index) => (
         <div className="table-skeleton-row" key={index}>
           <Skeleton width={30} height={30} radius={15} />
@@ -47,7 +47,7 @@ TableSkeleton.propTypes = { rows: PropTypes.number };
 
 export function PageSkeleton() {
   return (
-    <div className="page-skeleton" aria-busy="true" aria-label="Cargando sección">
+    <div className="page-skeleton" role="status" aria-busy="true" aria-label="Cargando sección">
       <Skeleton width={220} height={32} />
       <Skeleton width="45%" height={12} className="skeleton-gap" />
       <KpiSkeletonGrid />

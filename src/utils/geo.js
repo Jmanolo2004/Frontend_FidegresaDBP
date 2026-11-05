@@ -25,6 +25,16 @@ export function distanceInMeters(latitudeA, longitudeA, latitudeB, longitudeB) {
   return Math.max(50, Math.round(meters / 10) * 10);
 }
 
+/**
+ * Conserva la dirección guardada de cada cliente, pero lo dibuja a su distancia real del local.
+ * Así el círculo del mapa y el contador de clientes muestran lo mismo.
+ */
+export function mapPointForCustomer(location, person) {
+  const angle = Math.atan2(person.mapY - location.mapY, person.mapX - location.mapX);
+  const units = person.distance / MAP_METERS_PER_UNIT;
+  return { x: location.mapX + Math.cos(angle) * units, y: location.mapY + Math.sin(angle) * units };
+}
+
 export function clampMapPoint(value, min, max) {
   return Math.max(min, Math.min(max, Math.round(value)));
 }
