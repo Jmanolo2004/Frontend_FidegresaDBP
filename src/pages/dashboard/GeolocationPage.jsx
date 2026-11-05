@@ -299,7 +299,7 @@ export default function GeolocationPage() {
                 className="geo-main-map"
                 ariaLabel="Mapa interactivo con el alcance del local y clientes cercanos"
                 fallback={legacyFallback}
-                onError={() => setMapFallback(true)}
+                onError={message => setMapFallback(Boolean(message))}
               />
               <div className="geo-map-actions">
                 <button className={`secondary-button${showHeatmap ? " selected" : ""}`} type="button" aria-pressed={showHeatmap} onClick={() => setShowHeatmap(value => !value)}><Icon name="chart" size={15} /> {showHeatmap ? "Ocultar mapa de calor" : "Mapa de calor de visitas"}</button>

@@ -31,13 +31,23 @@ MapErrorBoundary.propTypes = {
 
 export function GeoMap({ fallback, onError, ...props }) {
   const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const reportFailure = message => {
     setFailed(true);
     onError?.(message);
   };
-  if (failed) return fallback;
+  if (failed) return (
+    <div className={`geo-map-recovery ${props.className || ""}`}>
+      {fallback}
+      <button className="secondary-button geo-map-retry" type="button" onClick={() => {
+        setFailed(false);
+        setAttempt(previous => previous + 1);
+        onError?.(null);
+      }}>Intentar cargar el mapa real</button>
+    </div>
+  );
   return (
-    <MapErrorBoundary fallback={fallback} onError={reportFailure}>
+    <MapErrorBoundary key={attempt} fallback={fallback} onError={reportFailure}>
       <Suspense fallback={<Skeleton height={480} radius={13} />}>
         <LazyMapView {...props} onMapError={reportFailure} />
       </Suspense>

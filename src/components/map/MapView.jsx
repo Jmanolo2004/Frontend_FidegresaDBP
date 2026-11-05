@@ -10,7 +10,7 @@ import { OtherBranchesLayer } from "./OtherBranchesLayer";
 import { RadiusLayer } from "./RadiusLayer";
 import { boundsForPoints, distanceInMeters, formatDistance } from "../../utils/mapUtils";
 
-const LIGHT_STYLE = import.meta.env.VITE_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/positron";
+const LIGHT_STYLE = import.meta.env.VITE_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty";
 const DARK_STYLE = import.meta.env.VITE_MAP_DARK_STYLE_URL || "https://tiles.openfreemap.org/styles/dark";
 const MAP_ATTRIBUTION = "© OpenStreetMap · OpenFreeMap";
 
@@ -36,7 +36,10 @@ export function MapView({
   onSelectAddress, onMapError, highlightedCustomerId, district, className = "", onViewportChange, ariaLabel = "Mapa de alcance de clientes en Lima"
 }) {
   const mapRef = useRef(null);
+  const mapLoaded = useRef(false);
+  const warningTimer = useRef(null);
   const [mapError, setMapError] = useState(null);
+  const [mapAttempt, setMapAttempt] = useState(0);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [viewport, setViewport] = useState({ longitude: branch.longitud, latitude: branch.latitud, zoom: 12.5 });
   const [dark, setDark] = useState(typeof document !== "undefined" && document.body.classList.contains("dark-theme"));
@@ -52,6 +55,8 @@ export function MapView({
     observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => () => window.clearTimeout(warningTimer.current), []);
 
   useEffect(() => {
     setViewport(previous => ({ ...previous, longitude: center.lng, latitude: center.lat }));
@@ -69,20 +74,31 @@ export function MapView({
     }
   }, [highlightedCustomerId, customers]);
 
-  const onLoad = useCallback(event => applyPalette(event.target, dark), [dark]);
+  const onLoad = useCallback(event => {
+    mapLoaded.current = true;
+    window.clearTimeout(warningTimer.current);
+    setMapError(null);
+    applyPalette(event.target, dark);
+  }, [dark]);
   const handleMapError = useCallback(event => {
     const message = event.error?.message || "No se pudo cargar el mapa.";
-    setMapError(message);
-    onMapError?.(message);
+    const recoverable = Boolean(event.sourceId || event.tile || mapLoaded.current);
+    setMapError({ message, recoverable });
+    if (recoverable) {
+      window.clearTimeout(warningTimer.current);
+      warningTimer.current = window.setTimeout(() => setMapError(null), 8000);
+    } else {
+      onMapError?.(message);
+    }
   }, [onMapError]);
   const moveTo = useCallback(position => {
     setViewport(previous => ({ ...previous, longitude: position.lng, latitude: position.lat }));
-    mapRef.current?.flyTo({ center: [position.lng, position.lat], duration: 450 });
+    mapRef.current?.jumpTo({ center: [position.lng, position.lat] });
   }, []);
   const centerMap = () => {
     const points = [center, ...mappedCustomers.map(customer => ({ lat: customer.latitud, lng: customer.longitud }))];
     const bounds = boundsForPoints(points);
-    if (bounds) mapRef.current?.fitBounds(bounds, { padding: 48, maxZoom: 14, duration: 500 });
+    if (bounds) mapRef.current?.fitBounds(bounds, { padding: 48, maxZoom: 14, duration: 0 });
     else moveTo(center);
   };
   const handleClick = event => {
@@ -98,7 +114,7 @@ export function MapView({
       const source = map.getSource("geo-customers");
       source.getClusterExpansionZoom(feature.properties.cluster_id, (error, zoom) => {
         if (error) return;
-        map.easeTo({ center: feature.geometry.coordinates, zoom });
+        map.jumpTo({ center: feature.geometry.coordinates, zoom });
       });
       return;
     }
@@ -120,15 +136,9 @@ export function MapView({
 
   return (
     <div className={`map-view ${className}`} role="region" aria-label={ariaLabel}>
-      {mapError ? (
-        <div className="map-load-error" role="alert">
-          <strong>El mapa no está disponible.</strong>
-          <span>{mapError}</span>
-          <button type="button" className="secondary-button" onClick={() => { setMapError(null); mapRef.current?.getMap().resize(); }}>Intentar de nuevo</button>
-        </div>
-      ) : (
         <Map
           ref={mapRef}
+          key={mapAttempt}
           {...viewport}
           onMove={handleMove}
           onMoveEnd={handleMoveEnd}
@@ -165,6 +175,15 @@ export function MapView({
             {onSelectAddress && <button type="button" className="map-search-anchor" aria-label="Usa el buscador de dirección a la derecha" onClick={() => document.querySelector(".address-search input")?.focus()}>Buscar dirección</button>}
           </div>
         </Map>
+      {mapError && (
+        <div className={`map-load-warning${mapError.recoverable ? "" : " is-fatal"}`} role={mapError.recoverable ? "status" : "alert"}>
+          <span>{mapError.recoverable ? "Algunas calles no se cargaron. Revisa tu conexión." : "No se pudo cargar el mapa real."}</span>
+          {!mapError.recoverable && <button type="button" className="secondary-button" onClick={() => {
+            mapLoaded.current = false;
+            setMapError(null);
+            setMapAttempt(previous => previous + 1);
+          }}>Intentar de nuevo</button>}
+        </div>
       )}
       <span className="map-attribution">{MAP_ATTRIBUTION}</span>
     </div>
