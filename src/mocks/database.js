@@ -1,6 +1,6 @@
 import { createSeedData } from "./seedData";
 
-const STORAGE_KEY = "fidegresa-demo-db-v3";
+const STORAGE_KEY = "fidegresa-demo-db-v4";
 const DEMO_USER = {
   id: 1,
   email: "maria@fidegresa.com",

@@ -81,21 +81,19 @@ export function createSeedData() {
     };
   });
   const visits = visitsByCustomer.flat();
-  const cards = locations.map((location,index) => ({
-    id:index+1,
-    nombre:["Un café con cariño","Dulce recompensa","Cortes que premian","La Mesa te premia","Un detalle de Nube"][index],
-    tipo:index % 2 === 0 ? "Estampillas" : "Cashback",
-    negocio:location.nombre,
-    descripcion:index % 2 === 0 ? "Cada visita te acerca a una recompensa." : "Recibe saldo en cada compra.",
-    premio:index % 2 === 0 ? "Tu décima visita tiene premio" : "Saldo para tu próxima visita",
-    estampillas:10,
-    porcentaje:5,
-    clientes:customers.filter(customer=>customer.localId===location.id).length,
-    estado:location.activa ? "Activa" : "En pausa",
-    color:["#603f2a","#79523b","#4e6651","#8a563e","#53616b"][index],
-    colorAcento:"#c8894f",
-    imagen:null
-  }));
+  const cards = [
+    { id:1, nombre:"Un café con cariño", tipo:"Estampillas", negocio:locations[0].nombre, descripcion:"Cada visita te acerca a una recompensa.", colores:{primario:"#603f2a",acento:"#c8894f"}, estilo:"elegante", imagen:null, estado:"Activa", vigenciaMeses:12, terminos:"Una estampilla por visita. No acumulable con otras promociones.", reglas:{sellosMeta:10,premio:"Un café gratis",iconoSello:"star",selloPor:"visita",montoMinimo:15,limitePorDia:1} },
+    { id:2, nombre:"Dulce encuentro", tipo:"Estampillas", negocio:locations[1].nombre, descripcion:"Premiamos cada momento dulce.", colores:{primario:"#79523b",acento:"#e6b983"}, estilo:"vibrante", imagen:null, estado:"Activa", vigenciaMeses:6, terminos:"Válido para compras en Dulce Encuentro.", reglas:{sellosMeta:8,premio:"Una porción de torta",iconoSello:"reward",selloPor:"compra mínima",montoMinimo:20,limitePorDia:2} },
+    { id:3, nombre:"Cashback de la Plaza", tipo:"Cashback", negocio:locations[0].nombre, descripcion:"Recibe saldo con cada compra.", colores:{primario:"#4e6651",acento:"#b8c99a"}, estilo:"minimal", imagen:null, estado:"Activa", vigenciaMeses:12, terminos:"El saldo se acumula en la cuenta del cliente.", reglas:{porcentaje:5,topeMensual:100,saldoMinimoCanje:10,expiraDias:180} },
+    { id:4, nombre:"Cashback Barbería Norte", tipo:"Cashback", negocio:locations[2].nombre, descripcion:"Un beneficio para volver a tu barbería.", colores:{primario:"#4a2f20",acento:"#c8894f"}, estilo:"elegante", imagen:null, estado:"En pausa", vigenciaMeses:3, terminos:"Saldo válido solo en Barbería Norte.", reglas:{porcentaje:8,topeMensual:150,saldoMinimoCanje:15,expiraDias:90} },
+    { id:5, nombre:"Círculo de la Plaza", tipo:"Niveles", negocio:locations[0].nombre, descripcion:"Más visitas, más beneficios.", colores:{primario:"#53616b",acento:"#d9b28c"}, estilo:"minimal", imagen:null, estado:"Activa", vigenciaMeses:12, terminos:"Los puntos no son transferibles.", reglas:{niveles:[{nombre:"Bronce",desdePuntos:0,beneficio:"Acceso al programa",color:"#b8794f"},{nombre:"Plata",desdePuntos:100,beneficio:"5% de descuento",color:"#9da5ad"},{nombre:"Oro",desdePuntos:300,beneficio:"Bebida de cortesía",color:"#d4a84e"}],puntosPorSol:1} },
+    { id:6, nombre:"Nube de beneficios", tipo:"Niveles", negocio:locations[4].nombre, descripcion:"Un detalle especial en cada nivel.", colores:{primario:"#8a563e",acento:"#e5bd93"}, estilo:"vibrante", imagen:null, estado:"Borrador", vigenciaMeses:12, terminos:"Beneficios sujetos a disponibilidad.", reglas:{niveles:[{nombre:"Amigo",desdePuntos:0,beneficio:"Bienvenida especial",color:"#bf8a65"},{nombre:"Frecuente",desdePuntos:150,beneficio:"10% de descuento",color:"#c8894f"},{nombre:"Preferente",desdePuntos:400,beneficio:"Producto de regalo",color:"#603f2a"}],puntosPorSol:2} },
+    { id:7, nombre:"Un regalo de la Plaza", tipo:"Giftcard", negocio:locations[0].nombre, descripcion:"Regala una pausa para disfrutar.", colores:{primario:"#79523b",acento:"#e3bc8a"}, estilo:"elegante", imagen:null, estado:"Activa", vigenciaMeses:12, terminos:"La gift card no es canjeable por efectivo.", reglas:{montos:[50,100,200],permiteMontoLibre:true,montoMin:30,montoMax:500,vigenciaMeses:12,mensajeRegalo:"Un momento rico para ti"} },
+    { id:8, nombre:"Dulce regalo", tipo:"Giftcard", negocio:locations[1].nombre, descripcion:"Comparte algo dulce con quien quieres.", colores:{primario:"#603f2a",acento:"#dca66f"}, estilo:"vibrante", imagen:null, estado:"Activa", vigenciaMeses:6, terminos:"Válida por una sola compra hasta agotar saldo.", reglas:{montos:[50,100,200],permiteMontoLibre:false,montoMin:50,montoMax:200,vigenciaMeses:6,mensajeRegalo:"Para endulzar tu día"} }
+  ].map(card => {
+    const now = dateDaysAgo(45);
+    return { ...card, creadaEn:now, actualizadaEn:now };
+  });
   const reviews = Array.from({length:36},(_,index) => {
     const customer = customers[(index*7+2)%customers.length];
     const location = locations.find(place=>place.id===customer.localId);
