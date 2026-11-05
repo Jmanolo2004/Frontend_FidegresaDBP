@@ -40,9 +40,23 @@ export function createSeedData() {
     const location = locations[Math.floor(index / 6)];
     const count = visitCounts[index];
     const lastDays = lastVisitDays[index];
-    const spacing = Math.max(1,Math.floor((720-lastDays)/count));
-    const visits = Array.from({length:count},(_,visitIndex) => {
-      const daysAgo = Math.min(729,lastDays + (count-visitIndex-1)*spacing);
+    const registrationDays = Math.min(364,lastDays + 45 + (index % 8) * 35);
+    const weightedDays = [];
+    for(let daysAgo=lastDays+1;daysAgo<=registrationDays;daysAgo++){
+      const date=new Date(today);
+      date.setDate(date.getDate()-daysAgo);
+      const weight=1+(date.getDay()===0||date.getDay()===6?2:0)+(date.getMonth()===6||date.getMonth()===11?3:0);
+      for(let repeat=0;repeat<weight;repeat++) weightedDays.push(daysAgo);
+    }
+    const selectedDays=new Set();
+    const visitDays=Array.from({length:count-1},(_,visitIndex)=>{
+      let poolIndex=(visitIndex*97+index*13)%weightedDays.length;
+      while(selectedDays.has(weightedDays[poolIndex])) poolIndex=(poolIndex+1)%weightedDays.length;
+      const candidate=weightedDays[poolIndex];
+      selectedDays.add(candidate);
+      return candidate;
+    }).concat(lastDays).sort((first,second)=>second-first);
+    const visits = visitDays.map((daysAgo,visitIndex) => {
       return {
         id:`${index+1}-${visitIndex+1}`,
         clienteId:index+1,
@@ -69,7 +83,7 @@ export function createSeedData() {
       longitud:Number((location.longitud + Math.sin(((index*47)%360)*Math.PI/180)*(180+index*14)/(111320*Math.cos(location.latitud*Math.PI/180))).toFixed(6)),
       mapX:Math.max(45,Math.min(955,location.mapX + Math.round(Math.cos(index*1.7)*(70+(index%5)*34)))),
       mapY:Math.max(45,Math.min(655,location.mapY + Math.round(Math.sin(index*1.3)*(55+(index%4)*31)))),
-      fechaRegistro:dateDaysAgo(Math.min(729,lastDays + count*spacing + 10)),
+      fechaRegistro:dateDaysAgo(registrationDays),
       ultimaVisita:lastVisit.fecha,
       visitas:visits.length,
       estampillas:location.id % 2 ? visits.length % 10 : 0,
@@ -117,9 +131,9 @@ export function createSeedData() {
     };
   });
   const monthStart = (date,monthOffset=0) => new Date(date.getFullYear(),date.getMonth()+monthOffset,1);
-  const monthlyVisits = Array.from({length:24},(_,index)=>{
-    const start=monthStart(today,index-23);
-    const end=monthStart(today,index-22);
+  const monthlyVisits = Array.from({length:12},(_,index)=>{
+    const start=monthStart(today,index-11);
+    const end=monthStart(today,index-10);
     const records=visits.filter(visit=>new Date(visit.fecha)>=start&&new Date(visit.fecha)<end);
     return {
       fecha:start.toISOString(),
@@ -170,6 +184,7 @@ export function createSeedData() {
       perfilCorreo:"maria@fidegresa.com",
       perfilTelefono:"999 234 567",
       perfilFoto:null,
+      plan:"Emprende",
       tema:"claro",
       colorPrincipal:"#603f2a",
       avisos:{inactivos:true,localesEnPausa:true,resenas:true,cumpleanos:true}

@@ -21,7 +21,7 @@ export const settingsHandlers = [
     method: "get",
     path: "/settings",
     auth: true,
-    handler: () => respond(getDatabase().configuracion)
+    handler: () => respond({ ...getDatabase().configuracion, plan: getDatabase().configuracion.plan || "Emprende" })
   },
   {
     method: "patch",

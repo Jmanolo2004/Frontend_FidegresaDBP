@@ -2,6 +2,7 @@ import { AxiosError, CanceledError } from "axios";
 import { HttpError } from "./http";
 import { authHandlers, userFromAuthorization } from "./handlers/authHandlers";
 import { metricsHandlers } from "./handlers/metricsHandlers";
+import { metricsOverviewHandlers } from "./handlers/metricsOverviewHandlers";
 import { customerHandlers } from "./handlers/customerHandlers";
 import { reviewHandlers } from "./handlers/reviewHandlers";
 import { programHandlers } from "./handlers/programHandlers";
@@ -17,6 +18,7 @@ import { settingsHandlers } from "./handlers/settingsHandlers";
 const routes = [
   ...authHandlers,
   ...metricsHandlers,
+  ...metricsOverviewHandlers,
   ...customerHandlers,
   ...reviewHandlers,
   ...programHandlers,

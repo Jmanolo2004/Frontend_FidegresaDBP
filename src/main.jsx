@@ -5,6 +5,7 @@ import "./styles/base.css";
 import "./styles/components.css";
 import "./styles/cards.css";
 import "./styles/geo.css";
+import "./styles/metrics.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

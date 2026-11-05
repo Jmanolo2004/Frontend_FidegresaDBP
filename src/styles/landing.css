@@ -162,6 +162,11 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .demo-programs span { color: var(--on-dark-soft); font-size: 15px; }
 .demo-programs b { flex: none; font-size: 16px; font-weight: 600; }
 .demo-note { margin-top: 12px; color: var(--on-dark-soft); font-size: 14px; }
+.demo-metrics-program-tabs { display: flex; gap: 7px; margin: 0 0 18px; overflow-x: auto; }
+.demo-metrics-program-tabs button { flex: none; padding: 8px 12px; border: 1px solid #8c7362; border-radius: 999px; background: transparent; color: var(--on-dark-soft); cursor: pointer; font-size: 12px; }
+.demo-metrics-program-tabs button[aria-selected="true"] { border-color: var(--caramel); background: var(--caramel); color: var(--espresso); font-weight: 700; }
+.demo-program-bars i { transition: height .25s ease; }
+.demo-program-caption { min-height: 38px; margin: 14px 0 0; color: var(--on-dark-soft); font-size: 13px; line-height: 1.5; }
 
 @keyframes view-in {
   from { opacity: 0; transform: translateY(6px); }
