@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { ActivityTable } from "../../components/metrics/ActivityTable";
 import { MetricsFilters } from "../../components/metrics/MetricsFilters";
-import { PlanGate } from "../../components/metrics/PlanGate";
 import { ErrorState } from "../../components/common/ErrorState";
 import { PageHeader } from "../../components/common/PageHeader";
 import { PanelHeading } from "../../components/common/PanelHeading";
@@ -15,7 +14,6 @@ import { useToast } from "../../hooks/useToast";
 import { branchService } from "../../services/branchService";
 import { metricsService } from "../../services/metricsService";
 import { formatMoney } from "../../utils/format";
-import { PLAN_PREVIEW } from "../../components/metrics/planPreviewData";
 
 const KpiWithSparkline = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.KpiWithSparkline })));
 const ComboChart = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.ComboChart })));
@@ -48,7 +46,6 @@ function MetricContent({ data, filters }) {
   const ProgramComponent = PROGRAM_COMPONENTS[filters.program];
   const selectedBreakdown = breakdowns.programs.find(item => item.key === filters.program);
   const selectedProgram = programs[filters.program];
-  const advancedLocked = !["Crece", "Avanza"].includes(data.plan);
   const currentValue = metric => {
     if (metric === "sales" || metric === "ticket") return formatMoney(kpis[metric].current);
     if (metric === "returningRate") return `${kpis[metric].current.toFixed(1)}%`;
@@ -97,27 +94,21 @@ function MetricContent({ data, filters }) {
     </Suspense>
 
     <div className="metrics-two-column">
-      <PlanGate locked={!["Crece", "Avanza"].includes(data.plan)} title="Mapa de calor de afluencia">
-        <article className="panel">
-          <PanelHeading title="Mapa de calor de afluencia" subtitle="Día de la semana y hora para organizar al equipo" />
-          <Suspense fallback={<Skeleton height={240} />}><TrafficHeatmap data={advancedLocked ? PLAN_PREVIEW.traffic : data.traffic} /></Suspense>
-        </article>
-      </PlanGate>
-      <PlanGate locked={!["Crece", "Avanza"].includes(data.plan)} title="Embudo de fidelización">
-        <article className="panel">
-          <PanelHeading title="Embudo de fidelización" subtitle="Del registro al canje de una recompensa" />
-          <Suspense fallback={<Skeleton height={240} />}><LoyaltyFunnel items={advancedLocked ? PLAN_PREVIEW.funnel : data.funnel} /></Suspense>
-        </article>
-      </PlanGate>
+      <article className="panel">
+        <PanelHeading title="Mapa de calor de afluencia" subtitle="Día de la semana y hora para organizar al equipo" />
+        <Suspense fallback={<Skeleton height={240} />}><TrafficHeatmap data={data.traffic} /></Suspense>
+      </article>
+      <article className="panel">
+        <PanelHeading title="Embudo de fidelización" subtitle="Del registro al canje de una recompensa" />
+        <Suspense fallback={<Skeleton height={240} />}><LoyaltyFunnel items={data.funnel} /></Suspense>
+      </article>
     </div>
 
     <div className="metrics-two-column metrics-bottom-grid">
-      <PlanGate locked={!["Crece", "Avanza"].includes(data.plan)} title="Retención por cohortes">
-        <article className="panel">
-          <PanelHeading title="Retención por cohortes" subtitle="Porcentaje de clientes activos según su mes de alta" />
-          <Suspense fallback={<Skeleton height={260} />}><CohortTable rows={advancedLocked ? PLAN_PREVIEW.cohorts : data.cohorts} /></Suspense>
-        </article>
-      </PlanGate>
+      <article className="panel">
+        <PanelHeading title="Retención por cohortes" subtitle="Porcentaje de clientes activos según su mes de alta" />
+        <Suspense fallback={<Skeleton height={260} />}><CohortTable rows={data.cohorts} /></Suspense>
+      </article>
       <article className="panel">
         <PanelHeading title="Rendimiento por local" subtitle="Ventas, visitas, retorno y reseña promedio">
           <Link className="text-button" to="/panel/ubicaciones">Ver locales</Link>
@@ -175,15 +166,11 @@ export default function MetricsPage() {
 
   return <>
     <PageHeader title={`Hola, ${data?.owner || "bienvenido"}`} summary={summary} />
-    <MetricsFilters filters={filters} update={update} branches={branches} onExport={exportCsv} plan={data?.plan || "Emprende"} />
+    <MetricsFilters filters={filters} update={update} branches={branches} onExport={exportCsv} />
     {loading && data && <p className="metrics-loading-note" role="status">Actualizando indicadores…</p>}
     {data
       ? <MetricContent data={data} filters={filters} />
       : <section className="metrics-kpi-grid">{Array.from({ length: 6 }, (_, index) => <Skeleton height={118} key={index} />)}</section>}
-
-    {filters.program === "all" && <PlanGate locked={!["Crece", "Avanza"].includes(data?.plan || "Emprende")} title="Exportación PDF">
-      <div className="metrics-print-gate"><span>Informe para compartir</span><button type="button" className="secondary-button" onClick={() => window.print()}>Imprimir / Guardar como PDF</button></div>
-    </PlanGate>}
 
     <article className="panel metrics-activity-panel">
       <PanelHeading title="Actividad reciente" subtitle="Movimientos de tus clientes en todos los programas" />

@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 import { Icon } from "../common/Icon";
 
 export const PROGRAM_TABS = [
@@ -29,7 +28,7 @@ export function ProgramTabs({ value, onChange }) {
 
 ProgramTabs.propTypes = { value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired };
 
-export function MetricsFilters({ filters, update, branches, onExport, plan }) {
+export function MetricsFilters({ filters, update, branches, onExport }) {
   return (
     <section className="metrics-filters panel" aria-label="Filtros de métricas">
       <ProgramTabs value={filters.program} onChange={program => update({ program })} />
@@ -46,7 +45,7 @@ export function MetricsFilters({ filters, update, branches, onExport, plan }) {
         <label>Comparar con
           <select value={filters.compare} onChange={event => update({ compare: event.target.value })}>
             <option value="previous">Periodo anterior</option>
-            <option value="lastYear" disabled={plan !== "Crece" && plan !== "Avanza"}>Mismo periodo del año pasado{plan !== "Crece" && plan !== "Avanza" ? " · Plan Crece" : ""}</option>
+            <option value="lastYear">Mismo periodo del año pasado</option>
           </select>
         </label>
         <label>Local
@@ -57,9 +56,7 @@ export function MetricsFilters({ filters, update, branches, onExport, plan }) {
         </label>
         <div className="metrics-export-actions">
           <button type="button" className="secondary-button" onClick={onExport}>Exportar CSV</button>
-          {plan === "Crece" || plan === "Avanza"
-            ? <button type="button" className="secondary-button" onClick={() => window.print()}>Imprimir / PDF</button>
-            : <Link className="secondary-button metrics-locked-action" to="/#planes" title="Disponible en el plan Crece">PDF · Plan Crece</Link>}
+          <button type="button" className="secondary-button" onClick={() => window.print()}>Imprimir / PDF</button>
         </div>
       </div>
     </section>
@@ -70,6 +67,5 @@ MetricsFilters.propTypes = {
   filters: PropTypes.shape({ program: PropTypes.string, range: PropTypes.string, from: PropTypes.string, to: PropTypes.string, compare: PropTypes.string, branchId: PropTypes.string }).isRequired,
   update: PropTypes.func.isRequired,
   branches: PropTypes.arrayOf(PropTypes.object).isRequired,
-  onExport: PropTypes.func.isRequired,
-  plan: PropTypes.string.isRequired
+  onExport: PropTypes.func.isRequired
 };
