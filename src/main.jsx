@@ -4,6 +4,7 @@ import App from "./App";
 import "./styles/base.css";
 import "./styles/components.css";
 import "./styles/cards.css";
+import "./styles/geo.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
