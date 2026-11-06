@@ -117,8 +117,6 @@ export default function AudienceDetailPage() {
             branches={otherBranches}
             customers={people}
             radius={Number(data.radius)}
-            heatmapPoints={[]}
-            showHeatmap={false}
             district={data.zoneType === "district" ? data.district : undefined}
             onBranchMove={() => {}}
             ariaLabel="Mapa estático de la zona de la audiencia"

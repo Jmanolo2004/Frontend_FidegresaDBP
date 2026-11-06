@@ -369,8 +369,6 @@ function AudienceWizardForm({ audience }) {
               branches={branchList}
               customers={branchCustomers || []}
               radius={Number(form.values.radius)}
-              heatmapPoints={[]}
-              showHeatmap={false}
               district={form.values.zoneType === "district" ? form.values.district : undefined}
               onBranchMove={position => { setField("latitud", position.lat); setField("longitud", position.lng); }}
               ariaLabel="Mapa de vista previa de la zona seleccionada"

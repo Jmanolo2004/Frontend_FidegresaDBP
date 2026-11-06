@@ -177,28 +177,6 @@ export const geoHandlers = [
   },
   {
     method: "get",
-    path: "/geo/heatmap",
-    auth: true,
-    handler: ({ query }) => {
-      const db = getDatabase();
-      const branchId = Number(query.branchId) || db.ubicaciones[0].id;
-      const periodDays = query.period === "year" ? 365 : query.period === "quarter" ? 90 : 30;
-      const cutoff = Date.now() - periodDays * 86400000;
-      const visits = db.visitas.filter(visit => Number(visit.ubicacionId) === branchId && new Date(visit.fecha).getTime() >= cutoff);
-      const grouped = new Map();
-      visits.forEach(visit => {
-        const customer = db.clientes.find(item => Number(item.id) === Number(visit.clienteId));
-        if (!customer) return;
-        const key = `${customer.latitud},${customer.longitud}`;
-        const item = grouped.get(key) || { lat: customer.latitud, lng: customer.longitud, weight: 0 };
-        item.weight += 1;
-        grouped.set(key, item);
-      });
-      return respond([...grouped.values()]);
-    }
-  },
-  {
-    method: "get",
     path: "/geo/settings",
     auth: true,
     handler: () => respond(getDatabase().geolocalizacion)

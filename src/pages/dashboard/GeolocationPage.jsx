@@ -12,7 +12,6 @@ import { Pagination } from "../../components/common/Pagination";
 import { Skeleton } from "../../components/common/Skeleton";
 import { AddressSearch } from "../../components/map/AddressSearch";
 import { GeoMap } from "../../components/map/GeoMap";
-import { LimaMap } from "../../components/geo/LimaMap";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
@@ -21,7 +20,6 @@ import { useToast } from "../../hooks/useToast";
 import { audienceService } from "../../services/audienceService";
 import { branchService } from "../../services/branchService";
 import { geoService } from "../../services/geoService";
-import { coordinatesFromMap, distanceInMeters as legacyDistance } from "../../utils/geo";
 import { distanceInMeters, formatDistance } from "../../utils/mapUtils";
 
 const CARD_TYPES = ["Estampillas", "Cashback", "Niveles", "Giftcard"];
@@ -170,14 +168,10 @@ export default function GeolocationPage() {
   const [radius, setRadius] = useState(500);
   const [quickActivity, setQuickActivity] = useState("todos");
   const [quickCardType, setQuickCardType] = useState("Todas");
-  const [showHeatmap, setShowHeatmap] = useState(false);
   const [highlightedCustomerId, setHighlightedCustomerId] = useState(null);
-  const [mapFallback, setMapFallback] = useState(false);
   const branchId = base?.settings.ubicacionId;
   const customersFetch = useCallback(({ signal }) => branchId ? geoService.getCustomers({ branchId }, { signal }) : Promise.resolve([]), [branchId]);
   const { data: customersData } = useFetch(customersFetch, [branchId], { enabled: Boolean(branchId) });
-  const heatFetch = useCallback(({ signal }) => branchId ? geoService.getHeatmap({ branchId, period: "month" }, { signal }) : Promise.resolve([]), [branchId]);
-  const { data: heatmapPoints } = useFetch(heatFetch, [branchId], { enabled: Boolean(branchId) });
   const location = base?.branches.find(branch => Number(branch.id) === Number(branchId)) || base?.branches[0];
   const customers = customersData || [];
 
@@ -257,20 +251,18 @@ export default function GeolocationPage() {
   if (baseError && !base) return <><PageHeader title="Geolocalización" /><ErrorState error={baseError} onRetry={reloadBase} /></>;
   if (!base || !location) return <><PageHeader title="Geolocalización" summary="Cargando locales y zonas de alcance…" /><Skeleton height={520} radius={13} /></>;
 
-  const legacyFallback = (
-    <div className="geo-map-fallback">
-      <p role="status">No se pudo cargar el mapa en línea. Mostramos el mapa ilustrativo mientras verificas tu conexión o WebGL.</p>
-      <LimaMap
-        location={{ ...location, mapX: Number(location.mapX) || 410, mapY: Number(location.mapY) || 325 }}
-        customers={nearby.map(person => ({ ...person, distance: legacyDistance(person.latitud, person.longitud, location.latitud, location.longitud) }))}
-        radius={radius}
-        onMove={point => {
-          const coordinates = coordinatesFromMap(location.distrito, point.x, point.y);
-          updateBranchLocal({ lat: coordinates.latitud, lng: coordinates.longitud });
-        }}
-        onMoveEnd={point => saveBranchPosition(coordinatesFromMap(location.distrito, point.x, point.y))}
-        onCenter={() => saveBranchPosition({ lat: Number(location.latitud), lng: Number(location.longitud) })}
+  const mapLatitude = Number(location.latitud);
+  const mapLongitude = Number(location.longitud);
+  const mapBbox = `${mapLongitude - 0.035},${mapLatitude - 0.025},${mapLongitude + 0.035},${mapLatitude + 0.025}`;
+  const realMapFallback = (
+    <div className="geo-real-map-fallback">
+      <iframe
+        title={`Mapa real de ${location.nombre}, ${location.distrito}, Lima`}
+        src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(mapBbox)}&layer=mapnik&marker=${mapLatitude}%2C${mapLongitude}`}
+        loading="lazy"
+        referrerPolicy="no-referrer"
       />
+      <p>{location.direccion} · {location.distrito}, Lima</p>
     </div>
   );
 
@@ -292,19 +284,12 @@ export default function GeolocationPage() {
                 branches={base.branches}
                 customers={nearby}
                 radius={radius}
-                heatmapPoints={heatmapPoints || []}
-                showHeatmap={showHeatmap}
                 highlightedCustomerId={highlightedCustomerId || undefined}
                 onBranchMove={position => saveBranchPosition({ lat: Number(position.lat), lng: Number(position.lng) })}
                 className="geo-main-map"
                 ariaLabel="Mapa interactivo con el alcance del local y clientes cercanos"
-                fallback={legacyFallback}
-                onError={message => setMapFallback(Boolean(message))}
+                fallback={realMapFallback}
               />
-              <div className="geo-map-actions">
-                <button className={`secondary-button${showHeatmap ? " selected" : ""}`} type="button" aria-pressed={showHeatmap} onClick={() => setShowHeatmap(value => !value)}><Icon name="chart" size={15} /> {showHeatmap ? "Ocultar mapa de calor" : "Mapa de calor de visitas"}</button>
-                {mapFallback && <small>Vista alternativa ilustrativa</small>}
-              </div>
             </article>
             <aside className="panel geo-settings">
               <h2>Zona y segmento</h2>

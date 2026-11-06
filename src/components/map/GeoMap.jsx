@@ -62,8 +62,6 @@ GeoMap.propTypes = {
   branches: PropTypes.array.isRequired,
   customers: PropTypes.array.isRequired,
   radius: PropTypes.number.isRequired,
-  heatmapPoints: PropTypes.array.isRequired,
-  showHeatmap: PropTypes.bool.isRequired,
   highlightedCustomerId: PropTypes.number,
   onBranchMove: PropTypes.func.isRequired,
   onSelectAddress: PropTypes.func,

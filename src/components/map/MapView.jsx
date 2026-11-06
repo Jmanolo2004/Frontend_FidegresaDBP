@@ -5,7 +5,6 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Link } from "react-router-dom";
 import { BranchMarker } from "./BranchMarker";
 import { CustomerLayer } from "./CustomerLayer";
-import { HeatmapLayer } from "./HeatmapLayer";
 import { OtherBranchesLayer } from "./OtherBranchesLayer";
 import { RadiusLayer } from "./RadiusLayer";
 import { boundsForPoints, distanceInMeters, formatDistance } from "../../utils/mapUtils";
@@ -32,7 +31,7 @@ function applyPalette(map, dark) {
 }
 
 export function MapView({
-  branch, branches, customers, radius, heatmapPoints, showHeatmap, onBranchMove,
+  branch, branches, customers, radius, onBranchMove,
   onSelectAddress, onMapError, highlightedCustomerId, district, className = "", onViewportChange, ariaLabel = "Mapa de alcance de clientes en Lima"
 }) {
   const mapRef = useRef(null);
@@ -153,7 +152,6 @@ export function MapView({
           style={{ width: "100%", height: "100%" }}
         >
           <RadiusLayer center={center} radius={radius} district={district} />
-          <HeatmapLayer points={heatmapPoints} visible={showHeatmap} />
           <CustomerLayer customers={mappedCustomers} center={center} radius={radius} highlightedCustomerId={highlightedCustomerId} />
           <OtherBranchesLayer branches={branches} selectedId={Number(branch.id)} />
           <BranchMarker branch={branch} onDragEnd={onBranchMove} />
@@ -195,8 +193,6 @@ MapView.propTypes = {
   branches: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number, nombre: PropTypes.string, latitud: PropTypes.number, longitud: PropTypes.number })).isRequired,
   customers: PropTypes.arrayOf(PropTypes.object).isRequired,
   radius: PropTypes.number.isRequired,
-  heatmapPoints: PropTypes.arrayOf(PropTypes.shape({ lat: PropTypes.number, lng: PropTypes.number, weight: PropTypes.number })).isRequired,
-  showHeatmap: PropTypes.bool.isRequired,
   onBranchMove: PropTypes.func.isRequired,
   onSelectAddress: PropTypes.func,
   onMapError: PropTypes.func,
