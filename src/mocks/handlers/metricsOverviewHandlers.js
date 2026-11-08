@@ -70,6 +70,7 @@ function filteredData(db, from, to, query) {
   const unique = visitsPerCustomer.size;
   const returning = [...visitsPerCustomer.values()].filter(count => count > 1).length;
   const sales = visits.reduce((sum, visit) => sum + Number(visit.monto || 0), 0);
+  const transactions = visits.filter(visit => Number(visit.monto) > 0).length;
   const periodEnd = Math.min(to.getTime(), Date.now());
   const active = customers.filter(customer => {
     const last = db.visitas
@@ -83,6 +84,8 @@ function filteredData(db, from, to, query) {
     visitCount: visits.length,
     customers,
     sales,
+    transactions,
+    returningCustomers: returning,
     active,
     created,
     returningRate: unique ? (returning / unique) * 100 : 0,
@@ -95,8 +98,8 @@ function changeOf(current, previous) {
 }
 
 function summarize(current, previous) {
-  const currentValues = { sales: current.sales, visits: current.visitCount, active: current.active, created: current.created, returningRate: current.returningRate, ticket: current.ticket };
-  const previousValues = { sales: previous.sales, visits: previous.visitCount, active: previous.active, created: previous.created, returningRate: previous.returningRate, ticket: previous.ticket };
+  const currentValues = { sales: current.sales, visits: current.visitCount, transactions: current.transactions, returningCustomers: current.returningCustomers, active: current.active, created: current.created, returningRate: current.returningRate, ticket: current.ticket };
+  const previousValues = { sales: previous.sales, visits: previous.visitCount, transactions: previous.transactions, returningCustomers: previous.returningCustomers, active: previous.active, created: previous.created, returningRate: previous.returningRate, ticket: previous.ticket };
   return Object.fromEntries(Object.keys(currentValues).map(key => [
     key,
     {
@@ -135,6 +138,8 @@ function bucketSeries(current, range) {
       visitas: visits.length,
       clientesNuevos: current.customers.filter(customer => inRange(customer.fechaRegistro, cursor, end)).length,
       ventas: Number(visits.reduce((sum, item) => sum + Number(item.monto || 0), 0).toFixed(2)),
+      transacciones: visits.filter(item => Number(item.monto) > 0).length,
+      clientesRecurrentes: returning,
       clientesActivos: activeCustomerIds.size,
       tasaRetorno: frequency.size ? Number((returning / frequency.size * 100).toFixed(1)) : 0,
       ticket: visits.length ? Number((visits.reduce((sum, item) => sum + Number(item.monto || 0), 0) / visits.length).toFixed(2)) : 0

@@ -12,13 +12,16 @@ import { NoticesDialog } from "../settings/NoticesDialog";
 import { ProfileDialog } from "../settings/ProfileDialog";
 import { SettingsProvider } from "../../contexts/SettingsContext";
 import { useSettings } from "../../hooks/useSettings";
+import { useFetch } from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
+import { branchService } from "../../services/branchService";
 
 function DashboardShell() {
   const { settings, loading, error, reloadSettings, notices } = useSettings();
   const { user, logout } = useAuth();
   const { showToast } = useToast();
+  const branchesRequest = useFetch(({ signal }) => branchService.getAll({ signal }), []);
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,6 +65,8 @@ function DashboardShell() {
         <Topbar
           profileName={profileName}
           noticeCount={notices.length}
+          branches={branchesRequest.data || []}
+          branchesError={branchesRequest.error}
           menuOpen={sidebarOpen}
           onToggleMenu={() => setSidebarOpen(value => !value)}
           onOpenNotices={() => setNoticesOpen(true)}
@@ -71,7 +76,12 @@ function DashboardShell() {
         <section className="page-content">
           <ErrorBoundary inline resetKey={location.pathname}>
             <Suspense fallback={<PageSkeleton />}>
-              <Outlet context={{ openProfile: () => setProfileOpen(true) }} />
+              <Outlet context={{
+                openProfile: () => setProfileOpen(true),
+                branches: branchesRequest.data || [],
+                branchesError: branchesRequest.error,
+                reloadBranches: branchesRequest.reload
+              }} />
             </Suspense>
           </ErrorBoundary>
         </section>

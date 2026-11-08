@@ -1,23 +1,34 @@
 .metrics-filters { position: sticky; top: 0; z-index: 4; margin: 0 0 16px; padding: 12px; background: var(--surface); box-shadow: 0 8px 20px rgb(74 47 32 / 12%); }
-.metrics-filters.is-compact { display: flex; align-items: center; gap: 12px; overflow-x: auto; padding: 6px 10px; white-space: nowrap; }
+.metrics-filters.is-compact { display: block; overflow: hidden; padding: 6px 10px; }
 .metrics-filters.is-compact .metrics-program-tabs { flex: none; padding: 0; }
-.metrics-filters.is-compact .metrics-filter-controls { flex: 1 0 auto; flex-wrap: nowrap; align-items: center; }
-.metrics-filters.is-compact .metrics-filter-controls label { display: block; min-width: 0; font-size: 0; }
-.metrics-filters.is-compact .metrics-filter-controls select, .metrics-filters.is-compact .metrics-filter-controls input { width: auto; min-width: 92px; min-height: 30px; padding: 5px 7px; font-size: 10px; }
-.metrics-filters.is-compact .metrics-filter-controls input { min-width: 125px; }
-.metrics-filters.is-compact .metrics-export-actions { flex: none; width: auto; margin: 0; }
+.metrics-filters.is-compact .metrics-filter-options { flex-wrap: nowrap; }
+.metrics-filters.is-compact .metrics-filter-options label { display: block; min-width: 0; font-size: 0; }
+.metrics-filters.is-compact .metrics-filter-options select, .metrics-filters.is-compact .metrics-filter-options input { width: auto; min-width: 92px; min-height: 30px; padding: 5px 7px; font-size: 10px; }
+.metrics-filters.is-compact .metrics-filter-options input { min-width: 125px; }
+.metrics-filters.is-compact .metrics-export-actions { width: auto; margin: 0; }
 .metrics-filters.is-compact .metrics-export-actions > * { flex: none; min-height: 30px; padding: 6px 9px; font-size: 10px; }
 .metrics-program-tabs { display: flex; gap: 7px; overflow-x: auto; padding: 0 0 10px; scrollbar-width: thin; }
 .metrics-program-tabs button { display: inline-flex; min-height: 38px; flex: none; align-items: center; gap: 7px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 650; }
 .metrics-program-tabs button.selected { border-color: var(--program-accent); background: color-mix(in srgb,var(--program-accent),transparent 91%); color: var(--program-accent); }
-.metrics-filter-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 9px; }
-.metrics-filter-controls label, .metrics-activity-filters label { display: grid; gap: 4px; color: var(--muted); font-size: 10px; font-weight: 700; }
-.metrics-filter-controls select, .metrics-filter-controls input, .metrics-activity-filters select { min-height: 34px; min-width: 116px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--text); font-size: 11px; }
+.metrics-filter-toolbar { display: grid; gap: 9px; }
+.metrics-filter-options { display: flex; flex-wrap: wrap; align-items: end; gap: 9px; }
+.metrics-filter-options label, .metrics-activity-filters label { display: grid; gap: 4px; color: var(--muted); font-size: 10px; font-weight: 700; }
+.metrics-filter-options select, .metrics-filter-options input, .metrics-activity-filters select { min-height: 34px; min-width: 116px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--text); font-size: 11px; }
 .metrics-comparison-label { margin: -7px 0 13px 4px; color: var(--muted); font-size: 10px; }
 .metrics-content-section { scroll-margin-top: 150px; }
-.metrics-export-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-left: auto; }
+.metrics-export-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .metrics-export-actions .secondary-button { min-height: 34px; padding: 8px 11px; font-size: 11px; }
 .metrics-kpi-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 0 0 15px; }
+.metrics-trends-section { display: grid; gap: 12px; margin-bottom: 15px; }
+.metrics-summary-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+.metrics-summary-card { min-width: 0; min-height: 104px; padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); box-shadow: var(--shadow); }
+.metrics-summary-label { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.metrics-summary-label svg { flex: none; color: var(--caramel); }
+.metrics-summary-card strong { display: block; margin-top: 11px; color: var(--brown-dark); font-size: clamp(20px,2.2vw,27px); letter-spacing: -.5px; }
+.metrics-trend-panel { margin: 0; }
+.metrics-trend-chart { position: relative; }
+.metrics-combo-chart svg, .metrics-trend-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.metrics-combo-chart svg text, .metrics-trend-chart svg text { fill: var(--muted); font: 9px "Segoe UI",sans-serif; }
 .metrics-kpi { min-width: 0; min-height: 130px; padding: 14px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); box-shadow: var(--shadow); }
 .metrics-kpi > span { display: block; color: var(--muted); font-size: 11px; font-weight: 650; }
 .metrics-kpi > .metrics-kpi-label { display: flex; align-items: center; gap: 6px; }
@@ -40,9 +51,9 @@
 .metrics-chart-legend button.no-data { text-decoration: none; }
 .metrics-chart-legend button small { color: var(--muted); font-size: 9px; text-decoration: none; }
 .metrics-chart-legend i { width: 9px; height: 9px; border-radius: 50%; }
+.metrics-chart-legend .metrics-line-key { width: 18px; height: 0; border-radius: 0; }
+.metrics-trend-legend.no-data { opacity: .65; }
 .metrics-combo-chart { position: relative; }
-.metrics-combo-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.metrics-combo-chart svg text { fill: var(--muted); font: 9px "Segoe UI",sans-serif; }
 .metrics-combo-chart svg .metrics-right-axis { fill: var(--green); font-size: 8px; }
 .metrics-grid-line { stroke: var(--line); stroke-dasharray: 3 4; }
 .metrics-chart-tooltip { min-height: 19px; margin: 2px 0 0; color: var(--muted); font-size: 10px; }
@@ -121,20 +132,24 @@
 .metrics-loading-note { margin: -4px 0 10px; color: var(--muted); font-size: 11px; }
 
 body.dark-theme .metrics-kpi, body.dark-theme .metrics-filters, body.dark-theme .metrics-breakdown-cards article { background: var(--surface); }
+body.dark-theme .metrics-summary-card strong { color: #f0dfcf; }
 body.dark-theme .metrics-program-stat, body.dark-theme .metrics-rank { background: var(--cream); }
 
 @media (max-width: 980px) {
   .metrics-breakdown-cards { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .metrics-summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 @media (max-width: 700px) {
   .metrics-filters { top: 0; padding: 9px; }
   .metrics-filters.is-compact { max-width: 100%; }
-  .metrics-filter-controls { align-items: stretch; }
-  .metrics-filter-controls label { flex: 1 1 130px; }
-  .metrics-filter-controls select, .metrics-filter-controls input { width: 100%; }
-  .metrics-export-actions { width: 100%; margin-left: 0; }
+  .metrics-filter-toolbar { gap: 8px; }
+  .metrics-filter-options { align-items: stretch; }
+  .metrics-filter-options label { flex: 1 1 130px; }
+  .metrics-filter-options select, .metrics-filter-options input { width: 100%; }
+  .metrics-export-actions { width: 100%; }
   .metrics-export-actions > * { flex: 1; justify-content: center; }
   .metrics-kpi-grid { grid-template-columns: 1fr; }
+  .metrics-summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .metrics-comparison-label { margin-top: -7px; }
   .metrics-content-section { scroll-margin-top: 120px; }
   .metrics-program-detail-grid { grid-template-columns: 1fr; }
@@ -158,6 +173,7 @@ body.dark-theme .metrics-program-stat, body.dark-theme .metrics-rank { backgroun
 @media (max-width: 420px) {
   .metrics-program-tabs button { padding: 7px 9px; font-size: 10px; }
   .metrics-breakdown-cards { grid-template-columns: 1fr; }
+  .metrics-summary-grid { grid-template-columns: 1fr; }
   .metrics-program-panel .metrics-program-stats { grid-template-columns: 1fr 1fr; }
   .metrics-program-stat { min-height: 59px; padding: 8px; }
   .metrics-program-stat strong { font-size: 13px; }

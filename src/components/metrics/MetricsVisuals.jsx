@@ -80,14 +80,19 @@ export function ComboChart({ series }) {
   const width = 780, height = 250, left = 58, right = 76, top = 18, bottom = 32;
   const plotWidth = width - left - right, plotHeight = height - top - bottom;
   const step = plotWidth / Math.max(1, series.items.length);
-  const salesPoints = series.items.map((item, index) => `${left + step * (index + .5)},${top + plotHeight - item.ventas / maxSales * plotHeight}`).join(" ");
   const bars = series.items.flatMap((item, index) => {
-    const barWidth = Math.max(3, step * .27);
-    const x = left + index * step + step * .2;
+    const barWidth = Math.max(2, Math.min(15, step * .19));
+    const groupWidth = barWidth * 3 + 4;
+    const x = left + index * step + (step - groupWidth) / 2;
     return [
-      { key: "visitas", x, value: item.visitas, fill: "#603f2a" },
-      { key: "clientesNuevos", x: x + barWidth + 2, value: item.clientesNuevos, fill: "#c8894f" }
-    ].filter(bar => visible(bar.key) && (bar.key === "visitas" ? hasVisits : hasNewCustomers)).map(bar => ({ ...bar, y: top + plotHeight - bar.value / maxVisits * plotHeight, width: barWidth, height: bar.value / maxVisits * plotHeight, label: item.label, index }));
+      { key: "visitas", value: item.visitas, fill: "#603f2a", maximum: maxVisits, slot: 0 },
+      { key: "clientesNuevos", value: item.clientesNuevos, fill: "#c8894f", maximum: maxVisits, slot: 1 },
+      { key: "ventas", value: item.ventas, fill: "#4e8066", maximum: maxSales, slot: 2 }
+    ].filter(bar => visible(bar.key) && (bar.key === "visitas" ? hasVisits : bar.key === "clientesNuevos" ? hasNewCustomers : hasSales))
+      .map(bar => {
+        const barHeight = bar.value / bar.maximum * plotHeight;
+        return { ...bar, x: x + bar.slot * (barWidth + 2), y: top + plotHeight - barHeight, width: barWidth, height: barHeight, label: item.label, index };
+      });
   });
   const legend = [
     ["visitas", "Visitas", "#603f2a", hasVisits],
@@ -99,7 +104,7 @@ export function ComboChart({ series }) {
   return <>
     <div className="metrics-chart-legend">{legend.map(([key, label, color, hasData]) => <button key={key} type="button" className={`${hidden.includes(key) || !hasData ? "muted" : ""}${!hasData ? " no-data" : ""}`} onClick={() => hasData && toggle(key)} disabled={!hasData} aria-label={`${label}${hasData ? "" : ", sin datos"}`}><i style={{ background: hasData ? color : "var(--line)" }} />{label}{!hasData && <small>sin datos</small>}</button>)}</div>
     <div className="metrics-combo-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Visitas y clientes nuevos como barras, ventas como línea">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Visitas, clientes nuevos y ventas como gráfico de barras">
         {activityTicks.map(tick => {
           const y = top + plotHeight - tick / maxVisits * plotHeight;
           return <g key={`activity-${tick}`}><line x1={left} x2={width - right} y1={y} y2={y} className="metrics-grid-line" /><text x={left - 8} y={y + 4} textAnchor="end">{tick}</text></g>;
@@ -108,17 +113,68 @@ export function ComboChart({ series }) {
           const y = top + plotHeight - tick / maxSales * plotHeight;
           return <text key={`sales-${tick}`} x={width - right + 8} y={y + 4} className="metrics-right-axis">{axisMoney(tick)}</text>;
         })}
-        {bars.map(bar => <rect key={`${bar.key}-${bar.index}`} x={bar.x} y={bar.y} width={bar.width} height={Math.max(1, bar.height)} rx="2" fill={bar.fill} tabIndex={0} aria-label={`${bar.label}, ${bar.key === "visitas" ? "visitas" : "clientes nuevos"}: ${bar.value}`} onPointerEnter={() => setActive(bar.index)} onFocus={() => setActive(bar.index)} />)}
-        {visible("ventas") && hasSales && <polyline points={salesPoints} fill="none" stroke="#4e8066" strokeWidth="3" strokeLinejoin="round" />}
-        {visible("ventas") && hasSales && series.items.map((item, index) => <circle key={item.label} cx={left + step * (index + .5)} cy={top + plotHeight - item.ventas / maxSales * plotHeight} r="3" fill="#4e8066" tabIndex={0} aria-label={`${item.label}, ventas ${formatMoney(item.ventas)}`} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} />)}
+        {bars.map(bar => <rect key={`${bar.key}-${bar.index}`} x={bar.x} y={bar.y} width={bar.width} height={Math.max(1, bar.height)} rx="2" fill={bar.fill} tabIndex={0} aria-label={`${bar.label}, ${bar.key === "visitas" ? "visitas" : bar.key === "clientesNuevos" ? "clientes nuevos" : "ventas"}: ${bar.key === "ventas" ? formatMoney(bar.value) : bar.value}`} onPointerEnter={() => setActive(bar.index)} onFocus={() => setActive(bar.index)} />)}
         {series.items.map((item, index) => index % Math.max(1, Math.ceil(series.items.length / 9)) === 0 || index === series.items.length - 1 ? <text key={item.label} x={left + step * (index + .5)} y={height - 7} textAnchor="middle">{item.label}</text> : null)}
       </svg>
-      {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {current.visitas} visitas · {current.clientesNuevos} clientes nuevos · {formatMoney(current.ventas)}</p>}
+      {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {current.visitas} visitas · {current.clientesNuevos} clientes nuevos · {formatMoney(current.ventas)} en ventas</p>}
     </div>
     <DataTable headers={["Periodo", "Visitas", "Clientes nuevos", "Ventas"]} rows={tableRows} />
   </>;
 }
 ComboChart.propTypes = { series: PropTypes.shape({ items: PropTypes.arrayOf(PropTypes.object).isRequired, interval: PropTypes.string }).isRequired };
+
+const TREND_SERIES = [
+  { key: "clientesRecurrentes", label: "Clientes recurrentes", color: "#603f2a" },
+  { key: "visitas", label: "Total escaneos", color: "#b86f2d", dash: "7 4" },
+  { key: "transacciones", label: "Transacciones totales", color: "#36765e", dash: "2 4" }
+];
+
+export function MetricsTrendChart({ series }) {
+  const [active, setActive] = useState(null);
+  const width = 780, height = 260, left = 58, right = 18, top = 16, bottom = 36;
+  const plotWidth = width - left - right, plotHeight = height - top - bottom;
+  const maximum = Math.max(0, ...series.items.flatMap(item => TREND_SERIES.map(({ key }) => Number(item[key] || 0))));
+  const ticks = axisTicks(maximum);
+  const maxValue = Math.max(1, ticks.at(-1));
+  const step = plotWidth / Math.max(1, series.items.length);
+  const hasData = key => series.items.some(item => item[key] !== null && item[key] !== undefined && Number.isFinite(Number(item[key])));
+  const x = index => left + step * (index + .5);
+  const y = value => top + plotHeight - Number(value || 0) / maxValue * plotHeight;
+  const current = active === null ? null : series.items[active];
+  const rows = series.items.map(item => [
+    item.label,
+    item.clientesRecurrentes ?? "—",
+    item.visitas ?? "—",
+    item.transacciones ?? "—"
+  ]);
+  return <>
+    <div className="metrics-chart-legend">
+      {TREND_SERIES.map(({ key, label, color, dash }) => <span className={`metrics-trend-legend${!hasData(key) ? " no-data" : ""}`} key={key}><i className="metrics-line-key" style={{ borderTop: `3px ${hasData(key) ? dash ? "dashed" : "solid" : "solid"} ${hasData(key) ? color : "var(--line)"}` }} />{label}{!hasData(key) && <small>sin datos</small>}</span>)}
+    </div>
+    <div className="metrics-trend-chart">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Gráfico de líneas de clientes recurrentes, escaneos y transacciones">
+        {ticks.map(tick => <g key={tick}>
+          <line x1={left} x2={width - right} y1={y(tick)} y2={y(tick)} className="metrics-grid-line" />
+          <text x={left - 9} y={y(tick) + 4} textAnchor="end">{tick.toLocaleString("es-PE")}</text>
+        </g>)}
+        {TREND_SERIES.map(({ key, color, label, dash }) => {
+          const points = series.items.map((item, index) => `${x(index)},${y(item[key])}`).join(" ");
+          if (!hasData(key)) return null;
+          return <g key={key}>
+            {series.items.length > 1 && <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeDasharray={dash} strokeLinecap="round" strokeLinejoin="round" />}
+            {series.items.map((item, index) => item[key] !== null && item[key] !== undefined ? <circle key={`${key}-${item.label}`} cx={x(index)} cy={y(item[key])} r="3.5" fill={color} stroke="var(--surface)" strokeWidth="1.5" tabIndex={0} aria-label={`${item.label}, ${label}: ${Number(item[key]).toLocaleString("es-PE")}`} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} /> : null)}
+          </g>;
+        })}
+        {series.items.map((item, index) => index % Math.max(1, Math.ceil(series.items.length / 9)) === 0 || index === series.items.length - 1
+          ? <text key={item.label} x={x(index)} y={height - 8} textAnchor="middle">{item.label}</text>
+          : null)}
+      </svg>
+      {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {TREND_SERIES.filter(({ key }) => current[key] !== null && current[key] !== undefined).map(({ key, label }) => `${label.toLowerCase()} ${Number(current[key]).toLocaleString("es-PE")}`).join(" · ")}</p>}
+    </div>
+    <DataTable headers={["Periodo", ...TREND_SERIES.map(({ label }) => label)]} rows={rows} />
+  </>;
+}
+MetricsTrendChart.propTypes = { series: PropTypes.shape({ items: PropTypes.arrayOf(PropTypes.object).isRequired }).isRequired };
 
 export function BranchRanking({ branches }) {
   const rankedBranches = [...branches].sort((first, second) => Number(second.sales > 0) - Number(first.sales > 0) || second.sales - first.sales);
