@@ -7,6 +7,17 @@
 .card-type-tabs button span { min-width: 20px; padding: 2px 5px; border-radius: 12px; background: rgb(127 96 68 / 12%); color: inherit; text-align: center; font-size: 10px; }
 .card-gallery-toolbar { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; }
 .card-gallery-toolbar .search-wrap { max-width: 440px; }
+.card-gallery-groups { display: grid; gap: 22px; }
+.card-gallery-group { --card-group-accent: var(--brown); min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 3px solid var(--card-group-accent); border-radius: 12px; background: color-mix(in srgb, var(--surface), var(--cream) 24%); }
+.card-gallery-group-cashback { --card-group-accent: #4e8066; }
+.card-gallery-group-niveles { --card-group-accent: #8a5a7a; }
+.card-gallery-group-giftcard { --card-group-accent: #b8755b; }
+.card-gallery-group-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.card-gallery-group-heading > div { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.card-gallery-group-icon { display: grid; width: 36px; height: 36px; flex: none; place-items: center; border-radius: 9px; background: color-mix(in srgb, var(--card-group-accent), transparent 88%); color: var(--card-group-accent); }
+.card-gallery-group-heading h2 { margin: 0; color: var(--brown-dark); font-size: 15px; }
+.card-gallery-group-heading p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+.card-gallery-group-heading > span { flex: none; color: var(--muted); font-size: 11px; font-weight: 650; }
 .card-gallery-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 15px; }
 .card-gallery-item { min-width: 0; overflow: visible; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
 .card-gallery-preview { display: block; padding: 10px 10px 0; }
@@ -21,6 +32,10 @@
 .program-status.draft { background: #fbf3e6; color: #8f5a22; }
 .card-gallery-stats { display: flex; flex-wrap: wrap; gap: 7px 12px; margin: 12px 0; color: var(--muted); font-size: 11px; }
 .card-gallery-stats strong { color: var(--text); }
+.card-gallery-details { display: grid; gap: 0; margin: 0 0 12px; border-top: 1px solid var(--line); }
+.card-gallery-details > div { display: grid; grid-template-columns: minmax(88px,.75fr) minmax(0,1.25fr); gap: 8px; padding: 7px 0; border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 25%); }
+.card-gallery-details dt { color: var(--muted); font-size: 10px; font-weight: 650; }
+.card-gallery-details dd { min-width: 0; margin: 0; color: var(--text); font-size: 10px; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
 .card-gallery-actions { display: flex; align-items: center; gap: 5px; border-top: 1px solid var(--line); padding-top: 10px; }
 .card-gallery-actions .secondary-button { min-height: 32px; padding: 0 9px; font-size: 11px; }
 .card-gallery-actions .small-action { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 6px; border: 0; background: transparent; color: var(--muted); font-size: 11px; }
@@ -227,7 +242,7 @@
 
 .dark-theme .card-gallery-item, .dark-theme .card-wizard-form-panel, .dark-theme .card-wizard-preview-panel, .dark-theme .card-detail-hero { background: var(--surface); }
 .dark-theme .card-gallery-title h2, .dark-theme .card-wizard-step-content > h2, .dark-theme .card-wizard-preview-content > h2, .dark-theme .card-detail-hero-copy h2, .dark-theme .card-detail-terms h3 { color: #f0dfcf; }
-.dark-theme .card-type-tabs button, .dark-theme .card-preview-tabs button, .dark-theme .card-detail-tabs button, .dark-theme .card-type-choice, .dark-theme .card-action-menu-items, .dark-theme .card-tier-color { background: var(--surface); color: var(--text); }
+.dark-theme .card-gallery-group, .dark-theme .card-type-tabs button, .dark-theme .card-preview-tabs button, .dark-theme .card-detail-tabs button, .dark-theme .card-type-choice, .dark-theme .card-action-menu-items, .dark-theme .card-tier-color { background: var(--surface); color: var(--text); }
 .dark-theme .card-type-tabs button.selected, .dark-theme .card-preview-tabs button[aria-selected="true"], .dark-theme .card-detail-tabs button[aria-selected="true"] { background: var(--brown); color: white; }
 .dark-theme .card-type-choice-copy > strong, .dark-theme .card-gallery-stats strong, .dark-theme .card-tier-editor-heading, .dark-theme .card-wizard-review dd, .dark-theme .card-detail-levels strong, .dark-theme .card-progress-value { color: #f0dfcf; }
 .dark-theme .card-wizard-example { background: #423a34; color: #e7ded5; }
@@ -252,6 +267,7 @@
   .card-gallery-toolbar .search-wrap { max-width: none; flex-basis: 100%; }
   .card-gallery-toolbar .filter-select { flex: 1; min-width: 0; }
   .card-gallery-grid { grid-template-columns: 1fr; }
+  .card-gallery-group { padding: 12px; }
   .card-gallery-item { max-width: 440px; width: 100%; margin: 0 auto; }
   .card-detail-actions { justify-content: flex-start; }
   .card-detail-hero, .card-detail-summary-grid { grid-template-columns: 1fr; }

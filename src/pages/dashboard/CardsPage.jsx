@@ -31,6 +31,45 @@ const SORT_OPTIONS = [
   { value: "customers", label: "Más clientes" }
 ];
 
+function getCardDetails(card) {
+  const rules = card.reglas || {};
+  if (card.tipo === "Estampillas") {
+    const stampRule = rules.selloPor || "visita";
+    return [
+      { label: "Meta", value: `${rules.sellosMeta ?? card.estampillas ?? 10} sellos` },
+      { label: "Recompensa", value: rules.premio || card.premio || card.descripcion || "Sin definir" },
+      { label: "Acumulación", value: stampRule === "compra mínima" ? `Por compra desde ${formatMoney(rules.montoMinimo || 0)}` : "Por visita" },
+      { label: "Límite diario", value: `${rules.limitePorDia ?? 1} sello${Number(rules.limitePorDia ?? 1) === 1 ? "" : "s"}` }
+    ];
+  }
+  if (card.tipo === "Cashback") {
+    return [
+      { label: "Devolución", value: `${rules.porcentaje ?? card.porcentaje ?? 5}% por compra` },
+      { label: "Tope mensual", value: rules.topeMensual === 0 ? "Sin límite" : formatMoney(rules.topeMensual ?? 0) },
+      { label: "Mínimo para canjear", value: formatMoney(rules.saldoMinimoCanje ?? 0) },
+      { label: "Vigencia del saldo", value: `${rules.expiraDias ?? 180} días` }
+    ];
+  }
+  if (card.tipo === "Niveles") {
+    const levels = Array.isArray(rules.niveles) ? rules.niveles : [];
+    return [
+      { label: "Niveles", value: levels.length ? levels.map(level => level.nombre).join(" · ") : `${card.niveles ?? 3} niveles` },
+      ...levels.slice(0, 3).map(level => ({
+        label: `${level.nombre} · ${Number(level.desdePuntos).toLocaleString("es-PE")} pts`,
+        value: level.beneficio || "Beneficio por definir"
+      })),
+      { label: "Acumulación", value: `${rules.puntosPorSol ?? 1} punto${Number(rules.puntosPorSol ?? 1) === 1 ? "" : "s"} por sol` }
+    ];
+  }
+  const amounts = Array.isArray(rules.montos) ? rules.montos : [];
+  return [
+    { label: "Montos disponibles", value: amounts.length ? amounts.map(amount => formatMoney(amount)).join(" · ") : formatMoney(card.saldo ?? 100) },
+    { label: "Monto libre", value: rules.permiteMontoLibre ? `${formatMoney(rules.montoMin ?? 1)}–${formatMoney(rules.montoMax ?? 10000)}` : "No permitido" },
+    { label: "Vigencia", value: `${rules.vigenciaMeses ?? card.vigenciaMeses ?? 12} meses` },
+    { label: "Mensaje de regalo", value: rules.mensajeRegalo || card.descripcion || "Sin definir" }
+  ];
+}
+
 function CardTile({ card, onStatusChange, onDuplicate, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const statusClass = card.estado === "Activa" ? "active" : card.estado === "En pausa" ? "paused" : "draft";
@@ -49,6 +88,14 @@ function CardTile({ card, onStatusChange, onDuplicate, onDelete }) {
           <span><strong>{card.metricas?.canjes || 0}</strong> canjes</span>
           <span>{formatMoney(card.metricas?.ventasAsociadas || 0)}</span>
         </div>
+        <dl className={`card-gallery-details card-gallery-details-${String(card.tipo || "estampillas").toLowerCase()}`}>
+          {getCardDetails(card).map((detail, index) => (
+            <div key={`${detail.label}-${index}`}>
+              <dt>{detail.label}</dt>
+              <dd>{detail.value}</dd>
+            </div>
+          ))}
+        </dl>
         <div className="card-gallery-actions">
           <Link className="secondary-button" to={`/panel/tarjetas/${card.id}`}>Ver detalle</Link>
           <Link className="small-action" to={`/panel/tarjetas/${card.id}/editar`} aria-label={`Editar ${card.nombre}`}><Icon name="settings" size={15} />Editar</Link>
@@ -107,6 +154,13 @@ export default function CardsPage() {
   }, [order, query.data, type]);
   const totals = allPrograms.data || [];
   const countOf = cardType => totals.filter(card => card.tipo === cardType).length;
+  const groupedCards = CARD_TYPE_KEYS
+    .filter(cardType => type === "Todas" || type === cardType)
+    .map(cardType => ({
+      type: cardType,
+      cards: cards.filter(card => card.tipo === cardType)
+    }))
+    .filter(group => group.cards.length > 0);
   const activePrograms = totals.filter(card => card.estado === "Activa").length;
   const activeCustomers = totals.reduce((sum, card) => sum + (card.metricas?.clientesActivos || 0), 0);
   const monthlyRedemptions = totals.reduce((sum, card) => sum + (card.metricas?.canjesMes || 0), 0);
@@ -203,8 +257,24 @@ export default function CardsPage() {
         ) : !query.data ? (
           <div className="cards-grid">{[0, 1, 2, 3].map(index => <Skeleton key={index} height={330} radius={16} />)}</div>
         ) : cards.length ? (
-          <div className="cards-grid card-gallery-grid">
-            {cards.map(card => <CardTile key={card.id} card={card} onStatusChange={handleStatusChange} onDuplicate={handleDuplicate} onDelete={setCardToDelete} />)}
+          <div className="card-gallery-groups">
+            {groupedCards.map(({ type: cardType, cards: group }) => (
+              <section className={`card-gallery-group card-gallery-group-${cardType.toLowerCase()}`} key={cardType} aria-labelledby={`card-group-${cardType.toLowerCase()}`}>
+                <header className="card-gallery-group-heading">
+                  <div>
+                    <span className="card-gallery-group-icon"><Icon name={CARD_TYPE_CONFIG[cardType].icon} size={18} /></span>
+                    <div>
+                      <h2 id={`card-group-${cardType.toLowerCase()}`}>{CARD_TYPE_CONFIG[cardType].label}</h2>
+                      <p>{CARD_TYPE_CONFIG[cardType].description}</p>
+                    </div>
+                  </div>
+                  <span>{group.length} {group.length === 1 ? "programa" : "programas"}</span>
+                </header>
+                <div className="cards-grid card-gallery-grid">
+                  {group.map(card => <CardTile key={card.id} card={card} onStatusChange={handleStatusChange} onDuplicate={handleDuplicate} onDelete={setCardToDelete} />)}
+                </div>
+              </section>
+            ))}
           </div>
         ) : (
           <EmptyState

@@ -43,7 +43,7 @@ export function MetricsFilters({ filters, update, onExport }) {
       <ProgramTabs value={filters.program} onChange={program => update({ program })} />
       <div className="metrics-filter-toolbar">
         <div className="metrics-filter-options">
-          <label>Periodo
+          <label className="metrics-filter-period">Periodo
             <select value={filters.range} onChange={event => update({ range: event.target.value })}>
               {RANGES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
             </select>
@@ -52,7 +52,7 @@ export function MetricsFilters({ filters, update, onExport }) {
             <label>Desde <input aria-label="Fecha desde" type="date" value={filters.from} onChange={event => update({ from: event.target.value })} /></label>
             <label>Hasta <input aria-label="Fecha hasta" type="date" value={filters.to} onChange={event => update({ to: event.target.value })} /></label>
           </>}
-          <label>Comparar con
+          <label className="metrics-filter-compare">Comparar con
             <select value={filters.compare} onChange={event => update({ compare: event.target.value })}>
               <option value="previous">Periodo anterior</option>
               <option value="lastYear">Mismo periodo del año pasado</option>
