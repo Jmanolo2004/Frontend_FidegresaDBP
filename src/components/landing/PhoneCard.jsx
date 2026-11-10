@@ -15,22 +15,33 @@ export function PhoneCard({ stamps, className = "" }) {
       <div className="phone-screen">
         <span className="phone-notch" aria-hidden="true" />
         <div className={`wallet-card${rewardReady ? " is-complete" : ""}`}>
-          <div className="wallet-head">
-            <strong>Café de la Plaza</strong>
-            <span>Lucía M.</span>
+          <div className="wallet-cover">
+            <div className="wallet-head">
+              <strong>Café de la Plaza</strong>
+              <span>Lucía M.</span>
+            </div>
+            <div className="stamp-grid" role="img" aria-label={`${collected} de ${STAMP_GOAL} sellos`}>
+              {Array.from({ length: STAMP_GOAL }, (_, index) => (
+                <span className="stamp-slot" key={index}>
+                  {index < collected && (
+                    <span className="stamp-pressed" style={{ "--tilt": `${TILTS[index]}deg` }}>
+                      <StampMark />
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="stamp-grid" role="img" aria-label={`${collected} de ${STAMP_GOAL} sellos`}>
-            {Array.from({ length: STAMP_GOAL }, (_, index) => (
-              <span className="stamp-slot" key={index}>
-                {index < collected && (
-                  <span className="stamp-pressed" style={{ "--tilt": `${TILTS[index]}deg` }}>
-                    <StampMark />
-                  </span>
-                )}
-              </span>
-            ))}
+          <div className="wallet-summary">
+            <div>
+              <span>Estampillas totales</span>
+              <strong>{STAMP_GOAL}</strong>
+            </div>
+            <div>
+              <span>Estampillas completadas</span>
+              <strong>{collected}</strong>
+            </div>
           </div>
-          <p className="wallet-count">{rewardReady ? "Premio listo para canjear" : `${collected} de ${STAMP_GOAL} visitas`}</p>
         </div>
         <div className="phone-code">
           <SampleCode />
