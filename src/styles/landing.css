@@ -61,14 +61,14 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 
 /* Celular y tarjeta */
 .phone { position: relative; width: min(100%, 316px); flex: none; padding: 11px; border-radius: 46px; background: linear-gradient(150deg, #5a4235, #17100c 42%, #3b2a20); box-shadow: 0 34px 70px rgb(0 0 0 / 46%); }
-.phone-screen { position: relative; display: flex; flex-direction: column; gap: 14px; min-height: 572px; padding: 52px 15px 18px; border-radius: 36px; background: #fbf5ec; color: var(--ink); overflow: hidden; }
+.phone.hero-phone { width: min(100%, 420px); }
+.phone-screen { position: relative; display: flex; flex-direction: column; gap: 14px; min-height: 620px; padding: 52px 15px 18px; border-radius: 36px; background: #fbf5ec; color: var(--ink); overflow: hidden; }
 .phone-notch { position: absolute; top: 12px; left: 50%; width: 84px; height: 24px; border-radius: 14px; background: #120b08; transform: translateX(-50%); }
 .wallet-card { display: flex; flex-direction: column; gap: 11px; padding: 18px 16px 16px; border-radius: 20px; background: var(--kraft); transition: background-color .35s ease, color .35s ease; }
 .wallet-card.is-complete { background: var(--leaf); color: #fff; }
 .wallet-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .wallet-head strong { font-family: var(--display); font-size: 18px; line-height: 1.1; }
 .wallet-head span { flex: none; font-size: 13px; font-weight: 600; }
-.wallet-title { font-family: var(--display); font-size: 25px; font-stretch: 85%; font-weight: 700; letter-spacing: -.01em; line-height: 1.04; }
 .stamp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 3px; }
 .stamp-slot { position: relative; aspect-ratio: 1; border: 1.5px dashed rgb(42 26 18 / 50%); border-radius: 50%; }
 .is-complete .stamp-slot { border-color: rgb(255 255 255 / 50%); }
@@ -77,7 +77,7 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .stamp-mark { display: block; width: 100%; height: 100%; }
 .wallet-count { font-size: 14px; font-weight: 650; }
 .phone-code { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--ink); font-size: 14px; font-weight: 600; }
-.sample-code { width: 124px; height: 124px; color: var(--espresso); }
+.sample-code { display: block; width: 124px; height: 124px; border-radius: 4px; object-fit: contain; }
 
 @keyframes stamp-press {
   from { opacity: 0; transform: rotate(var(--tilt)) scale(1.9); }
@@ -108,7 +108,7 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .story-number { display: grid; width: 42px; height: 42px; place-items: center; border: 2px solid var(--ink); border-radius: 50%; font-family: var(--display); font-size: 18px; font-weight: 700; }
 .story-steps li.is-active .story-number { border-color: var(--caramel); background: var(--caramel); }
 .story-phone { position: relative; display: flex; align-items: center; justify-content: flex-end; }
-.story-phone .phone { width: min(100%, 300px); }
+.story-phone .phone { width: min(100%, 360px); }
 .story-counter { position: absolute; bottom: 6%; left: 0; color: var(--ink); font-family: var(--display); font-size: clamp(82px, 11vw, 168px); font-stretch: 75%; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: .8; }
 .story-counter span { color: #8a5a2b; font-size: .42em; letter-spacing: 0; }
 .story.is-static { height: auto; }
@@ -242,7 +242,7 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 @media (max-width: 860px) {
   .hero { min-height: auto; grid-template-columns: 1fr; gap: 40px; padding-top: 36px; }
   .hero h1 { font-size: clamp(68px, 21vw, 150px); }
-  .hero-phone { width: min(86%, 300px); }
+  .phone.hero-phone { width: min(100%, 380px); }
   .story { height: 400vh; }
   .story-stage { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-content: start; gap: 10px; height: calc(100svh - 68px); padding-block: 14px; overflow: hidden; }
   .story-copy h2 { max-width: none; font-size: 30px; }
@@ -254,7 +254,7 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
   .story-steps p { margin-top: 2px; font-size: 15.5px; line-height: 1.35; }
   .story-phone { min-height: 0; align-items: flex-start; }
   .story-phone { justify-content: center; }
-  .story-phone .phone { width: 250px; }
+  .story-phone .phone { width: min(100%, 300px); }
   .story .phone-screen { min-height: 0; gap: 10px; padding-top: 46px; }
   .story .sample-code { width: 92px; height: 92px; }
   .story.is-static .story-steps li { display: grid; margin-bottom: 14px; }

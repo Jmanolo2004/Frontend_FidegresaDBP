@@ -1,8 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { PasswordInput } from "../../components/auth/PasswordInput";
-import { SocialAuthButtons } from "../../components/auth/SocialAuthButtons";
-import { useSocialLogin } from "../../components/auth/useSocialLogin";
 import { FormField } from "../../components/common/FormField";
 import { SubmitButton } from "../../components/common/SubmitButton";
 import { useAuth } from "../../hooks/useAuth";
@@ -44,7 +42,6 @@ export default function RegisterPage() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const social = useSocialLogin("/panel/metricas");
 
   const form = useForm({
     initialValues,
@@ -78,10 +75,6 @@ export default function RegisterPage() {
       <p className="eyebrow">Empieza hoy</p>
       <h1>Crea tu cuenta</h1>
       <p className="auth-intro">Cuéntanos de tu negocio y prepara tu programa de fidelización.</p>
-      <SocialAuthButtons onSelect={social.continueWith} loadingProvider={social.loadingProvider} disabled={form.isSubmitting} showDivider={false} />
-      <div className="auth-divider register-divider" role="separator">
-        <span>o regístrate con tu correo</span>
-      </div>
       {form.errors.form && (
         <p className="form-alert" role="alert">
           {form.errors.form}
@@ -146,7 +139,7 @@ export default function RegisterPage() {
             {form.errors.acceptTerms}
           </small>
         )}
-        <SubmitButton loading={form.isSubmitting} loadingText="Creando tu cuenta…" disabled={Boolean(social.loadingProvider)}>
+        <SubmitButton loading={form.isSubmitting} loadingText="Creando tu cuenta…">
           Crear cuenta
         </SubmitButton>
       </form>

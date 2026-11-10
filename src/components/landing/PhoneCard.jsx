@@ -19,7 +19,6 @@ export function PhoneCard({ stamps, className = "" }) {
             <strong>Café de la Plaza</strong>
             <span>Lucía M.</span>
           </div>
-          <p className="wallet-title">{rewardReady ? "Tu café va por la casa" : "Tu décimo café va por la casa"}</p>
           <div className="stamp-grid" role="img" aria-label={`${collected} de ${STAMP_GOAL} sellos`}>
             {Array.from({ length: STAMP_GOAL }, (_, index) => (
               <span className="stamp-slot" key={index}>
@@ -35,7 +34,7 @@ export function PhoneCard({ stamps, className = "" }) {
         </div>
         <div className="phone-code">
           <SampleCode />
-          <span>Muéstralo en caja</span>
+          <span>QR ilustrativo - Fidegresa</span>
         </div>
       </div>
     </div>
