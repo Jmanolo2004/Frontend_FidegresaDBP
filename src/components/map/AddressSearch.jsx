@@ -61,7 +61,7 @@ export function AddressSearch({ onSelect }) {
   return (
     <FormField label="Buscar dirección en Lima">
       <div className="address-search">
-        <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Ej. Av. Larco 812" aria-label="Buscar dirección en Lima" aria-controls="address-search-results" aria-expanded={results.length > 0} />
+        <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Ej. Av. Larco 812" role="combobox" aria-autocomplete="list" aria-label="Buscar dirección en Lima" aria-controls="address-search-results" aria-expanded={results.length > 0} />
         {error && <small className="field-error" role="status">{error}</small>}
         {results.length > 0 && (
           <ul id="address-search-results" role="listbox" className="address-search-results">
