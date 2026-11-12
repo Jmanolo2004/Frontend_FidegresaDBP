@@ -299,3 +299,87 @@
 @media (prefers-reduced-motion: reduce) {
   .card-flip-inner { transition: none; }
 }
+
+/* ---------- Tarjetas: lectura y uso del espacio ---------- */
+/* Lista: dos tarjetas por fila que ocupan todo el ancho; cada una se pone horizontal si hay espacio */
+.card-gallery-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr)); gap: 16px; }
+.card-gallery-item { container-type: inline-size; display: flex; flex-direction: column; }
+.card-gallery-meta { display: flex; flex: 1; flex-direction: column; }
+.card-gallery-actions { margin-top: auto; }
+@container (min-width: 600px) {
+  .card-gallery-item-body { display: grid; grid-template-columns: minmax(250px, 300px) minmax(0, 1fr); align-items: start; }
+  .card-gallery-item-body .card-gallery-preview { padding: 12px 0 12px 12px; }
+}
+.card-gallery-item-body { display: flex; flex: 1; flex-direction: column; }
+
+.card-type-tabs button { font-size: 13px; }
+.card-type-tabs button span { font-size: 12px; }
+.card-gallery-group-heading h2 { font-size: 17px; }
+.card-gallery-group-heading p, .card-gallery-group-heading > span { font-size: 13px; }
+.card-gallery-title h2 { font-size: 16px; }
+.card-gallery-title > div > span { font-size: 13px; }
+.program-status { font-size: 12px; }
+.card-gallery-stats { gap: 6px; margin: 12px 0; font-size: 13px; }
+.card-gallery-stats > span { padding: 4px 9px; border-radius: 999px; background: var(--cream); }
+.card-gallery-details dt, .card-gallery-details dd { font-size: 13px; }
+.card-gallery-details dt { font-weight: 500; }
+.card-gallery-actions .secondary-button, .card-gallery-actions .small-action { font-size: 13px; }
+
+/* Frente de la tarjeta: texto legible y sellos compactos */
+.card-front-brand { font-size: 12px; }
+.card-front-eyebrow { font-size: 10px; }
+.card-front-copy h3, .gift-message h3 { font-size: 18px; }
+.card-front-copy p { font-size: 12px; }
+.stamp-grid { grid-template-columns: repeat(5, max-content); gap: 8px 10px; }
+.stamp-grid > span { width: 26px; height: 26px; }
+.stamp-grid > span.filled { border-color: var(--card-accent); background: var(--card-accent); color: #fff; }
+.card-front-bottom { font-size: 11px; }
+.card-front-bottom strong { font-size: 13px; }
+.tier-current small { font-size: 10px; }
+.tier-progress { font-size: 11px; }
+.tier-level-list span { font-size: 10px; }
+.gift-message > p { font-size: 11px; }
+.gift-to-from { font-size: 11px; }
+.card-front-sm .card-front-brand { font-size: 10px; }
+.card-front-sm .card-front-bottom { font-size: 10px; }
+.card-front-sm .card-front-copy h3, .card-front-sm .gift-message h3 { font-size: 14px; }
+.card-front-sm .stamp-grid > span { width: 18px; height: 18px; }
+.card-front-sm .card-front-copy p, .card-front-sm .card-front-eyebrow { font-size: 9px; }
+.card-front-sm .tier-current small, .card-front-sm .tier-progress, .card-front-sm .tier-level-list span, .card-front-sm .gift-to-from { font-size: 9px; }
+
+/* Asistente: tipo elegido claro y textos legibles */
+.card-wizard-steps button > span { font-size: 13px; }
+.card-wizard-steps small { font-size: 12px; }
+.card-wizard-step-count { font-size: 12px; letter-spacing: .5px; }
+.card-type-choice { position: relative; padding: 10px; border-width: 2px; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
+.card-type-choice:hover { border-color: color-mix(in srgb, var(--caramel), transparent 45%); }
+.card-type-choice.selected { border-color: var(--caramel); background: color-mix(in srgb, var(--caramel), transparent 92%); box-shadow: none; }
+.card-type-choice.selected::after { position: absolute; top: -9px; right: -9px; display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: var(--caramel); color: #fff; content: "✓"; font-size: 13px; font-weight: 700; }
+.card-type-choice-copy { font-size: 12px; }
+.card-type-choice-copy > strong { font-size: 15px; }
+.card-tier-editor-heading span, .card-tier-editor-row .form-field label { font-size: 12px; }
+.card-wizard-step-content .form-field input[type="file"] { font-size: 12px; }
+.card-preview-tabs button { font-size: 12px; }
+.card-preview-note { font-size: 12px; }
+.phone-status, .phone-screen > p, .phone-wallet-button, .wallet-previews { font-size: 11px; }
+.wallet-previews small { font-size: 10px; }
+
+/* Detalle */
+.card-detail-actions .secondary-button, .card-detail-actions .danger-button { font-size: 13px; }
+.card-detail-hero-copy p { font-size: 14px; }
+.card-redemption-list li { font-size: 13px; }
+.card-redemption-list li > span:last-child { font-size: 12px; }
+.card-detail-terms h3 { font-size: 14px; }
+.card-detail-terms p, .card-detail-validity { font-size: 13px; }
+
+.dark-theme .card-gallery-stats > span { background: var(--cream); }
+
+/* Campos del asistente con el mismo estilo que el resto del panel */
+.card-wizard-step-content .form-field :is(input:not([type="color"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea) { width: 100%; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; outline: none; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; }
+.card-wizard-step-content .form-field textarea { min-height: 84px; padding: 10px 12px; line-height: 1.5; resize: vertical; }
+.card-wizard-step-content .form-field :is(input, select, textarea):focus { border-color: #b99a7b; box-shadow: 0 0 0 3px rgb(185 154 123 / 14%); }
+.card-wizard-step-content .form-field :is(input, select, textarea).is-invalid { border-color: #c98a80; }
+.card-wizard-step-content .form-field label { font-size: 13px; }
+.dark-theme .card-wizard-step-content .form-field :is(input:not([type="color"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea) { border-color: var(--line); background: var(--surface); color: var(--text); }
+.card-wizard-step-count { color: #8f5a22; }
+.dark-theme .card-wizard-step-count { color: #e0b382; }

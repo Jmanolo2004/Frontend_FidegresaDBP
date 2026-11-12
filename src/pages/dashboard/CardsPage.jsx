@@ -75,6 +75,7 @@ function CardTile({ card, onStatusChange, onDuplicate, onDelete }) {
   const statusClass = card.estado === "Activa" ? "active" : card.estado === "En pausa" ? "paused" : "draft";
   return (
     <article className="card-gallery-item">
+      <div className="card-gallery-item-body">
       <Link to={`/panel/tarjetas/${card.id}`} className="card-gallery-preview" aria-label={`Ver detalle de ${card.nombre}`}>
         <CardFront card={card} size="md" />
       </Link>
@@ -110,6 +111,7 @@ function CardTile({ card, onStatusChange, onDuplicate, onDelete }) {
             </div>
           </details>
         </div>
+      </div>
       </div>
     </article>
   );
