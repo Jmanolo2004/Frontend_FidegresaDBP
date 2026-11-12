@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { EmptyState } from "../common/EmptyState";
@@ -21,7 +21,7 @@ export function KpiWithSparkline({ label, value, trend, explanation, series = []
       <strong>{value}</strong>
       <div className="metrics-kpi-bottom">
         <span className={!hasTrend ? "trend-new" : trend < 0 ? "trend-down" : "trend-up"} tabIndex={0} title={!hasTrend ? explanation || "Sin datos comparables para este periodo." : explanation || undefined}>
-          {hasTrend ? `${formatTrend(trend)} ${changeUnit}` : "—"}
+          {hasTrend ? `${formatTrend(trend)}${changeUnit}` : "Sin comparación"}
         </span>
         <svg viewBox="0 0 100 28" aria-hidden="true"><polyline points={polyline} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </div>
@@ -63,118 +63,85 @@ function axisMoney(value) {
   return `S/ ${Math.round(value).toLocaleString("es-PE")}`;
 }
 
-export function ComboChart({ series }) {
-  const [hidden, setHidden] = useState([]);
-  const [active, setActive] = useState(null);
-  const visible = key => !hidden.includes(key);
-  const toggle = key => setHidden(previous => previous.includes(key) ? previous.filter(item => item !== key) : [...previous, key]);
-  const rawMaxActivity = Math.max(0, ...series.items.map(item => Math.max(item.visitas, item.clientesNuevos)));
-  const rawMaxSales = Math.max(0, ...series.items.map(item => item.ventas));
-  const activityTicks = axisTicks(rawMaxActivity);
-  const salesTicks = axisTicks(rawMaxSales);
-  const maxVisits = Math.max(1, activityTicks.at(-1));
-  const maxSales = Math.max(1, salesTicks.at(-1));
-  const hasVisits = series.items.some(item => item.visitas > 0);
-  const hasNewCustomers = series.items.some(item => item.clientesNuevos > 0);
-  const hasSales = series.items.some(item => item.ventas > 0);
-  const width = 780, height = 250, left = 58, right = 76, top = 18, bottom = 32;
-  const plotWidth = width - left - right, plotHeight = height - top - bottom;
-  const step = plotWidth / Math.max(1, series.items.length);
-  const bars = series.items.flatMap((item, index) => {
-    const barWidth = Math.max(2, Math.min(15, step * .19));
-    const groupWidth = barWidth * 3 + 4;
-    const x = left + index * step + (step - groupWidth) / 2;
-    return [
-      { key: "visitas", value: item.visitas, fill: "#603f2a", maximum: maxVisits, slot: 0 },
-      { key: "clientesNuevos", value: item.clientesNuevos, fill: "#c8894f", maximum: maxVisits, slot: 1 },
-      { key: "ventas", value: item.ventas, fill: "#4e8066", maximum: maxSales, slot: 2 }
-    ].filter(bar => visible(bar.key) && (bar.key === "visitas" ? hasVisits : bar.key === "clientesNuevos" ? hasNewCustomers : hasSales))
-      .map(bar => {
-        const barHeight = bar.value / bar.maximum * plotHeight;
-        return { ...bar, x: x + bar.slot * (barWidth + 2), y: top + plotHeight - barHeight, width: barWidth, height: barHeight, label: item.label, index };
-      });
-  });
-  const legend = [
-    ["visitas", "Visitas", "#603f2a", hasVisits],
-    ["clientesNuevos", "Clientes nuevos", "#c8894f", hasNewCustomers],
-    ["ventas", "Ventas (S/)", "#4e8066", hasSales]
-  ];
-  const current = active === null ? null : series.items[active];
-  const tableRows = series.items.map(item => [item.label, item.visitas, item.clientesNuevos, formatMoney(item.ventas)]);
-  return <>
-    <div className="metrics-chart-legend">{legend.map(([key, label, color, hasData]) => <button key={key} type="button" className={`${hidden.includes(key) || !hasData ? "muted" : ""}${!hasData ? " no-data" : ""}`} onClick={() => hasData && toggle(key)} disabled={!hasData} aria-label={`${label}${hasData ? "" : ", sin datos"}`}><i style={{ background: hasData ? color : "var(--line)" }} />{label}{!hasData && <small>sin datos</small>}</button>)}</div>
-    <div className="metrics-combo-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Visitas, clientes nuevos y ventas como gráfico de barras">
-        {activityTicks.map(tick => {
-          const y = top + plotHeight - tick / maxVisits * plotHeight;
-          return <g key={`activity-${tick}`}><line x1={left} x2={width - right} y1={y} y2={y} className="metrics-grid-line" /><text x={left - 8} y={y + 4} textAnchor="end">{tick}</text></g>;
-        })}
-        {salesTicks.map(tick => {
-          const y = top + plotHeight - tick / maxSales * plotHeight;
-          return <text key={`sales-${tick}`} x={width - right + 8} y={y + 4} className="metrics-right-axis">{axisMoney(tick)}</text>;
-        })}
-        {bars.map(bar => <rect key={`${bar.key}-${bar.index}`} x={bar.x} y={bar.y} width={bar.width} height={Math.max(1, bar.height)} rx="2" fill={bar.fill} tabIndex={0} aria-label={`${bar.label}, ${bar.key === "visitas" ? "visitas" : bar.key === "clientesNuevos" ? "clientes nuevos" : "ventas"}: ${bar.key === "ventas" ? formatMoney(bar.value) : bar.value}`} onPointerEnter={() => setActive(bar.index)} onFocus={() => setActive(bar.index)} />)}
-        {series.items.map((item, index) => index % Math.max(1, Math.ceil(series.items.length / 9)) === 0 || index === series.items.length - 1 ? <text key={item.label} x={left + step * (index + .5)} y={height - 7} textAnchor="middle">{item.label}</text> : null)}
-      </svg>
-      {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {current.visitas} visitas · {current.clientesNuevos} clientes nuevos · {formatMoney(current.ventas)} en ventas</p>}
-    </div>
-    <DataTable headers={["Periodo", "Visitas", "Clientes nuevos", "Ventas"]} rows={tableRows} />
-  </>;
-}
-ComboChart.propTypes = { series: PropTypes.shape({ items: PropTypes.arrayOf(PropTypes.object).isRequired, interval: PropTypes.string }).isRequired };
-
-const TREND_SERIES = [
-  { key: "clientesRecurrentes", label: "Clientes recurrentes", color: "#603f2a" },
-  { key: "visitas", label: "Total escaneos", color: "#b86f2d", dash: "7 4" },
-  { key: "transacciones", label: "Transacciones totales", color: "#36765e", dash: "2 4" }
+const ACTIVITY_METRICS = [
+  { key: "ventas", label: "Ventas", unit: "money", empty: "ventas" },
+  { key: "visitas", label: "Visitas", unit: "count", empty: "visitas" },
+  { key: "clientesNuevos", label: "Clientes nuevos", unit: "count", empty: "clientes nuevos" }
 ];
 
-export function MetricsTrendChart({ series }) {
+function formatActivityValue(value, unit) {
+  return unit === "money" ? formatMoney(value) : Math.round(value).toLocaleString("es-PE");
+}
+
+const NARROW_QUERY = "(max-width: 700px)";
+
+function useNarrowScreen() {
+  const [narrow, setNarrow] = useState(() => window.matchMedia(NARROW_QUERY).matches);
+  useEffect(() => {
+    const media = window.matchMedia(NARROW_QUERY);
+    const update = () => setNarrow(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  return narrow;
+}
+
+/** Barras de una sola métrica a la vez, con el día de mayor movimiento resaltado. */
+export function ActivityChart({ series }) {
+  const narrow = useNarrowScreen();
+  const [metricKey, setMetricKey] = useState(ACTIVITY_METRICS[0].key);
   const [active, setActive] = useState(null);
-  const width = 780, height = 260, left = 58, right = 18, top = 16, bottom = 36;
-  const plotWidth = width - left - right, plotHeight = height - top - bottom;
-  const maximum = Math.max(0, ...series.items.flatMap(item => TREND_SERIES.map(({ key }) => Number(item[key] || 0))));
-  const ticks = axisTicks(maximum);
+  const metric = ACTIVITY_METRICS.find(item => item.key === metricKey);
+  const values = series.items.map(item => Number(item[metric.key] || 0));
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const peakValue = Math.max(0, ...values);
+  const peakIndex = peakValue > 0 ? values.indexOf(peakValue) : -1;
+  const ticks = axisTicks(peakValue);
   const maxValue = Math.max(1, ticks.at(-1));
+  const width = narrow ? 360 : 780, height = narrow ? 230 : 260, left = narrow ? 52 : 64, right = narrow ? 6 : 14, top = 14, bottom = 34;
+  const plotWidth = width - left - right, plotHeight = height - top - bottom;
   const step = plotWidth / Math.max(1, series.items.length);
-  const hasData = key => series.items.some(item => item[key] !== null && item[key] !== undefined && Number.isFinite(Number(item[key])));
-  const x = index => left + step * (index + .5);
-  const y = value => top + plotHeight - Number(value || 0) / maxValue * plotHeight;
-  const current = active === null ? null : series.items[active];
-  const rows = series.items.map(item => [
-    item.label,
-    item.clientesRecurrentes ?? "—",
-    item.visitas ?? "—",
-    item.transacciones ?? "—"
-  ]);
+  const barWidth = Math.max(3, Math.min(34, step * .62));
+  const labelEvery = Math.max(1, Math.ceil(series.items.length / (narrow ? 4 : 8)));
+  const shown = active ?? peakIndex;
+  const current = shown >= 0 ? series.items[shown] : null;
+  const tick = value => (metric.unit === "money" ? axisMoney(value) : value.toLocaleString("es-PE"));
+
   return <>
-    <div className="metrics-chart-legend">
-      {TREND_SERIES.map(({ key, label, color, dash }) => <span className={`metrics-trend-legend${!hasData(key) ? " no-data" : ""}`} key={key}><i className="metrics-line-key" style={{ borderTop: `3px ${hasData(key) ? dash ? "dashed" : "solid" : "solid"} ${hasData(key) ? color : "var(--line)"}` }} />{label}{!hasData(key) && <small>sin datos</small>}</span>)}
+    <div className="activity-chart-head">
+      <div className="activity-metric-switch" role="group" aria-label="Métrica del gráfico">
+        {ACTIVITY_METRICS.map(item => (
+          <button type="button" key={item.key} aria-pressed={item.key === metricKey} onClick={() => { setMetricKey(item.key); setActive(null); }}>{item.label}</button>
+        ))}
+      </div>
+      <p className="activity-total"><span>Total del periodo</span><strong>{formatActivityValue(total, metric.unit)}</strong></p>
     </div>
-    <div className="metrics-trend-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Gráfico de líneas de clientes recurrentes, escaneos y transacciones">
-        {ticks.map(tick => <g key={tick}>
-          <line x1={left} x2={width - right} y1={y(tick)} y2={y(tick)} className="metrics-grid-line" />
-          <text x={left - 9} y={y(tick) + 4} textAnchor="end">{tick.toLocaleString("es-PE")}</text>
-        </g>)}
-        {TREND_SERIES.map(({ key, color, label, dash }) => {
-          const points = series.items.map((item, index) => `${x(index)},${y(item[key])}`).join(" ");
-          if (!hasData(key)) return null;
-          return <g key={key}>
-            {series.items.length > 1 && <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeDasharray={dash} strokeLinecap="round" strokeLinejoin="round" />}
-            {series.items.map((item, index) => item[key] !== null && item[key] !== undefined ? <circle key={`${key}-${item.label}`} cx={x(index)} cy={y(item[key])} r="3.5" fill={color} stroke="var(--surface)" strokeWidth="1.5" tabIndex={0} aria-label={`${item.label}, ${label}: ${Number(item[key]).toLocaleString("es-PE")}`} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} /> : null)}
-          </g>;
-        })}
-        {series.items.map((item, index) => index % Math.max(1, Math.ceil(series.items.length / 9)) === 0 || index === series.items.length - 1
-          ? <text key={item.label} x={x(index)} y={height - 8} textAnchor="middle">{item.label}</text>
-          : null)}
-      </svg>
-      {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {TREND_SERIES.filter(({ key }) => current[key] !== null && current[key] !== undefined).map(({ key, label }) => `${label.toLowerCase()} ${Number(current[key]).toLocaleString("es-PE")}`).join(" · ")}</p>}
-    </div>
-    <DataTable headers={["Periodo", ...TREND_SERIES.map(({ label }) => label)]} rows={rows} />
+    {total === 0
+      ? <div className="metrics-empty-inline">No hubo {metric.empty} en este periodo. Prueba otro rango o local.</div>
+      : <div className="activity-chart">
+        <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${metric.label} por periodo. El mayor valor fue ${current ? `${formatActivityValue(peakValue, metric.unit)} el ${series.items[peakIndex].label}` : "cero"}.`} onMouseLeave={() => setActive(null)}>
+          {ticks.map(value => {
+            const y = top + plotHeight - value / maxValue * plotHeight;
+            return <g key={value}><line x1={left} x2={width - right} y1={y} y2={y} className="metrics-grid-line" /><text x={left - 10} y={y + 4} textAnchor="end">{tick(value)}</text></g>;
+          })}
+          {series.items.map((item, index) => {
+            const barHeight = values[index] / maxValue * plotHeight;
+            const x = left + index * step + (step - barWidth) / 2;
+            return <g key={`${item.label}-${index}`}>
+              <rect className="activity-hit" x={left + index * step} y={top} width={step} height={plotHeight} onMouseEnter={() => setActive(index)} />
+              <rect x={x} y={top + plotHeight - barHeight} width={barWidth} height={Math.max(values[index] ? 2 : 0, barHeight)} rx="3" className={`activity-bar${index === peakIndex ? " is-peak" : ""}${index === active ? " is-active" : ""}`} tabIndex={0} role="img" aria-label={`${item.label}: ${formatActivityValue(values[index], metric.unit)}`} onFocus={() => setActive(index)} onBlur={() => setActive(null)} />
+              {(index % labelEvery === 0 || index === series.items.length - 1) && <text x={x + barWidth / 2} y={height - 10} textAnchor="middle">{item.label}</text>}
+            </g>;
+          })}
+        </svg>
+        {current && <p className="activity-callout" aria-live="polite">
+          <strong>{formatActivityValue(values[shown], metric.unit)}</strong> {metric.label.toLowerCase()} el {current.label}{shown === peakIndex ? ", el valor más alto del periodo" : ""}
+        </p>}
+      </div>}
+    <DataTable headers={["Periodo", "Ventas", "Visitas", "Clientes nuevos"]} rows={series.items.map(item => [item.label, formatMoney(item.ventas), item.visitas, item.clientesNuevos])} />
   </>;
 }
-MetricsTrendChart.propTypes = { series: PropTypes.shape({ items: PropTypes.arrayOf(PropTypes.object).isRequired }).isRequired };
+ActivityChart.propTypes = { series: PropTypes.shape({ items: PropTypes.arrayOf(PropTypes.object).isRequired }).isRequired };
 
 export function BranchRanking({ branches }) {
   const rankedBranches = [...branches].sort((first, second) => Number(second.sales > 0) - Number(first.sales > 0) || second.sales - first.sales);
@@ -202,7 +169,7 @@ ProgramStat.propTypes = { label: PropTypes.string.isRequired, value: PropTypes.o
 
 function StampHistogram({ rows }) {
   const max = Math.max(1, ...rows.map(item => item.value));
-  return <div className="metrics-histogram" role="img" aria-label="Clientes por cantidad de sellos">
+  return <div className="metrics-histogram" role="img" aria-label={`Clientes por cantidad de sellos: ${rows.map(item => `${item.value} con ${item.label}`).join(", ")}`}>
     {rows.map(item => <div key={item.label}><i style={{ height: `${Math.max(3, item.value / max * 100)}%` }} /><small>{item.label}</small><b>{item.value}</b></div>)}
   </div>;
 }
@@ -227,7 +194,7 @@ export function StampsPanel({ data, cardId, trend, compareLabel }) {
     { label: "Canjes", value: data.kpis.redemptions }, { label: "Tasa de completación", value: `${data.kpis.completionRate}%` },
     { label: "Días para completar", value: data.kpis.daysToComplete }, { label: "Sellos por visita", value: data.kpis.stampsPerVisit }
   ]}>
-    <div className="metrics-program-detail-grid"><div><h3>Progreso de estampillas</h3><StampHistogram rows={data.histogram} /></div>
+    <div className="metrics-program-detail-grid"><div><h3>Progreso de estampillas</h3><p className="metrics-histogram-note">Cuántos clientes tienen cada cantidad de sellos.</p><StampHistogram rows={data.histogram} /></div>
       <div><h3>A punto de canjear</h3>{data.closeToReward.length ? <ul className="metrics-mini-list">{data.closeToReward.map(customer => <li key={customer.id}><span>{customer.name}</span><strong>{customer.progress} sellos</strong></li>)}</ul> : <EmptyState message="Aún no hay clientes cerca de su premio." />}</div>
     </div>
   </ProgramPanel>;
