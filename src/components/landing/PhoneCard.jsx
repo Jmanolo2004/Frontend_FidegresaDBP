@@ -1,9 +1,19 @@
 import PropTypes from "prop-types";
-import { SampleCode } from "./SampleCode";
-import { StampMark } from "./StampMark";
+import coverCafePlaza from "../../assets/cover-cafe-plaza.jpg";
+import { CardFront } from "../cards/CardFront";
 
 const STAMP_GOAL = 10;
-const TILTS = [-9, 6, -3, 11, -7, 4, -12, 8, -4, 10];
+
+// Misma tarjeta Wallet que ve el negocio en su panel, para que la landing y el producto coincidan.
+const LANDING_CARD = {
+  nombre: "Un café con cariño",
+  tipo: "Estampillas",
+  negocio: "Café de la Plaza",
+  colores: { primario: "#d9a514", acento: "#a8650b" },
+  estilo: "elegante",
+  portada: coverCafePlaza,
+  reglas: { sellosMeta: STAMP_GOAL, iconoSello: "star", premio: "Un café gratis" }
+};
 
 /** Celular con la tarjeta digital. Los sellos reciben su valor desde la sección que lo muestra. */
 export function PhoneCard({ stamps, className = "" }) {
@@ -12,41 +22,14 @@ export function PhoneCard({ stamps, className = "" }) {
 
   return (
     <div className={`phone ${className}`}>
-      <div className="phone-screen">
+      <div className="phone-screen landing-phone-screen">
         <span className="phone-notch" aria-hidden="true" />
-        <div className={`wallet-card${rewardReady ? " is-complete" : ""}`}>
-          <div className="wallet-cover">
-            <div className="wallet-head">
-              <strong>Café de la Plaza</strong>
-              <span>Lucía M.</span>
-            </div>
-            <div className="stamp-grid" role="img" aria-label={`${collected} de ${STAMP_GOAL} sellos`}>
-              {Array.from({ length: STAMP_GOAL }, (_, index) => (
-                <span className="stamp-slot" key={index}>
-                  {index < collected && (
-                    <span className="stamp-pressed" style={{ "--tilt": `${TILTS[index]}deg` }}>
-                      <StampMark />
-                    </span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="wallet-summary">
-            <div>
-              <span>Estampillas totales</span>
-              <strong>{STAMP_GOAL}</strong>
-            </div>
-            <div>
-              <span>Estampillas completadas</span>
-              <strong>{collected}</strong>
-            </div>
-          </div>
+        <div className={`landing-pass${rewardReady ? " is-complete" : ""}`}>
+          <CardFront card={LANDING_CARD} size="lg" stamps={collected} client="Lucía M." />
         </div>
-        <div className="phone-code">
-          <SampleCode />
-          <span>QR ilustrativo - Fidegresa</span>
-        </div>
+        <p className={`landing-pass-status${rewardReady ? " is-ready" : ""}`} aria-live="polite">
+          {rewardReady ? "¡Premio listo! Un café gratis te espera" : `Te faltan ${STAMP_GOAL - collected} sellos para tu café gratis`}
+        </p>
       </div>
     </div>
   );

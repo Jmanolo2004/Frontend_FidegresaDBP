@@ -97,6 +97,13 @@ function sanitizeProgram(body, db, current = {}) {
   }
   if (image && image.length > 700000) throw badRequest("La imagen debe pesar 500 KB o menos.");
 
+  // La portada puede ser una imagen subida (data URL) o una imagen de ejemplo ya publicada.
+  const cover = body.portada === undefined ? current.portada || null : body.portada;
+  if (cover !== null && cover !== "" && (typeof cover !== "string" || !(IMAGE_DATA.test(cover) || /^(https?:|\/)/i.test(cover)))) {
+    throw badRequest("La foto de portada debe ser una imagen PNG, JPG o WebP válida.");
+  }
+  if (cover && cover.length > 1100000) throw badRequest("La foto de portada debe pesar 800 KB o menos.");
+
   const inputColors = body.colores ?? current.colores ?? DEFAULT_COLORS;
   if (!HEX_COLOR.test(inputColors.primario || "") || !HEX_COLOR.test(inputColors.acento || "")) {
     throw badRequest("Usa códigos de color válidos para personalizar la tarjeta.");
@@ -115,6 +122,7 @@ function sanitizeProgram(body, db, current = {}) {
     colores: { primario: inputColors.primario, acento: inputColors.acento },
     estilo,
     imagen: image || null,
+    portada: cover || null,
     estado,
     vigenciaMeses,
     terminos: String(body.terminos ?? current.terminos ?? "").trim().slice(0, 2000),

@@ -1,8 +1,10 @@
 import PropTypes from "prop-types";
+import { passStyle } from "./passTheme";
 
 const CARD_SHAPE = PropTypes.shape({
   nombre: PropTypes.string,
   negocio: PropTypes.string,
+  descripcion: PropTypes.string,
   vigenciaMeses: PropTypes.number,
   terminos: PropTypes.string,
   colores: PropTypes.shape({ primario: PropTypes.string, acento: PropTypes.string }),
@@ -10,36 +12,23 @@ const CARD_SHAPE = PropTypes.shape({
   colorAcento: PropTypes.string
 });
 
-const QR_PATTERN = [
-  "11111010111",
-  "10001010001",
-  "10101011101",
-  "10001000101",
-  "11111010111",
-  "00000101000",
-  "11010110111",
-  "10010000101",
-  "11101110101",
-  "10001010001",
-  "11111011111"
-];
-
+/** Reverso de la tarjeta: como en Wallet, muestra los datos y condiciones del programa. */
 export function CardBack({ card, clientCode = "FIDE-00482" }) {
-  const primary = card.colores?.primario || card.color || "#603f2a";
-  const accent = card.colores?.acento || card.colorAcento || "#c8894f";
   return (
-    <div className="card-back" style={{ "--card-primary": primary, "--card-accent": accent }}>
-      <div className="card-back-head"><span>{card.negocio || "Tu negocio"}</span><small>REVERSO DE DEMOSTRACIÓN</small></div>
-      <div className="card-back-code">
-        <div className="demo-qr" role="img" aria-label="Código QR decorativo de demostración, no escaneable">
-          {QR_PATTERN.flatMap((row, y) => [...row].map((cell, x) => cell === "1" ? <i key={`${x}-${y}`} style={{ gridColumn: x + 1, gridRow: y + 1 }} /> : null))}
-          <span>DEMO</span>
+    <div className="wallet-pass wallet-pass-back" style={passStyle(card)}>
+      <div className="wallet-pass-inner pass-back">
+        <div className="pass-back-head">
+          <strong>{card.negocio || "Tu negocio"}</strong>
+          <small>Detalles de la tarjeta</small>
         </div>
-        <div><small>CÓDIGO DEL CLIENTE</small><strong>{clientCode}</strong><p>Este QR es ilustrativo y no puede escanearse.</p></div>
-      </div>
-      <div className="card-back-terms">
-        <span>Vigencia: {card.vigenciaMeses || 12} meses</span>
-        <p>{card.terminos || "Consulta las condiciones de uso en el local."}</p>
+        <dl className="pass-back-list">
+          <div><dt>Programa</dt><dd>{card.nombre || "Tu programa"}</dd></div>
+          {card.descripcion && <div><dt>Beneficio</dt><dd>{card.descripcion}</dd></div>}
+          <div><dt>Código del cliente</dt><dd>{clientCode}</dd></div>
+          <div><dt>Vigencia</dt><dd>{card.vigenciaMeses || 12} meses</dd></div>
+          <div><dt>Términos y condiciones</dt><dd>{card.terminos || "Consulta las condiciones de uso en el local."}</dd></div>
+        </dl>
+        <p className="pass-back-foot">Tarjeta digital emitida con Fidegresa</p>
       </div>
     </div>
   );

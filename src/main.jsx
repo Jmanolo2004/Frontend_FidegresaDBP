@@ -4,6 +4,7 @@ import App from "./App";
 import "./styles/base.css";
 import "./styles/components.css";
 import "./styles/cards.css";
+import "./styles/wallet-pass.css";
 import "./styles/geo.css";
 import "./styles/metrics.css";
 

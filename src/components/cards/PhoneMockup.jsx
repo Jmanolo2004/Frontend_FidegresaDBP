@@ -8,10 +8,11 @@ export function PhoneMockup({ card }) {
         <span className="phone-speaker" aria-hidden="true" />
         <div className="phone-screen">
           <div className="phone-status"><span>9:41</span><span>● ● ●</span></div>
-          <div className="phone-app-heading"><span>Mis beneficios</span><span>•••</span></div>
+          <div className="phone-app-heading"><span>Wallet</span><span>•••</span></div>
           <CardFront card={card} size="sm" />
-          <p>Tu próxima visita te acerca a una recompensa.</p>
-          <button type="button" className="phone-wallet-button" disabled>Agregar a Wallet · demo</button>
+          <button type="button" className="phone-wallet-button" disabled aria-label="Añadir a Apple Wallet (vista ilustrativa)">
+            Añadir a Apple Wallet
+          </button>
         </div>
       </div>
       <div className="wallet-previews" aria-label="Vistas ilustrativas de billeteras digitales">

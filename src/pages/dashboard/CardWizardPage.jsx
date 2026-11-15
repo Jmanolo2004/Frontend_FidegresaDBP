@@ -26,6 +26,13 @@ const COMMON_RULES = {
   vigenciaMeses: [numberBetween(1, 120, "La vigencia debe estar entre 1 y 120 meses.")]
 };
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+// Colores de las tarjetas de muestra del paso 1, uno por tipo.
+const TYPE_SAMPLE_COLORS = {
+  Estampillas: { primario: "#d9a514", acento: "#a8650b" },
+  Cashback: { primario: "#0f4a32", acento: "#9fd8b4" },
+  Niveles: { primario: "#8e3be3", acento: "#ffd166" },
+  Giftcard: { primario: "#0b1f7a", acento: "#ffd166" }
+};
 
 function toFormValues(card, selectedType) {
   const type = card?.tipo || (CARD_TYPE_KEYS.includes(selectedType) ? selectedType : "");
@@ -42,6 +49,7 @@ function toFormValues(card, selectedType) {
     acento: card?.colores?.acento || "#c8894f",
     estilo: card?.estilo || "elegante",
     imagen: card?.imagen || null,
+    portada: card?.portada || null,
     ...rules,
     montos: (rules.montos || []).join(", ")
   };
@@ -69,6 +77,7 @@ function buildCard(values, estado) {
     colores: { primario: values.primario, acento: values.acento },
     estilo: values.estilo,
     imagen: values.imagen,
+    portada: values.portada,
     estado,
     vigenciaMeses: Number(values.vigenciaMeses),
     terminos: values.terminos.trim(),
@@ -245,6 +254,12 @@ function CardWizardForm({ card, locations }) {
       form.setFieldValue(key, key === "montos" ? value.join(", ") : value);
     }
     form.setFieldValue("tipo", type);
+    // Si el negocio aún no eligió sus colores, la vista previa toma los colores de muestra del tipo.
+    const untouchedColors = ["#603f2a", ...Object.values(TYPE_SAMPLE_COLORS).map(colors => colors.primario)];
+    if (untouchedColors.includes(String(form.values.primario).toLowerCase())) {
+      form.setFieldValue("primario", TYPE_SAMPLE_COLORS[type].primario);
+      form.setFieldValue("acento", TYPE_SAMPLE_COLORS[type].acento);
+    }
     form.setErrors({});
   };
 
@@ -275,16 +290,18 @@ function CardWizardForm({ card, locations }) {
     setStep(value => Math.min(STEPS.length - 1, value + 1));
   };
 
-  const handleImage = async event => {
+  // Sirve para el logo (500 KB) y para la foto de portada (800 KB).
+  const handleImage = async (event, field = "imagen", maxKb = 500) => {
     const file = event.target.files?.[0];
+    const label = field === "portada" ? "La foto de portada" : "El logo";
     if (!file) return;
     if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-      form.setErrors({ ...form.errors, imagen: "El logo debe ser PNG, JPG o WebP." });
+      form.setErrors({ ...form.errors, [field]: `${label} debe ser PNG, JPG o WebP.` });
       event.target.value = "";
       return;
     }
-    if (file.size > 500 * 1024) {
-      form.setErrors({ ...form.errors, imagen: "La imagen debe pesar 500 KB o menos." });
+    if (file.size > maxKb * 1024) {
+      form.setErrors({ ...form.errors, [field]: `${label} debe pesar ${maxKb} KB o menos.` });
       event.target.value = "";
       return;
     }
@@ -295,8 +312,8 @@ function CardWizardForm({ card, locations }) {
         reader.onerror = () => reject(new Error("No pudimos leer la imagen."));
         reader.readAsDataURL(file);
       });
-      form.setFieldValue("imagen", image);
-      form.setErrors({ ...form.errors, imagen: "" });
+      form.setFieldValue(field, image);
+      form.setErrors({ ...form.errors, [field]: "" });
     } catch (error) {
       showError(error.message);
     }
@@ -331,10 +348,10 @@ function CardWizardForm({ card, locations }) {
                 <>
                   <div className="card-type-choice-grid">
                     {CARD_TYPE_KEYS.map(type => {
-                      const sample = { nombre: CARD_TYPE_CONFIG[type].label, tipo: type, negocio: "Tu negocio", colores: { primario: "#603f2a", acento: "#c8894f" }, reglas: createDefaultRules(type) };
+                      const sample = { nombre: CARD_TYPE_CONFIG[type].label, tipo: type, negocio: "Tu negocio", colores: TYPE_SAMPLE_COLORS[type], reglas: createDefaultRules(type) };
                       return (
                         <button type="button" key={type} className={`card-type-choice${form.values.tipo === type ? " selected" : ""}`} onClick={() => updateType(type)} aria-pressed={form.values.tipo === type}>
-                          <CardFront card={sample} size="sm" />
+                          <CardFront card={sample} size="sm" compact />
                           <span className="card-type-choice-copy"><strong><Icon name={CARD_TYPE_CONFIG[type].icon} size={15} />{CARD_TYPE_CONFIG[type].label}</strong><small>{CARD_TYPE_CONFIG[type].description}</small><small><b>Ideal para:</b> {CARD_TYPE_CONFIG[type].ideal}</small><small><b>Ejemplo:</b> {CARD_TYPE_CONFIG[type].example}</small></span>
                         </button>
                       );
@@ -377,10 +394,18 @@ function CardWizardForm({ card, locations }) {
                   <FormField label="Estilo visual">
                     <select {...form.getFieldProps("estilo")}><option value="elegante">Elegante</option><option value="minimal">Minimalista</option><option value="vibrante">Vibrante</option></select>
                   </FormField>
-                  <FormField label="Logo (PNG, JPG o WebP · máximo 500 KB)" error={form.errors.imagen} optional>
-                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImage} />
+                  <FormField label="Logo (PNG, JPG o WebP · máximo 500 KB)" error={form.errors.imagen} optional hint="Se muestra en un recuadro blanco arriba a la izquierda.">
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => handleImage(event, "imagen", 500)} />
                   </FormField>
-                  {form.values.imagen && <button type="button" className="small-action danger-text" onClick={() => form.setFieldValue("imagen", null)}>Quitar logo</button>}
+                  <FormField label="Foto de portada (PNG, JPG o WebP · máximo 800 KB)" error={form.errors.portada} optional hint="Foto horizontal de tu local o tus productos. Los sellos y niveles se muestran encima.">
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => handleImage(event, "portada", 800)} />
+                  </FormField>
+                  {(form.values.imagen || form.values.portada) && (
+                    <div className="card-wizard-image-actions">
+                      {form.values.imagen && <button type="button" className="small-action danger-text" onClick={() => form.setFieldValue("imagen", null)}>Quitar logo</button>}
+                      {form.values.portada && <button type="button" className="small-action danger-text" onClick={() => form.setFieldValue("portada", null)}>Quitar portada</button>}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -427,7 +452,7 @@ function CardWizardForm({ card, locations }) {
             <h2>Vista previa</h2>
             <div className="card-preview-tabs" role="tablist" aria-label="Vistas previas de tarjeta">
               <button type="button" role="tab" aria-selected={previewTab === "front"} onClick={() => setPreviewTab("front")}>Frente</button>
-              <button type="button" role="tab" aria-selected={previewTab === "back"} onClick={() => setPreviewTab("back")}>Reverso (QR)</button>
+              <button type="button" role="tab" aria-selected={previewTab === "back"} onClick={() => setPreviewTab("back")}>Reverso</button>
               <button type="button" role="tab" aria-selected={previewTab === "phone"} onClick={() => setPreviewTab("phone")}>Celular</button>
             </div>
             <div className="card-preview-stage">
@@ -435,7 +460,7 @@ function CardWizardForm({ card, locations }) {
               {previewTab === "back" && <CardBack card={previewCard} />}
               {previewTab === "phone" && <PhoneMockup card={previewCard} />}
             </div>
-            <p className="card-preview-note">La tarjeta no muestra un QR real hasta que el cliente la tenga en su cuenta.</p>
+            <p className="card-preview-note">Así verá el cliente su tarjeta. El QR es ilustrativo hasta que el cliente la tenga en su cuenta.</p>
           </div>
         </aside>
       </div>
