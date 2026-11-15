@@ -23,11 +23,14 @@ function cardStyle(card) {
   };
 }
 
-function StampCardFront({ card }) {
+// Sellos de ejemplo para vistas previas; el detalle de un cliente pasa sus sellos reales.
+const SAMPLE_STAMPS = 6;
+
+function StampCardFront({ card, stamps }) {
   const goal = Number(card.reglas?.sellosMeta || card.estampillas || 10);
-  const filled = Math.min(goal, 6);
+  const filled = Math.min(goal, Math.max(0, Number(stamps ?? SAMPLE_STAMPS) || 0));
   return (
-    <div className="card-front-stamps" aria-label={`${filled} de ${goal} sellos`}>
+    <div className="card-front-stamps" role="img" aria-label={`${filled} de ${goal} sellos`}>
       <div className="card-front-brand">
         <span className="card-front-mark">{card.imagen ? <img src={card.imagen} alt="" /> : card.negocio?.slice(0, 1) || "F"}</span>
         <span>{card.negocio || "Tu negocio"}</span>
@@ -134,25 +137,26 @@ function GiftCardFront({ card }) {
   );
 }
 
-function CardContent({ card }) {
+function CardContent({ card, stamps }) {
   if (card.tipo === "Cashback") return <CashbackCardFront card={card} />;
   if (card.tipo === "Niveles") return <TierCardFront card={card} />;
   if (card.tipo === "Giftcard") return <GiftCardFront card={card} />;
-  return <StampCardFront card={card} />;
+  return <StampCardFront card={card} stamps={stamps} />;
 }
 
-CardContent.propTypes = { card: CARD_SHAPE.isRequired };
+CardContent.propTypes = { card: CARD_SHAPE.isRequired, stamps: PropTypes.number };
 
-export function CardFront({ card, size = "md" }) {
+export function CardFront({ card, size = "md", stamps }) {
   const typeLabel = CARD_TYPE_CONFIG[card.tipo]?.label || "Tarjeta de fidelización";
   return (
     <div className={`card-front card-front-${size} card-front-type-${card.tipo?.toLowerCase() || "estampillas"} style-${card.estilo || "elegante"}`} style={cardStyle(card)} aria-label={`${card.nombre || typeLabel}, ${typeLabel}`}>
-      <CardContent card={card} />
+      <CardContent card={card} stamps={stamps} />
     </div>
   );
 }
 
 CardFront.propTypes = {
   card: CARD_SHAPE.isRequired,
-  size: PropTypes.oneOf(["sm", "md", "lg"])
+  size: PropTypes.oneOf(["sm", "md", "lg"]),
+  stamps: PropTypes.number
 };

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import Map, { FullscreenControl, NavigationControl, Popup, ScaleControl } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import * as maplibregl from "maplibre-gl";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { Link } from "react-router-dom";
 import { BranchMarker } from "./BranchMarker";
 import { CustomerLayer } from "./CustomerLayer";
@@ -12,6 +14,11 @@ import { boundsForPoints, distanceInMeters, formatDistance } from "../../utils/m
 const LIGHT_STYLE = import.meta.env.VITE_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty";
 const DARK_STYLE = import.meta.env.VITE_MAP_DARK_STYLE_URL || "https://tiles.openfreemap.org/styles/dark";
 const MAP_ATTRIBUTION = "© OpenStreetMap · OpenFreeMap";
+
+// MapLibre busca su worker junto a su propio archivo; con Vite ese archivo se mueve y el mapa no carga.
+// Le indicamos la ruta real del worker y le pasamos al mapa esta misma copia de MapLibre (mapLib),
+// para que no cargue otra copia por su cuenta sin esa configuración.
+maplibregl.setWorkerUrl(maplibreWorkerUrl);
 
 function applyPalette(map, dark) {
   const styles = dark
@@ -78,6 +85,12 @@ export function MapView({
     window.clearTimeout(warningTimer.current);
     setMapError(null);
     applyPalette(event.target, dark);
+    // Al abrir, encuadra el radio de alcance para que se vea quién queda dentro.
+    const latDelta = (radius * 1.5) / 110540;
+    const lngDelta = (radius * 1.5) / (111320 * Math.cos((center.lat * Math.PI) / 180));
+    event.target.fitBounds([[center.lng - lngDelta, center.lat - latDelta], [center.lng + lngDelta, center.lat + latDelta]], { padding: 24, maxZoom: 16, duration: 0 });
+    // Solo al cargar: después el usuario mueve el mapa a su gusto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dark]);
   const handleMapError = useCallback(event => {
     const message = event.error?.message || "No se pudo cargar el mapa.";
@@ -138,6 +151,7 @@ export function MapView({
         <Map
           ref={mapRef}
           key={mapAttempt}
+          mapLib={maplibregl}
           {...viewport}
           onMove={handleMove}
           onMoveEnd={handleMoveEnd}
@@ -183,7 +197,6 @@ export function MapView({
           }}>Intentar de nuevo</button>}
         </div>
       )}
-      <span className="map-attribution">{MAP_ATTRIBUTION}</span>
     </div>
   );
 }

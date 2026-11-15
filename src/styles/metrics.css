@@ -188,3 +188,76 @@ body.dark-theme .metrics-program-stat, body.dark-theme .metrics-rank { backgroun
   body, .panel, .metrics-kpi { background: white !important; color: black !important; box-shadow: none !important; }
   .panel, .metrics-kpi { break-inside: avoid; }
 }
+
+/* Métricas: filtros en una fila, indicadores arriba y un gráfico principal */
+.metrics-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.metrics-filters .metrics-program-tabs { padding: 0; }
+.metrics-filter-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.metrics-filter-options label { font-size: 12px; }
+.metrics-filter-options select, .metrics-filter-options input { font-size: 13px; }
+.metrics-filters .metrics-filter-period select { width: 124px; }
+.metrics-filters .metrics-filter-compare select { width: 172px; }
+.metrics-export-actions .secondary-button { font-size: 12px; }
+.metrics-program-tabs button { font-size: 13px; }
+.metrics-comparison-label { margin: -6px 0 14px 4px; font-size: 12px; }
+.metrics-kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 15px; }
+.metrics-kpi { min-height: 128px; }
+.metrics-kpi > span, .metrics-kpi > .metrics-kpi-label { font-size: 13px; }
+.metrics-kpi > strong { font-size: clamp(24px, 2.4vw, 30px); }
+.metrics-kpi-bottom { font-size: 12px; }
+.metrics-kpi-explanation { font-size: 12px; }
+.metrics-program-comparison { font-size: 12px; }
+.metrics-chart-legend { font-size: 12px; }
+.metrics-combo-chart svg text, .metrics-trend-chart svg text, .activity-chart svg text { fill: var(--muted); font: 12px "Segoe UI", sans-serif; }
+
+.activity-chart-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 6px 0 12px; }
+.activity-metric-switch { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--cream); }
+.activity-metric-switch button { min-height: 34px; padding: 6px 14px; border: 0; border-radius: 999px; background: none; color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 650; }
+.activity-metric-switch button[aria-pressed="true"] { background: var(--brown); color: #fff; }
+.activity-total { display: grid; justify-items: end; gap: 2px; margin: 0; }
+.activity-total span { color: var(--muted); font-size: 12px; }
+.activity-total strong { color: var(--brown-dark); font-size: 22px; line-height: 1; }
+.activity-chart { position: relative; }
+.activity-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.activity-hit { fill: transparent; }
+.activity-bar { fill: #b99a80; transition: fill .15s ease; }
+.activity-bar.is-peak { fill: var(--caramel); }
+.activity-bar.is-active, .activity-bar:focus-visible { fill: var(--brown); outline: none; }
+.activity-callout { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.activity-callout strong { color: var(--brown-dark); }
+.metrics-histogram-note { margin: -4px 0 8px; color: var(--muted); font-size: 12px; }
+body.dark-theme .activity-metric-switch { background: var(--surface); }
+body.dark-theme .activity-metric-switch button[aria-pressed="true"] { background: var(--caramel); color: #241510; }
+body.dark-theme .activity-total strong, body.dark-theme .activity-callout strong { color: #f0dfcf; }
+
+@media (max-width: 1100px) {
+  .metrics-kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .metrics-filters { display: block; }
+  .metrics-filters .metrics-program-tabs { padding-bottom: 10px; }
+  .metrics-filter-toolbar { display: grid; }
+  .activity-total { justify-items: start; }
+  .metrics-filters .metrics-filter-period select, .metrics-filters .metrics-filter-compare select { width: 100%; }
+}
+@media (max-width: 420px) {
+  .metrics-kpi-row { grid-template-columns: 1fr; }
+  .activity-metric-switch { display: flex; width: 100%; }
+  .activity-metric-switch button { flex: 1; padding-inline: 6px; font-size: 12px; }
+}
+
+/* Paneles por programa: texto legible */
+.metrics-program-stat span { font-size: 12px; }
+.metrics-program-stat strong { font-size: 18px; }
+.metrics-histogram small, .metrics-histogram b { font-size: 12px; }
+.metrics-histogram b { position: static; order: -1; color: var(--brown-dark); }
+.metrics-histogram i { max-height: calc(100% - 40px); }
+.metrics-mini-list li { font-size: 13px; }
+.metrics-ranking-line > strong { font-size: 13px; }
+.metrics-rank { font-size: 12px; }
+@media (max-width: 420px) {
+  .metrics-program-stat strong { font-size: 16px; }
+}
+.metrics-branch-info > a { font-size: 14px; }
+.metrics-branch-info small, .metrics-branch-info p { font-size: 12px; }
+body.dark-theme .metrics-program-tabs button.selected { border-color: var(--caramel); background: rgb(224 142 63 / 16%); color: #f0dfcf; }

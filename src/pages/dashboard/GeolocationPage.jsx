@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Avatar } from "../../components/common/Avatar";
@@ -12,6 +12,7 @@ import { Pagination } from "../../components/common/Pagination";
 import { Skeleton } from "../../components/common/Skeleton";
 import { AddressSearch } from "../../components/map/AddressSearch";
 import { GeoMap } from "../../components/map/GeoMap";
+import { ReachPlan } from "../../components/map/ReachPlan";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
@@ -37,9 +38,26 @@ function loadAudienceList({ signal, page, size, status, q }) {
   return audienceService.getAll({ page, size, status, q }, { signal });
 }
 
-function AudienceTable({ page, rows, pagination, onDuplicate, onStatus, onDelete }) {
+function AudienceTable({ page, rows, pagination, filtered, onDuplicate, onStatus, onDelete }) {
+  if (!rows.length && filtered) {
+    return <EmptyState message="No hay audiencias con esa búsqueda o estado. Prueba con otro filtro." />;
+  }
   if (!rows.length) {
-    return <EmptyState message="Aún no tienes audiencias. Crea una audiencia para configurar una zona, definir el segmento y programar avisos." />;
+    return (
+      <section className="panel audience-empty">
+        <h2>Todavía no tienes audiencias</h2>
+        <p>Una audiencia es un grupo de clientes cerca de tu local que recibe un aviso en la app de Fidegresa.</p>
+        <ol>
+          <li><b>Elige la zona</b><span>Tu local y el radio en el mapa.</span></li>
+          <li><b>Filtra a quién</b><span>Actividad, tipo de tarjeta y permiso de avisos.</span></li>
+          <li><b>Programa el aviso</b><span>Al entrar a la zona o en una fecha.</span></li>
+        </ol>
+        <div className="audience-empty-actions">
+          <Link className="primary-button" to="/panel/geolocalizacion/audiencias/nueva"><Icon name="plus" size={15} /> Crear audiencia</Link>
+          <Link className="secondary-button" to="/panel/geolocalizacion">Elegir zona en el mapa</Link>
+        </div>
+      </section>
+    );
   }
   return (
     <div className="panel audience-table-panel">
@@ -77,6 +95,7 @@ AudienceTable.propTypes = {
   page: PropTypes.object.isRequired,
   rows: PropTypes.array.isRequired,
   pagination: PropTypes.object.isRequired,
+  filtered: PropTypes.bool,
   onDuplicate: PropTypes.func.isRequired,
   onStatus: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired
@@ -144,7 +163,7 @@ function AudienceView({ branches, showToast, showError }) {
         <Link className="primary-button" to="/panel/geolocalizacion/audiencias/nueva"><Icon name="plus" size={15} /> Crear audiencia</Link>
       </div>
       {error && !data ? <ErrorState error={error} onRetry={reload} /> : !data ? <Skeleton height={380} /> : (
-        <AudienceTable page={pagination} rows={data.content} pagination={{ ...data, setPage: pagination.setPage, setSize: pagination.setSize }} onDuplicate={duplicate} onStatus={statusChange} onDelete={setDeleteTarget} />
+        <AudienceTable page={pagination} rows={data.content} filtered={Boolean(debouncedQuery || pagination.filters.status)} pagination={{ ...data, setPage: pagination.setPage, setSize: pagination.setSize }} onDuplicate={duplicate} onStatus={statusChange} onDelete={setDeleteTarget} />
       )}
       <ConfirmDialog open={Boolean(deleteTarget)} title="Eliminar audiencia" description={deleteTarget ? `¿Quieres eliminar “${deleteTarget.nombre}”?` : ""} confirmLabel="Eliminar audiencia" onClose={() => setDeleteTarget(null)} onConfirm={remove} />
       <span className="sr-only">{branches.length} locales disponibles</span>
@@ -175,9 +194,14 @@ export default function GeolocationPage() {
   const location = base?.branches.find(branch => Number(branch.id) === Number(branchId)) || base?.branches[0];
   const customers = customersData || [];
 
+  // El radio guardado se lee una sola vez; después manda lo que el usuario mueve en el control.
+  const savedRadius = base?.settings?.radio;
+  const radiusLoaded = useRef(false);
   useEffect(() => {
-    if (base?.settings) setRadius(Number(base.settings.radio));
-  }, [base?.settings]);
+    if (savedRadius === undefined || radiusLoaded.current) return;
+    radiusLoaded.current = true;
+    setRadius(Number(savedRadius));
+  }, [savedRadius]);
 
   const currentCenter = useMemo(() => location ? ({ lat: Number(location.latitud), lng: Number(location.longitud) }) : null, [location]);
   const nearby = useMemo(() => {
@@ -251,19 +275,27 @@ export default function GeolocationPage() {
   if (baseError && !base) return <><PageHeader title="Geolocalización" /><ErrorState error={baseError} onRetry={reloadBase} /></>;
   if (!base || !location) return <><PageHeader title="Geolocalización" summary="Cargando locales y zonas de alcance…" /><Skeleton height={520} radius={13} /></>;
 
-  const mapLatitude = Number(location.latitud);
-  const mapLongitude = Number(location.longitud);
-  const mapBbox = `${mapLongitude - 0.035},${mapLatitude - 0.025},${mapLongitude + 0.035},${mapLatitude + 0.025}`;
-  const realMapFallback = (
-    <div className="geo-real-map-fallback">
-      <iframe
-        title={`Mapa real de ${location.nombre}, ${location.distrito}, Lima`}
-        src={`https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(mapBbox)}&layer=mapnik&marker=${mapLatitude}%2C${mapLongitude}`}
-        loading="lazy"
-        referrerPolicy="no-referrer"
-      />
-      <p>{location.direccion} · {location.distrito}, Lima</p>
-    </div>
+  const radiusLabel = formatDistance(radius);
+  const reachPlan = (
+    <ReachPlan
+      branch={location}
+      customers={filteredNearby}
+      radius={radius}
+      highlightedCustomerId={highlightedCustomerId || undefined}
+      address={`${location.direccion} · ${location.distrito}, Lima`}
+    />
+  );
+  const funnel = [
+    { label: `Dentro de ${radiusLabel}`, value: inside.length },
+    { label: "Aceptaron compartir ubicación", value: consented },
+    { label: "Pueden recibir el aviso", value: reachable.length, final: true }
+  ];
+  const renderPerson = person => (
+    <Link key={person.id} to={`/panel/clientes/${person.id}`} className={`nearby-row${person.distance <= radius ? " within-reach" : ""}`} onMouseEnter={() => setHighlightedCustomerId(person.id)} onMouseLeave={() => setHighlightedCustomerId(null)} onFocus={() => setHighlightedCustomerId(person.id)} onBlur={() => setHighlightedCustomerId(null)}>
+      <Avatar name={person.nombre} initials={person.iniciales} />
+      <span><strong>{person.nombre}</strong><small className={person.consentimientoUbicacion && person.notificacionesActivas ? "can-notify" : ""}>{person.consentimientoUbicacion && person.notificacionesActivas ? "Puede recibir avisos" : "Avisos desactivados"}</small></span>
+      <span className="distance">{formatDistance(person.distance)}</span>
+    </Link>
   );
 
   return (
@@ -288,7 +320,7 @@ export default function GeolocationPage() {
                 onBranchMove={position => saveBranchPosition({ lat: Number(position.lat), lng: Number(position.lng) })}
                 className="geo-main-map"
                 ariaLabel="Mapa interactivo con el alcance del local y clientes cercanos"
-                fallback={realMapFallback}
+                fallback={reachPlan}
               />
             </article>
             <aside className="panel geo-settings">
@@ -299,50 +331,43 @@ export default function GeolocationPage() {
                 {base.branches.map(branch => <option key={branch.id} value={branch.id}>{branch.nombre} · {branch.distrito}</option>)}
               </select>
               <AddressSearch onSelect={position => saveBranchPosition(position)} />
-              <div className="range-value"><strong>{radius >= 1000 ? `${(radius / 1000).toLocaleString("es-PE")} km` : `${radius} m`}</strong><span>100 m – 3 km</span></div>
-              <input className="range-input" type="range" min={100} max={3000} step={50} value={radius} onChange={event => setRadius(Number(event.target.value))} aria-label="Radio de alcance en metros" />
+              <div className="range-value"><label htmlFor="geo-radius">Radio de alcance</label><strong>{radiusLabel}</strong></div>
+              <input className="range-input" type="range" min={100} max={3000} step={50} value={radius} onChange={event => setRadius(Number(event.target.value))} id="geo-radius" aria-valuetext={radiusLabel} />
+              <div className="range-labels" aria-hidden="true"><span>100 m</span><span>3 km</span></div>
               <div className="geo-radius-presets">{[300, 500, 1000, 2000].map(value => <button key={value} type="button" className={radius === value ? "selected" : ""} onClick={() => setRadius(value)}>{value >= 1000 ? `${value / 1000} km` : `${value} m`}</button>)}</div>
               <div className="geo-quick-filters">
                 <label>Actividad<select className="filter-select" value={quickActivity} onChange={event => setQuickActivity(event.target.value)}><option value="todos">Todos</option><option value="activos">Activos (60 días)</option><option value="inactivos60">Inactivos +60 días</option><option value="cumpleanos">Cumpleaños este mes</option></select></label>
                 <label>Tipo de tarjeta<select className="filter-select" value={quickCardType} onChange={event => setQuickCardType(event.target.value)}><option>Todas</option>{CARD_TYPES.map(type => <option key={type}>{type}</option>)}</select></label>
               </div>
-              <div className="geo-counts">
-                <span><strong>{inside.length}</strong> Dentro del radio</span><span><strong>{outside.length}</strong> Fuera del radio</span>
-              </div>
-              <div className="geo-counts geo-counts-privacy">
-                <span><strong>{consented}</strong> Aceptaron compartir ubicación</span><span><strong>{reachable.length}</strong> Audiencia alcanzable</span>
-              </div>
+              <section className="geo-funnel" aria-label="Quién recibiría el aviso" aria-live="polite">
+                {funnel.map(step => (
+                  <div key={step.label} className={`geo-funnel-step${step.final ? " is-final" : ""}`}>
+                    <strong>{step.value}</strong>
+                    <span>{step.label}</span>
+                    <i aria-hidden="true"><b style={{ width: `${inside.length ? Math.round((step.value / inside.length) * 100) : 0}%` }} /></i>
+                  </div>
+                ))}
+                {outside.length > 0 && <p>{outside.length} {outside.length === 1 ? "cliente queda" : "clientes quedan"} fuera del radio.</p>}
+                <button className="primary-button geo-funnel-action" type="button" onClick={toAudienceWizard} disabled={!reachable.length}>
+                  <Icon name="users" size={16} /> {reachable.length ? `Crear audiencia con ${reachable.length} ${reachable.length === 1 ? "cliente" : "clientes"}` : "Nadie puede recibir avisos aún"}
+                </button>
+              </section>
               <div className="geo-privacy-note"><Icon name="target" size={16} /><span><b>Privacidad · Ley N° 29733</b><br />Solo se notifica a clientes que aceptaron compartir su ubicación. Fidegresa no rastrea a las personas desde la web.</span></div>
               <div className="nearby-list" tabIndex={0} aria-label="Clientes por distancia, lista alternativa al mapa">
-                <strong className="panel-title">Clientes por distancia</strong>
-                {filteredNearby.length ? filteredNearby.map(person => (
-                  <Link key={person.id} to={`/panel/clientes/${person.id}`} className={`nearby-row${person.distance <= radius ? " within-reach" : ""}`} onMouseEnter={() => setHighlightedCustomerId(person.id)} onMouseLeave={() => setHighlightedCustomerId(null)} onFocus={() => setHighlightedCustomerId(person.id)} onBlur={() => setHighlightedCustomerId(null)}>
-                    <Avatar name={person.nombre} initials={person.iniciales} />
-                    <span><strong>{person.nombre}</strong><small>{person.lastKnownZone} · {person.consentimientoUbicacion && person.notificacionesActivas ? "Puede recibir avisos" : "Avisos desactivados"}</small></span>
-                    <span className="distance">{formatDistance(person.distance)}</span>
-                  </Link>
-                )) : <p className="empty-state">No hay clientes que coincidan con estos filtros.</p>}
+                {filteredNearby.length ? (
+                  <>
+                    <strong className="panel-title">Dentro del radio <span>{inside.length}</span></strong>
+                    {inside.length ? inside.map(renderPerson) : <p className="nearby-empty">Nadie está dentro de {radiusLabel}. Prueba con un radio mayor.</p>}
+                    {outside.length > 0 && <strong className="panel-title is-outside">Fuera del radio <span>{outside.length}</span></strong>}
+                    {outside.map(renderPerson)}
+                  </>
+                ) : <p className="nearby-empty">No hay clientes que coincidan con estos filtros.</p>}
               </div>
             </aside>
           </div>
-          <AudienceViewActions location={location} radius={radius} reachable={reachable.length} />
         </>
       )}
       <span className="sr-only">{highlightedCustomerId ? `Cliente ${highlightedCustomerId} resaltado en el mapa.` : ""}</span>
     </>
   );
 }
-
-function AudienceViewActions({ location, radius, reachable }) {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  if (searchParams.get("vista") === "audiencias") return null;
-  const params = new URLSearchParams({ branchId: String(location.id), lat: String(location.latitud), lng: String(location.longitud), radius: String(radius) });
-  return <div className="geo-create-audience-footer"><span>{reachable} clientes cumplen los filtros y pueden recibir avisos.</span><button type="button" className="primary-button" onClick={() => navigate(`/panel/geolocalizacion/audiencias/nueva?${params}`)}>Continuar a Crear audiencia</button></div>;
-}
-
-AudienceViewActions.propTypes = {
-  location: PropTypes.object.isRequired,
-  radius: PropTypes.number.isRequired,
-  reachable: PropTypes.number.isRequired
-};

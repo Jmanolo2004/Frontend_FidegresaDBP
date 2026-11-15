@@ -43,7 +43,7 @@ export function GeoMap({ fallback, onError, ...props }) {
         setFailed(false);
         setAttempt(previous => previous + 1);
         onError?.(null);
-      }}>Intentar cargar el mapa real</button>
+      }}>Cargar mapa de calles</button>
     </div>
   );
   return (

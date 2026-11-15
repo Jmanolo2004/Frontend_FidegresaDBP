@@ -708,3 +708,8 @@ body.dark-theme {
  .program-card .loyalty-card-visual,#card-live-preview .loyalty-card-visual { min-height: 206px; aspect-ratio: auto; padding: 14px; }
  .loyalty-card-copy h3 { font-size: 15px; }
 }
+
+/* Texto solo para lectores de pantalla */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; margin: -1px; padding: 0; border: 0; clip: rect(0 0 0 0); white-space: nowrap; }
+/* En tema oscuro el botón principal es claro: el texto va oscuro para que se lea */
+.dark-theme .primary-button { color: #2b1d14; }

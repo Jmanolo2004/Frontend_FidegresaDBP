@@ -104,7 +104,7 @@ export default function CustomerDetailPage() {
         </article>
         <article className="panel">
           <PanelHeading title="Tarjeta digital" subtitle="Así ve su tarjeta en el celular" />
-          {card ? <CardFront card={card} size="md" /> : <div className="empty-state">Este cliente aún no tiene una tarjeta asignada.</div>}
+          {card ? <CardFront card={card} size="md" stamps={customer.estampillas} /> : <div className="empty-state">Este cliente aún no tiene una tarjeta asignada.</div>}
         </article>
       </div>
 
