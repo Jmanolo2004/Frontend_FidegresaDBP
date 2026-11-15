@@ -43,7 +43,7 @@ Con `VITE_USE_MOCK=true` la app funciona sin backend: un adaptador de Axios (`sr
 
 | Ruta | Sección |
 | --- | --- |
-| `/panel/metricas` | Ventas, clientes activos, premios y retorno; gráfico por periodo |
+| `/panel/metricas` | Métricas y actividad filtrables por programa, periodo y local |
 | `/panel/clientes` | Directorio paginado con búsqueda, filtros, orden, exportación CSV y alta de clientes |
 | `/panel/clientes/:customerId` | Detalle del cliente: contacto, tarjeta digital, visitas y reseñas |
 | `/panel/resenas` | Calificación promedio, filtros y respuestas a reseñas (paginado) |

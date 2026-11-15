@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 
 const RANGES = ["all", "today", "7days", "14days", "30days", "90days", "month", "quarter", "year", "custom"];
+const PROGRAMS = ["all", "stamps", "cashback", "giftcard", "tiers"];
 
 function intervalForRange(range, from, to) {
   if (range === "all") return "year";
@@ -41,7 +42,7 @@ export function useMetricsFilters() {
     ? { from: params.get("from"), to: params.get("to") }
     : rangeDates(range), [range, params]);
   const filters = useMemo(() => ({
-    program: "all",
+    program: PROGRAMS.includes(params.get("program")) ? params.get("program") : "all",
     range,
     interval: intervalForRange(range, dates.from, dates.to),
     ...dates,
@@ -52,7 +53,7 @@ export function useMetricsFilters() {
     setParams(previous => {
       const next = new URLSearchParams(previous);
       Object.entries(changes).forEach(([key, value]) => {
-        if (value === "" || value === null || value === undefined || (key === "range" && value === "month")) next.delete(key);
+        if (value === "" || value === null || value === undefined || (key === "range" && value === "month") || (key === "program" && value === "all")) next.delete(key);
         else next.set(key, String(value));
       });
       if (changes.range && changes.range !== "custom") {
@@ -64,7 +65,6 @@ export function useMetricsFilters() {
         next.set("from", nextDates.from);
         next.set("to", nextDates.to);
       }
-      next.delete("program");
       next.delete("compare");
       next.delete("interval");
       return next;

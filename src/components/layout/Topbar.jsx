@@ -1,12 +1,29 @@
 import PropTypes from "prop-types";
 import { useSearchParams } from "react-router-dom";
-import { Breadcrumbs } from "./Breadcrumbs";
 import { Icon } from "../common/Icon";
-import { formatToday, getInitials } from "../../utils/format";
+import { getInitials } from "../../utils/format";
+import { useSettings } from "../../hooks/useSettings";
+import { useToast } from "../../hooks/useToast";
+import { useState } from "react";
 
 export function Topbar({ profileName, noticeCount, branches, branchesError, menuOpen, onToggleMenu, onOpenNotices, onOpenProfile }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { settings, updateSettings } = useSettings();
+  const { showError } = useToast();
+  const [themePending, setThemePending] = useState(false);
   const branchId = searchParams.get("branchId") || "";
+  const isDark = settings.tema === "oscuro";
+
+  const toggleTheme = async () => {
+    setThemePending(true);
+    try {
+      await updateSettings({ tema: isDark ? "claro" : "oscuro" });
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      setThemePending(false);
+    }
+  };
 
   const selectBranch = event => {
     const next = new URLSearchParams(searchParams);
@@ -21,7 +38,6 @@ export function Topbar({ profileName, noticeCount, branches, branchesError, menu
         <button type="button" className="icon-button mobile-menu" onClick={onToggleMenu} aria-label="Abrir menú" aria-expanded={menuOpen} aria-controls="sidebar">
           <Icon name="menu" />
         </button>
-        <Breadcrumbs />
       </div>
       <label className={`topbar-location-picker${branchesError ? " has-error" : ""}`} title={branchesError?.message}>
         <Icon name="pin" size={16} />
@@ -33,7 +49,9 @@ export function Topbar({ profileName, noticeCount, branches, branchesError, menu
         <Icon name="chevron" size={15} />
       </label>
       <div className="topbar-actions">
-        <span className="today-label">{formatToday()}</span>
+        <button type="button" className="icon-button theme-toggle" onClick={toggleTheme} disabled={themePending} aria-label={isDark ? "Activar modo claro" : "Activar modo oscuro"} aria-pressed={isDark} title={isDark ? "Activar modo claro" : "Activar modo oscuro"}>
+          <Icon name="moon" />
+        </button>
         <button type="button" className="icon-button notification-button" onClick={onOpenNotices} aria-label={`Avisos del negocio: ${noticeCount}`}>
           <Icon name="bell" />
           <span className="notification-count" hidden={noticeCount === 0}>

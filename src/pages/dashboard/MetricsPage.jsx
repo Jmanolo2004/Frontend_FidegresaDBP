@@ -18,6 +18,7 @@ const ComboChart = lazy(() => import("../../components/metrics/MetricsVisuals").
 const MetricsTrendChart = lazy(() => import("../../components/metrics/MetricsVisuals").then(module => ({ default: module.MetricsTrendChart })));
 
 const DATE_LABELS = { all: "Todo el tiempo", today: "Hoy", "7days": "Los últimos 7 días", "14days": "Los últimos 14 días", "30days": "Los últimos 30 días", "90days": "Los últimos 90 días", month: "Este mes", quarter: "Este trimestre", year: "Este año", custom: "El periodo seleccionado" };
+const PROGRAMS = [["all", "General"], ["stamps", "Estampillas"], ["cashback", "Cashback"], ["giftcard", "Giftcards"], ["tiers", "Niveles"]];
 
 function MetricContent({ data, filters }) {
   const { kpis, series } = data;
@@ -54,7 +55,6 @@ function MetricContent({ data, filters }) {
         ))}
       </div>
       <section className="panel metrics-trend-panel">
-        <PanelHeading title="Evolución de clientes y actividad" subtitle="Comportamiento por periodo de clientes recurrentes, escaneos y transacciones." />
         <Suspense fallback={<Skeleton height={300} />}>
           <MetricsTrendChart series={trendSeries} />
         </Suspense>
@@ -71,17 +71,17 @@ export default function MetricsPage() {
   const { branches, branchesError, reloadBranches } = useOutletContext();
   const { filters, update } = useMetricsFilters();
   const overviewParams = useMemo(() => ({
-    program: "all",
+    program: filters.program,
     range: filters.range,
     interval: filters.interval,
     from: filters.from,
     to: filters.to,
     branchId: filters.branchId
-  }), [filters.range, filters.from, filters.to, filters.branchId, filters.interval]);
+  }), [filters.program, filters.range, filters.from, filters.to, filters.branchId, filters.interval]);
   const getOverview = useCallback(({ signal }) => metricsService.getOverview(overviewParams, { signal }), [overviewParams]);
   const { data, error, loading, reload } = useFetch(getOverview, [overviewParams]);
   const dateTitle = DATE_LABELS[filters.range] || DATE_LABELS.custom;
-  const summary = data
+  const summary = data && !error
     ? `${dateTitle}, tus clientes volvieron ${Math.round(data.kpis.visits.current).toLocaleString("es-PE")} veces y gastaron ${formatMoney(data.kpis.sales.current)}.`
     : "Consulta el rendimiento de tus clientes y las ventas de tu negocio.";
 
@@ -90,9 +90,17 @@ export default function MetricsPage() {
 
   return <>
     <PageHeader title={`Hola, ${data?.owner || "bienvenido"}`} summary={summary} />
+    <div className="metrics-program-filters" role="group" aria-label="Filtrar métricas por programa">
+      {PROGRAMS.map(([value, label]) => (
+        <button type="button" key={value} className="metrics-calendar-trigger" aria-pressed={filters.program === value} onClick={() => update({ program: value })}>
+          {label}
+        </button>
+      ))}
+    </div>
     <MetricsFilters filters={filters} update={update} />
+    {error && <ErrorState error={error} onRetry={reload} />}
     {loading && data && <p className="metrics-loading-note" role="status">Actualizando indicadores…</p>}
-    {data
+    {!error && (data
       ? <MetricContent data={data} filters={filters} />
       : <>
         <Skeleton height={320} />
@@ -100,11 +108,11 @@ export default function MetricsPage() {
           {Array.from({ length: 4 }, (_, index) => <Skeleton height={104} key={index} />)}
         </section>
         <Skeleton height={320} />
-      </>}
+      </>)}
 
     <article className="panel metrics-activity-panel metrics-content-section">
-      <PanelHeading title="Actividad reciente" subtitle="Movimientos de tus clientes en todos los programas" />
-      <ActivityTable program="all" branchId={filters.branchId} from={filters.from} to={filters.to} />
+      <PanelHeading title="Actividad reciente" subtitle={filters.program === "all" ? "Movimientos de tus clientes en todos los programas" : `Movimientos de tus clientes en ${PROGRAMS.find(([value]) => value === filters.program)[1]}`} />
+      <ActivityTable key={filters.program} program={filters.program} branchId={filters.branchId} from={filters.from} to={filters.to} />
     </article>
   </>;
 }

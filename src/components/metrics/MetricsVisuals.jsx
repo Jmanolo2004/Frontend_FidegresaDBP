@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { EmptyState } from "../common/EmptyState";
@@ -120,23 +120,26 @@ export function ComboChart({ series }) {
 ComboChart.propTypes = { series: PropTypes.shape({ items: PropTypes.arrayOf(PropTypes.object).isRequired, interval: PropTypes.string }).isRequired };
 
 const TREND_SERIES = [
-  { key: "clientesRecurrentes", label: "Clientes recurrentes", color: "#603f2a" },
-  { key: "visitas", label: "Total escaneos", color: "#b86f2d", dash: "7 4" },
-  { key: "transacciones", label: "Transacciones totales", color: "#36765e", dash: "2 4" }
+  { key: "clientesRecurrentes", label: "Clientes recurrentes", color: "#0098b5" },
+  { key: "visitas", label: "Total escaneos", color: "#e97816" },
+  { key: "transacciones", label: "Transacciones totales", color: "#326ef4" }
 ];
 
 export function MetricsTrendChart({ series }) {
   const [active, setActive] = useState(null);
+  const tooltipId = useId();
   const width = 780, height = 260, left = 58, right = 18, top = 16, bottom = 36;
   const plotWidth = width - left - right, plotHeight = height - top - bottom;
-  const maximum = Math.max(0, ...series.items.flatMap(item => TREND_SERIES.map(({ key }) => Number(item[key] || 0))));
+  const valid = value => value !== null && value !== undefined && Number.isFinite(Number(value));
+  const maximum = Math.max(0, ...series.items.flatMap(item => TREND_SERIES.map(({ key }) => valid(item[key]) ? Number(item[key]) : 0)));
   const ticks = axisTicks(maximum);
   const maxValue = Math.max(1, ticks.at(-1));
-  const step = plotWidth / Math.max(1, series.items.length);
-  const hasData = key => series.items.some(item => item[key] !== null && item[key] !== undefined && Number.isFinite(Number(item[key])));
-  const x = index => left + step * (index + .5);
-  const y = value => top + plotHeight - Number(value || 0) / maxValue * plotHeight;
-  const current = active === null ? null : series.items[active];
+  const step = plotWidth / Math.max(1, series.items.length - 1);
+  const hasData = key => series.items.some(item => valid(item[key]));
+  const x = index => series.items.length === 1 ? left + plotWidth / 2 : left + step * index;
+  const y = value => top + plotHeight - Number(value) / maxValue * plotHeight;
+  const current = active && series.items[active.index] === active.item ? active.item : null;
+  const formatValue = value => valid(value) ? Number(value).toLocaleString("es-PE") : "—";
   const rows = series.items.map(item => [
     item.label,
     item.clientesRecurrentes ?? "—",
@@ -144,28 +147,63 @@ export function MetricsTrendChart({ series }) {
     item.transacciones ?? "—"
   ]);
   return <>
-    <div className="metrics-chart-legend">
-      {TREND_SERIES.map(({ key, label, color, dash }) => <span className={`metrics-trend-legend${!hasData(key) ? " no-data" : ""}`} key={key}><i className="metrics-line-key" style={{ borderTop: `3px ${hasData(key) ? dash ? "dashed" : "solid" : "solid"} ${hasData(key) ? color : "var(--line)"}` }} />{label}{!hasData(key) && <small>sin datos</small>}</span>)}
+    <div className="metrics-chart-legend metrics-trend-legend">
+      {TREND_SERIES.map(({ key, label, color }) => <span className={!hasData(key) ? "no-data" : ""} key={key}><i style={{ background: hasData(key) ? color : "var(--line)" }} />{label}{!hasData(key) && <small>sin datos</small>}</span>)}
     </div>
+    <PanelHeading title="Evolución de clientes y actividad" subtitle="Comportamiento por periodo de clientes recurrentes, escaneos y transacciones." />
     <div className="metrics-trend-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Gráfico de líneas de clientes recurrentes, escaneos y transacciones">
+      <svg viewBox={`0 0 ${width} ${height}`} role="group" aria-label="Gráfico de líneas de clientes recurrentes, escaneos y transacciones">
         {ticks.map(tick => <g key={tick}>
           <line x1={left} x2={width - right} y1={y(tick)} y2={y(tick)} className="metrics-grid-line" />
           <text x={left - 9} y={y(tick) + 4} textAnchor="end">{tick.toLocaleString("es-PE")}</text>
         </g>)}
-        {TREND_SERIES.map(({ key, color, label, dash }) => {
-          const points = series.items.map((item, index) => `${x(index)},${y(item[key])}`).join(" ");
-          if (!hasData(key)) return null;
+        {TREND_SERIES.map(({ key, color }) => {
+          const segments = [];
+          series.items.forEach((item, index) => {
+            if (!valid(item[key])) return;
+            if (index === 0 || !valid(series.items[index - 1][key])) segments.push([]);
+            segments.at(-1).push({ x: x(index), y: y(item[key]) });
+          });
           return <g key={key}>
-            {series.items.length > 1 && <polyline points={points} fill="none" stroke={color} strokeWidth="3" strokeDasharray={dash} strokeLinecap="round" strokeLinejoin="round" />}
-            {series.items.map((item, index) => item[key] !== null && item[key] !== undefined ? <circle key={`${key}-${item.label}`} cx={x(index)} cy={y(item[key])} r="3.5" fill={color} stroke="var(--surface)" strokeWidth="1.5" tabIndex={0} aria-label={`${item.label}, ${label}: ${Number(item[key]).toLocaleString("es-PE")}`} onPointerEnter={() => setActive(index)} onFocus={() => setActive(index)} /> : null)}
+            {segments.map((points, index) => {
+              const path = points.slice(1).reduce((result, point, pointIndex) => {
+                const previous = points[pointIndex];
+                const middle = (previous.x + point.x) / 2;
+                return `${result} C ${middle} ${previous.y}, ${middle} ${point.y}, ${point.x} ${point.y}`;
+              }, `M ${points[0].x} ${points[0].y}`);
+              return <g key={index}>
+                {points.length > 1 && <path d={`${path} L ${points.at(-1).x} ${top + plotHeight} L ${points[0].x} ${top + plotHeight} Z`} fill={color} opacity=".07" />}
+                <path d={path} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                {points.length === 1 && <circle cx={points[0].x} cy={points[0].y} r="3" fill={color} />}
+              </g>;
+            })}
           </g>;
         })}
+        {current && <>
+          <line x1={x(active.index)} x2={x(active.index)} y1={top} y2={top + plotHeight} className="metrics-trend-guide" />
+          {TREND_SERIES.map(({ key, color }) => valid(current[key]) && <circle key={key} cx={x(active.index)} cy={y(current[key])} r="4" fill={color} stroke="var(--surface)" strokeWidth="1.5" />)}
+        </>}
+        {series.items.map((item, index) => {
+          const start = index === 0 ? left : (x(index - 1) + x(index)) / 2;
+          const end = index === series.items.length - 1 ? left + plotWidth : (x(index) + x(index + 1)) / 2;
+          return <rect key={index} x={start} y={top} width={end - start} height={plotHeight} fill="transparent" tabIndex={0}
+            aria-label={`${item.label}: ${TREND_SERIES.map(({ key, label }) => `${label}: ${formatValue(item[key])}`).join(", ")}`}
+            aria-describedby={current === item ? tooltipId : undefined}
+            onPointerEnter={() => setActive({ index, item })}
+            onPointerLeave={event => { if (event.pointerType !== "touch") setActive(null); }}
+            onFocus={() => setActive({ index, item })} onBlur={() => setActive(null)} />;
+        })}
         {series.items.map((item, index) => index % Math.max(1, Math.ceil(series.items.length / 9)) === 0 || index === series.items.length - 1
-          ? <text key={item.label} x={x(index)} y={height - 8} textAnchor="middle">{item.label}</text>
+          ? <text key={index} x={x(index)} y={height - 8} textAnchor={series.items.length === 1 ? "middle" : index === 0 ? "start" : index === series.items.length - 1 ? "end" : "middle"}>{item.label}</text>
           : null)}
       </svg>
-      {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {TREND_SERIES.filter(({ key }) => current[key] !== null && current[key] !== undefined).map(({ key, label }) => `${label.toLowerCase()} ${Number(current[key]).toLocaleString("es-PE")}`).join(" · ")}</p>}
+      {current && <div id={tooltipId} className="metrics-bar-tooltip metrics-trend-tooltip" role="tooltip"
+        style={{ left: `clamp(0px, calc(${x(active.index) / width * 100}% ${active.index >= series.items.length / 2 ? "- 250px" : "+ 10px"}), max(0px, calc(100% - 240px)))` }}>
+        <strong className="metrics-bar-tooltip-period">{current.label}</strong>
+        {TREND_SERIES.map(({ key, label, color }) => <div className="metrics-bar-tooltip-row" key={key}>
+          <span><i style={{ background: color }} aria-hidden="true" />{label}</span><strong>{formatValue(current[key])}</strong>
+        </div>)}
+      </div>}
     </div>
     <DataTable headers={["Periodo", ...TREND_SERIES.map(({ label }) => label)]} rows={rows} />
   </>;
