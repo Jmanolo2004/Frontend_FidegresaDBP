@@ -70,7 +70,7 @@ export default function LandingPage() {
   }, [reducedMotion]);
 
   const goToRegister = () => navigate(isAuthenticated ? ROUTES.dashboard : ROUTES.register);
-  const goToLogin = () => navigate(isAuthenticated ? ROUTES.dashboard : ROUTES.login);
+  const goToLogin = () => navigate(ROUTES.login);
 
   return (
     <div className="lp">
@@ -87,7 +87,7 @@ export default function LandingPage() {
         </nav>
         <div className="lp-header-actions">
           <button type="button" className="lp-text-button" onClick={goToLogin}>
-            {isAuthenticated ? "Ir a mi panel" : "Iniciar sesión"}
+            Iniciar sesión
           </button>
           <button type="button" className="lp-button is-primary is-small" onClick={goToRegister}>
             Crear cuenta
@@ -104,7 +104,7 @@ export default function LandingPage() {
           <a href="#tarjetas" onClick={() => setMenuOpen(false)}>Tarjetas</a>
           <a href="#panel" onClick={() => setMenuOpen(false)}>Panel</a>
           <a href="#planes" onClick={() => setMenuOpen(false)}>Planes</a>
-          <button type="button" onClick={() => { setMenuOpen(false); goToLogin(); }}>{isAuthenticated ? "Ir a mi panel" : "Iniciar sesión"}</button>
+          <button type="button" onClick={() => { setMenuOpen(false); goToLogin(); }}>Iniciar sesión</button>
           <button type="button" className="lp-button is-primary" onClick={() => { setMenuOpen(false); goToRegister(); }}>Crear cuenta</button>
         </nav>
       </dialog>
