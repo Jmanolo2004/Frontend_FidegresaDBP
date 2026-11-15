@@ -358,3 +358,26 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
   .hero-actions .lp-button, .closing .lp-button { width: 100%; }
   .closing h2 { font-size: clamp(48px, 14vw, 68px); }
 }
+
+/* Tarjeta Wallet dentro del celular de la landing (la misma que se crea en el panel) */
+.landing-phone-screen { justify-content: flex-start; gap: 16px; padding-inline: 12px; }
+.landing-pass .wallet-pass { max-width: none; }
+.landing-pass .wallet-pass-inner { transition: box-shadow .35s ease; }
+.landing-pass.is-complete .wallet-pass-inner { box-shadow: 0 0 0 3px var(--leaf), 0 14px 30px rgb(42 26 18 / 22%); }
+.landing-pass .pass-stamps > span.filled { animation: pass-stamp-in .32s cubic-bezier(.2, 1.4, .4, 1) both; }
+.landing-pass-status { margin: 0; color: var(--ink); font-size: 14px; font-weight: 650; text-align: center; transition: color .35s ease; }
+.landing-pass-status.is-ready { color: var(--leaf); }
+@keyframes pass-stamp-in {
+  from { transform: scale(1.7) rotate(-14deg); opacity: .2; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-pass .pass-stamps > span.filled { animation: none; }
+}
+
+@media (max-width: 768px) {
+  .lp-header .lp-button.is-small { padding-inline: 14px; white-space: nowrap; }
+}
+@media (max-width: 360px) {
+  .lp-header .lp-button.is-small { display: none; }
+}

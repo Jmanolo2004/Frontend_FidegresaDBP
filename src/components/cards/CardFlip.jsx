@@ -11,13 +11,13 @@ export function CardFlip({ card, size = "lg", initialSide = "front" }) {
       className={`card-flip card-flip-${size}${flipped ? " is-flipped" : ""}`}
       onClick={() => setFlipped(value => !value)}
       aria-pressed={flipped}
-      aria-label={flipped ? "Mostrar frente de la tarjeta" : "Mostrar reverso de la tarjeta con QR"}
+      aria-label={flipped ? "Mostrar frente de la tarjeta" : "Mostrar reverso de la tarjeta con términos"}
     >
       <span className="card-flip-inner">
         <span className="card-flip-face"><CardFront card={card} size={size} /></span>
         <span className="card-flip-face card-flip-back"><CardBack card={card} /></span>
       </span>
-      <span className="card-flip-hint" aria-hidden="true">{flipped ? "Volver al frente" : "Girar para ver QR y términos"}</span>
+      <span className="card-flip-hint" aria-hidden="true">{flipped ? "Volver al frente" : "Girar para ver términos y vigencia"}</span>
     </button>
   );
 }
