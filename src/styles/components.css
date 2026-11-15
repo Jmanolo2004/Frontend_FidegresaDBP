@@ -147,7 +147,26 @@ button.sentiment-card:hover { transform: translateY(-1px); }
 .loyalty-card-visual, .map-canvas { width: 100%; }
 .offline-banner { margin: var(--space-3) var(--space-6) 0; padding: 10px 14px; border-radius: var(--radius-control); background: #fbf3e6; color: #7a4c20; font-size: 13px; font-weight: 600; }
 .dark-theme .offline-banner { background: #4a3d2f; color: #f1d3b0; }
+.mobile-bottom-nav { display: none; }
+.app-shell :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.mobile-more-sheet { width: min(100%, 520px); margin: auto auto 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); border: 0; border-radius: 18px 18px 0 0; background: var(--surface); color: var(--text); }
+.mobile-more-sheet::backdrop { background: rgb(34 25 19 / 55%); }
+.mobile-more-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mobile-more-heading h2 { margin: 0; font-size: 19px; }
+.mobile-more-sheet nav { display: grid; margin-top: 12px; }
+.mobile-more-sheet nav a, .mobile-more-sheet nav button { display: flex; min-height: 48px; align-items: center; gap: 12px; padding: 10px 4px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--text); font-size: 15px; text-align: left; }
 
 @media (max-width: 860px) {
   .offline-banner { margin: var(--space-3) var(--space-4) 0; }
+  .sidebar, .sidebar-backdrop, .topbar .mobile-menu { display: none; }
+  .main-area { min-width: 0; padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .mobile-bottom-nav { position: fixed; right: 0; bottom: 0; left: 0; z-index: 8; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--surface); box-shadow: 0 -4px 18px rgb(34 25 19 / 8%); }
+  .mobile-bottom-link { display: flex; min-width: 0; min-height: 60px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 4px 0; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 650; }
+  .mobile-bottom-link.active { background: var(--cream); color: var(--brown); }
+  .app-shell input:not([type="checkbox"]):not([type="radio"]), .app-shell select, .app-shell textarea { font-size: 16px; }
+  .app-shell .modal, .app-shell .modal:has(.modal-card[data-wide="true"]) { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; margin: 0; overflow: hidden; border-radius: 0; }
+  .app-shell .modal-card, .app-shell .modal-card[data-wide="true"] { display: flex; min-height: 100%; max-height: 100%; flex-direction: column; padding: 20px; overflow-y: auto; border-radius: 0; }
+  .app-shell .modal-card > * { flex-shrink: 0; }
+  .app-shell .modal-actions { position: sticky; bottom: -20px; z-index: 1; margin: auto -20px -20px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--surface); }
+  .app-shell .modal-actions button { min-height: 44px; flex: 1; }
 }

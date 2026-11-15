@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "@fontsource-variable/bricolage-grotesque/standard.css";
 import "@fontsource-variable/instrument-sans/index.css";
 import "../../styles/landing.css";
@@ -10,6 +10,7 @@ import { PhoneCard } from "../../components/landing/PhoneCard";
 import { PricingList } from "../../components/landing/PricingList";
 import { ScrollStory } from "../../components/landing/ScrollStory";
 import { StampMark } from "../../components/landing/StampMark";
+import { Icon } from "../../components/common/Icon";
 import { useAuth } from "../../hooks/useAuth";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
@@ -21,9 +22,41 @@ const STAMP_INTERVAL_MS = 240;
 export default function LandingPage() {
   useDocumentTitle("");
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
   const reducedMotion = usePrefersReducedMotion();
   const [heroStamps, setHeroStamps] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    const dialog = menuRef.current;
+    if (!dialog) return undefined;
+    if (!menuOpen) {
+      if (dialog.open) dialog.close();
+      return undefined;
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialog.showModal();
+    dialog.querySelector("a")?.focus();
+    const handleKeyDown = event => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      if (dialog.open) dialog.close();
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     if (reducedMotion) return undefined;
@@ -59,8 +92,22 @@ export default function LandingPage() {
           <button type="button" className="lp-button is-primary is-small" onClick={goToRegister}>
             Crear cuenta
           </button>
+          <button type="button" className="lp-menu-toggle" aria-label="Abrir menú" aria-expanded={menuOpen} aria-controls="landing-menu" onClick={() => setMenuOpen(true)}>
+            <Icon name="menu" size={24} />
+          </button>
         </div>
       </header>
+      <dialog id="landing-menu" className="lp-mobile-menu" ref={menuRef} aria-label="Navegación del sitio" onCancel={event => { event.preventDefault(); setMenuOpen(false); }}>
+        <button type="button" className="lp-menu-close" aria-label="Cerrar menú" onClick={() => setMenuOpen(false)}><Icon name="close" size={24} /></button>
+        <nav aria-label="Navegación móvil">
+          <a href="#como-funciona" onClick={() => setMenuOpen(false)}>Cómo funciona</a>
+          <a href="#tarjetas" onClick={() => setMenuOpen(false)}>Tarjetas</a>
+          <a href="#panel" onClick={() => setMenuOpen(false)}>Panel</a>
+          <a href="#planes" onClick={() => setMenuOpen(false)}>Planes</a>
+          <button type="button" onClick={() => { setMenuOpen(false); goToLogin(); }}>{isAuthenticated ? "Ir a mi panel" : "Iniciar sesión"}</button>
+          <button type="button" className="lp-button is-primary" onClick={() => { setMenuOpen(false); goToRegister(); }}>Crear cuenta</button>
+        </nav>
+      </dialog>
 
       <main>
         <section className="hero">

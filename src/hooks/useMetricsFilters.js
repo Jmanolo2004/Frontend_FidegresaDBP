@@ -1,8 +1,16 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 
-const PROGRAMS = ["all", "stamps", "cashback", "tiers", "giftcard"];
-const RANGES = ["today", "7days", "30days", "month", "quarter", "year", "custom"];
+const RANGES = ["all", "today", "7days", "14days", "30days", "90days", "month", "quarter", "year", "custom"];
+
+function intervalForRange(range, from, to) {
+  if (range === "all") return "year";
+  if (range === "year") return "month";
+  if (range === "quarter" || range === "30days" || range === "90days") return "week";
+  if (range !== "custom") return "day";
+  const span = (new Date(`${to}T00:00:00`) - new Date(`${from}T00:00:00`)) / 86400000;
+  return span > 365 ? "year" : span > 120 ? "month" : span > 21 ? "week" : "day";
+}
 
 function dateString(date) {
   const year = date.getFullYear();
@@ -14,9 +22,12 @@ function dateString(date) {
 function rangeDates(range, now = new Date()) {
   const to = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const from = new Date(to);
+  if (range === "all") return { from: "2000-01-01", to: dateString(to) };
   if (range === "today") return { from: dateString(to), to: dateString(to) };
   if (range === "7days") from.setDate(from.getDate() - 6);
+  else if (range === "14days") from.setDate(from.getDate() - 13);
   else if (range === "30days") from.setDate(from.getDate() - 29);
+  else if (range === "90days") from.setDate(from.getDate() - 89);
   else if (range === "quarter") from.setMonth(from.getMonth() - 2, 1);
   else if (range === "year") from.setMonth(0, 1);
   else from.setDate(1);
@@ -25,23 +36,23 @@ function rangeDates(range, now = new Date()) {
 
 export function useMetricsFilters() {
   const [params, setParams] = useSearchParams();
-  const program = PROGRAMS.includes(params.get("program")) ? params.get("program") : "all";
-  const range = RANGES.includes(params.get("range")) ? params.get("range") : "month";
+  const range = RANGES.includes(params.get("range")) ? params.get("range") : "year";
   const dates = useMemo(() => range === "custom" && params.get("from") && params.get("to")
     ? { from: params.get("from"), to: params.get("to") }
     : rangeDates(range), [range, params]);
   const filters = useMemo(() => ({
-    program,
+    program: "all",
     range,
+    interval: intervalForRange(range, dates.from, dates.to),
     ...dates,
-    compare: ["previous", "lastYear"].includes(params.get("compare")) ? params.get("compare") : "previous",
+    compare: "previous",
     branchId: params.get("branchId") || ""
-  }), [program, range, dates, params]);
+  }), [range, dates, params]);
   const update = useCallback(changes => {
     setParams(previous => {
       const next = new URLSearchParams(previous);
       Object.entries(changes).forEach(([key, value]) => {
-        if (value === "" || value === null || value === undefined || (key === "program" && value === "all") || (key === "range" && value === "month") || (key === "compare" && value === "previous")) next.delete(key);
+        if (value === "" || value === null || value === undefined || (key === "range" && value === "month")) next.delete(key);
         else next.set(key, String(value));
       });
       if (changes.range && changes.range !== "custom") {
@@ -53,6 +64,9 @@ export function useMetricsFilters() {
         next.set("from", nextDates.from);
         next.set("to", nextDates.to);
       }
+      next.delete("program");
+      next.delete("compare");
+      next.delete("interval");
       return next;
     }, { replace: true });
   }, [range, setParams]);

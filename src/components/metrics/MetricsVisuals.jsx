@@ -59,64 +59,60 @@ function axisTicks(maxValue) {
   return Array.from({ length: Math.round(max / step) + 1 }, (_, index) => index * step);
 }
 
-function axisMoney(value) {
-  return `S/ ${Math.round(value).toLocaleString("es-PE")}`;
-}
-
 export function ComboChart({ series }) {
-  const [hidden, setHidden] = useState([]);
   const [active, setActive] = useState(null);
-  const visible = key => !hidden.includes(key);
-  const toggle = key => setHidden(previous => previous.includes(key) ? previous.filter(item => item !== key) : [...previous, key]);
   const rawMaxActivity = Math.max(0, ...series.items.map(item => Math.max(item.visitas, item.clientesNuevos)));
-  const rawMaxSales = Math.max(0, ...series.items.map(item => item.ventas));
   const activityTicks = axisTicks(rawMaxActivity);
-  const salesTicks = axisTicks(rawMaxSales);
   const maxVisits = Math.max(1, activityTicks.at(-1));
-  const maxSales = Math.max(1, salesTicks.at(-1));
   const hasVisits = series.items.some(item => item.visitas > 0);
   const hasNewCustomers = series.items.some(item => item.clientesNuevos > 0);
-  const hasSales = series.items.some(item => item.ventas > 0);
-  const width = 780, height = 250, left = 58, right = 76, top = 18, bottom = 32;
+  const width = 780, height = 340, left = 58, right = 18, top = 18, bottom = 40;
   const plotWidth = width - left - right, plotHeight = height - top - bottom;
   const step = plotWidth / Math.max(1, series.items.length);
   const bars = series.items.flatMap((item, index) => {
-    const barWidth = Math.max(2, Math.min(15, step * .19));
-    const groupWidth = barWidth * 3 + 4;
+    const barWidth = Math.max(3, Math.min(38, step * .34));
+    const groupWidth = barWidth * 2 + 6;
     const x = left + index * step + (step - groupWidth) / 2;
     return [
-      { key: "visitas", value: item.visitas, fill: "#603f2a", maximum: maxVisits, slot: 0 },
-      { key: "clientesNuevos", value: item.clientesNuevos, fill: "#c8894f", maximum: maxVisits, slot: 1 },
-      { key: "ventas", value: item.ventas, fill: "#4e8066", maximum: maxSales, slot: 2 }
-    ].filter(bar => visible(bar.key) && (bar.key === "visitas" ? hasVisits : bar.key === "clientesNuevos" ? hasNewCustomers : hasSales))
+      { key: "visitas", value: item.visitas, fill: "#603f2a", slot: 0 },
+      { key: "clientesNuevos", value: item.clientesNuevos, fill: "#c8894f", slot: 1 }
+    ].filter(bar => bar.key === "visitas" ? hasVisits : hasNewCustomers)
       .map(bar => {
-        const barHeight = bar.value / bar.maximum * plotHeight;
-        return { ...bar, x: x + bar.slot * (barWidth + 2), y: top + plotHeight - barHeight, width: barWidth, height: barHeight, label: item.label, index };
+        const barHeight = bar.value / maxVisits * plotHeight;
+        return { ...bar, maximum: maxVisits, x: x + bar.slot * (barWidth + 6), y: top + plotHeight - barHeight, width: barWidth, height: barHeight, label: item.label, index };
       });
   });
-  const legend = [
-    ["visitas", "Visitas", "#603f2a", hasVisits],
-    ["clientesNuevos", "Clientes nuevos", "#c8894f", hasNewCustomers],
-    ["ventas", "Ventas (S/)", "#4e8066", hasSales]
-  ];
-  const current = active === null ? null : series.items[active];
+  const current = active && series.items[active.index] === active.item ? active.item : null;
   const tableRows = series.items.map(item => [item.label, item.visitas, item.clientesNuevos, formatMoney(item.ventas)]);
+  const totalVisits = series.items.reduce((total, item) => total + item.visitas, 0);
+  const totalNewCustomers = series.items.reduce((total, item) => total + item.clientesNuevos, 0);
   return <>
-    <div className="metrics-chart-legend">{legend.map(([key, label, color, hasData]) => <button key={key} type="button" className={`${hidden.includes(key) || !hasData ? "muted" : ""}${!hasData ? " no-data" : ""}`} onClick={() => hasData && toggle(key)} disabled={!hasData} aria-label={`${label}${hasData ? "" : ", sin datos"}`}><i style={{ background: hasData ? color : "var(--line)" }} />{label}{!hasData && <small>sin datos</small>}</button>)}</div>
     <div className="metrics-combo-chart">
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Visitas, clientes nuevos y ventas como gráfico de barras">
         {activityTicks.map(tick => {
           const y = top + plotHeight - tick / maxVisits * plotHeight;
           return <g key={`activity-${tick}`}><line x1={left} x2={width - right} y1={y} y2={y} className="metrics-grid-line" /><text x={left - 8} y={y + 4} textAnchor="end">{tick}</text></g>;
         })}
-        {salesTicks.map(tick => {
-          const y = top + plotHeight - tick / maxSales * plotHeight;
-          return <text key={`sales-${tick}`} x={width - right + 8} y={y + 4} className="metrics-right-axis">{axisMoney(tick)}</text>;
+        {bars.map(bar => {
+          const item = series.items[bar.index];
+          const tooltip = `${bar.label} · visitas: ${item.visitas.toLocaleString("es-PE")} · ventas: ${formatMoney(item.ventas)} · clientes nuevos: ${item.clientesNuevos.toLocaleString("es-PE")}`;
+          return <rect key={`${bar.key}-${bar.index}`} x={bar.x} y={bar.y} width={bar.width} height={Math.max(1, bar.height)} rx="5" fill={bar.fill} tabIndex={0} aria-label={tooltip} onPointerEnter={() => setActive({ index: bar.index, item })} onPointerLeave={() => setActive(null)} onFocus={() => setActive({ index: bar.index, item })} onBlur={() => setActive(null)} />;
         })}
-        {bars.map(bar => <rect key={`${bar.key}-${bar.index}`} x={bar.x} y={bar.y} width={bar.width} height={Math.max(1, bar.height)} rx="2" fill={bar.fill} tabIndex={0} aria-label={`${bar.label}, ${bar.key === "visitas" ? "visitas" : bar.key === "clientesNuevos" ? "clientes nuevos" : "ventas"}: ${bar.key === "ventas" ? formatMoney(bar.value) : bar.value}`} onPointerEnter={() => setActive(bar.index)} onFocus={() => setActive(bar.index)} />)}
         {series.items.map((item, index) => index % Math.max(1, Math.ceil(series.items.length / 9)) === 0 || index === series.items.length - 1 ? <text key={item.label} x={left + step * (index + .5)} y={height - 7} textAnchor="middle">{item.label}</text> : null)}
       </svg>
-      {current && <p className="metrics-chart-tooltip" aria-live="polite">{current.label}: {current.visitas} visitas · {current.clientesNuevos} clientes nuevos · {formatMoney(current.ventas)} en ventas</p>}
+      {current && <div
+        className="metrics-bar-tooltip"
+        role="tooltip"
+        style={{ left: `clamp(0px, calc(${(left + step * (active.index + .5)) / width * 100}% - 120px), max(0px, calc(100% - 240px)))`, top: `clamp(0px, calc(${(top + plotHeight - Math.max(current.visitas, current.clientesNuevos) / maxVisits * plotHeight) / height * 100}% - 105px), max(0px, calc(100% - 105px)))` }}
+      >
+        <strong className="metrics-bar-tooltip-period">{current.label}</strong>
+        <div className="metrics-bar-tooltip-row"><span><i className="sales-key" aria-hidden="true" />Ventas</span><strong>{formatMoney(current.ventas)}</strong></div>
+        <div className="metrics-bar-tooltip-row"><span><i className="new-customers-key" aria-hidden="true" />Clientes nuevos</span><strong>{current.clientesNuevos.toLocaleString("es-PE")}</strong></div>
+      </div>}
+    </div>
+    <div className="metrics-chart-summary" aria-label="Totales del periodo">
+      <span><i className="visits-key" />Visitas totales: <strong>{totalVisits.toLocaleString("es-PE")}</strong></span>
+      <span><i className="new-customers-key" />Clientes nuevos: <strong>{totalNewCustomers.toLocaleString("es-PE")}</strong></span>
     </div>
     <DataTable headers={["Periodo", "Visitas", "Clientes nuevos", "Ventas"]} rows={tableRows} />
   </>;

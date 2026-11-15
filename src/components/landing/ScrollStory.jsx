@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PhoneCard } from "./PhoneCard";
 import { STORY_STEPS } from "./landingContent";
 import { usePrefersReducedMotion } from "../../hooks/usePrefersReducedMotion";
@@ -11,7 +11,33 @@ const STEP_LIMITS = [0.3, 0.72];
 export function ScrollStory() {
   const sectionRef = useRef(null);
   const reducedMotion = usePrefersReducedMotion();
-  const progress = useScrollProgress(sectionRef, !reducedMotion);
+  const desktopProgress = useScrollProgress(sectionRef, !reducedMotion);
+  const [mobileProgress, setMobileProgress] = useState(null);
+  useEffect(() => {
+    if (reducedMotion) return undefined;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      if (!window.matchMedia("(max-width: 860px)").matches) {
+        setMobileProgress(null);
+        return;
+      }
+      const bounds = sectionRef.current?.getBoundingClientRect();
+      if (bounds?.height) setMobileProgress(Math.min(1, Math.max(0, (window.innerHeight / 2 - bounds.top) / bounds.height)));
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    measure();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [reducedMotion]);
+  const progress = mobileProgress ?? desktopProgress;
   const stamps = reducedMotion ? STAMP_GOAL : Math.min(STAMP_GOAL, Math.floor(progress * (STAMP_GOAL + 0.4)));
   const activeStep = STEP_LIMITS.filter(limit => progress >= limit).length;
 

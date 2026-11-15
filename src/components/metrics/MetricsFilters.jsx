@@ -1,75 +1,69 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Icon } from "../common/Icon";
 
-export const PROGRAM_TABS = [
-  { key: "all", label: "General", icon: "chart", color: "#603f2a" },
-  { key: "stamps", label: "Estampillas", icon: "star", color: "#603f2a" },
-  { key: "cashback", label: "Cashback", icon: "card", color: "#c8894f" },
-  { key: "tiers", label: "Niveles", icon: "users", color: "#4e8066" },
-  { key: "giftcard", label: "Gift card", icon: "reward", color: "#8a5a7a" }
+const QUICK_RANGES = [
+  ["all", "Todo el tiempo"],
+  ["7days", "Hace 7 días"],
+  ["14days", "Hace 14 días"],
+  ["30days", "Hace 30 días"],
+  ["90days", "Hace 90 días"]
 ];
 
-const RANGES = [
-  ["today", "Hoy"], ["7days", "7 días"], ["30days", "30 días"], ["month", "Este mes"],
-  ["quarter", "Trimestre"], ["year", "Este año"], ["custom", "Personalizado"]
-];
-
-export function ProgramTabs({ value, onChange }) {
-  return (
-    <div className="metrics-program-tabs" role="tablist" aria-label="Programa de fidelización">
-      {PROGRAM_TABS.map(tab => (
-        <button key={tab.key} type="button" role="tab" aria-selected={value === tab.key} className={value === tab.key ? "selected" : ""} style={{ "--program-accent": tab.color }} onClick={() => onChange(tab.key)}>
-          <Icon name={tab.icon} size={16} /><span>{tab.label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-ProgramTabs.propTypes = { value: PropTypes.string.isRequired, onChange: PropTypes.func.isRequired };
-
-export function MetricsFilters({ filters, update, onExport }) {
-  const [compact, setCompact] = useState(() => window.scrollY > 80);
+export function MetricsFilters({ filters, update }) {
+  const [open, setOpen] = useState(false);
+  const [dates, setDates] = useState({ from: filters.from, to: filters.to });
 
   useEffect(() => {
-    const updateCompact = () => setCompact(window.scrollY > 80);
-    window.addEventListener("scroll", updateCompact, { passive: true });
-    return () => window.removeEventListener("scroll", updateCompact);
-  }, []);
+    setDates({ from: filters.from, to: filters.to });
+  }, [filters.from, filters.to]);
+
+  const updateDate = (key, value) => {
+    const nextDates = { ...dates, [key]: value };
+    setDates(nextDates);
+    if (nextDates.from && nextDates.to && nextDates.from <= nextDates.to) {
+      update({ range: "custom", ...nextDates });
+    }
+  };
 
   return (
-    <section className={`metrics-filters panel${compact ? " is-compact" : ""}`} aria-label="Filtros de métricas">
-      <ProgramTabs value={filters.program} onChange={program => update({ program })} />
-      <div className="metrics-filter-toolbar">
-        <div className="metrics-filter-options">
-          <label className="metrics-filter-period">Periodo
-            <select value={filters.range} onChange={event => update({ range: event.target.value })}>
-              {RANGES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
-            </select>
-          </label>
-          {filters.range === "custom" && <>
-            <label>Desde <input aria-label="Fecha desde" type="date" value={filters.from} onChange={event => update({ from: event.target.value })} /></label>
-            <label>Hasta <input aria-label="Fecha hasta" type="date" value={filters.to} onChange={event => update({ to: event.target.value })} /></label>
-          </>}
-          <label className="metrics-filter-compare">Comparar con
-            <select value={filters.compare} onChange={event => update({ compare: event.target.value })}>
-              <option value="previous">Periodo anterior</option>
-              <option value="lastYear">Mismo periodo del año pasado</option>
-            </select>
-          </label>
+    <section className="metrics-filters" aria-label="Rango de fechas de métricas">
+      <details className="metrics-calendar" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+        <summary className="metrics-calendar-trigger" aria-label="Abrir calendario">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M16 3v4M8 3v4M3 10h18" />
+          </svg>
+          <span>Calendario</span>
+          <span className="metrics-calendar-chevron" aria-hidden="true">▾</span>
+        </summary>
+        <div className="metrics-calendar-popover">
+          <div className="metrics-calendar-presets" aria-label="Rangos rápidos">
+            {QUICK_RANGES.map(([range, label]) => (
+              <button
+                key={range}
+                type="button"
+                className={filters.range === range ? "selected" : ""}
+                onClick={() => {
+                  update({ range });
+                  setOpen(false);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="metrics-calendar-dates">
+            <label>Desde<input aria-label="Fecha desde" type="date" value={filters.from} onChange={event => updateDate("from", event.target.value)} /></label>
+            <span aria-hidden="true">—</span>
+            <label>Hasta<input aria-label="Fecha hasta" type="date" value={filters.to} onChange={event => updateDate("to", event.target.value)} /></label>
+          </div>
         </div>
-        <div className="metrics-export-actions">
-          <button type="button" className="secondary-button" onClick={onExport}>Exportar CSV</button>
-          <button type="button" className="secondary-button" onClick={() => window.print()}>Imprimir / PDF</button>
-        </div>
-      </div>
+      </details>
     </section>
   );
 }
 
 MetricsFilters.propTypes = {
-  filters: PropTypes.shape({ program: PropTypes.string, range: PropTypes.string, from: PropTypes.string, to: PropTypes.string, compare: PropTypes.string, branchId: PropTypes.string }).isRequired,
-  update: PropTypes.func.isRequired,
-  onExport: PropTypes.func.isRequired
+  filters: PropTypes.shape({ range: PropTypes.string, from: PropTypes.string, to: PropTypes.string }).isRequired,
+  update: PropTypes.func.isRequired
 };

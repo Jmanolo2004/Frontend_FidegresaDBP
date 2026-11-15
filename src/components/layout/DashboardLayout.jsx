@@ -2,6 +2,7 @@ import { Suspense, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { MobileNav } from "./MobileNav";
 import { Icon } from "../common/Icon";
 import { LoadingScreen } from "../common/LoadingScreen";
 import { OfflineBanner } from "../common/OfflineBanner";
@@ -95,6 +96,7 @@ function DashboardShell() {
           </span>
         </footer>
       </main>
+      <MobileNav onLogout={handleLogout} />
       <NoticesDialog open={noticesOpen} notices={notices} onClose={() => setNoticesOpen(false)} />
       <ProfileDialog open={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>

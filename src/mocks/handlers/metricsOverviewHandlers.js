@@ -113,16 +113,20 @@ function summarize(current, previous) {
   ]));
 }
 
-function bucketSeries(current, range) {
+function bucketSeries(current, range, requestedInterval) {
   const span = Math.ceil((range.to - range.from) / DAY);
-  const step = span <= 31 ? 1 : span <= 120 ? 7 : 30;
+  const interval = ["day", "week", "month", "year"].includes(requestedInterval)
+    ? requestedInterval
+    : span <= 31 ? "day" : span <= 120 ? "week" : "month";
   const buckets = [];
-  for (let cursor = new Date(range.from); cursor < range.to; cursor = step === 30
-    ? new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
-    : addDays(cursor, step)) {
-    const end = step === 30
-      ? new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
-      : addDays(cursor, step);
+  const nextBucket = date => {
+    if (interval === "day") return addDays(date, 1);
+    if (interval === "week") return addDays(date, 7);
+    if (interval === "month") return new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    return new Date(date.getFullYear() + 1, 0, 1);
+  };
+  for (let cursor = new Date(range.from); cursor < range.to;) {
+    const end = new Date(Math.min(nextBucket(cursor).getTime(), range.to.getTime()));
     const visits = current.visits.filter(item => inRange(item.fecha, cursor, end));
     const activeCustomerIds = new Set(current.visits.filter(item => {
       const timestamp = new Date(item.fecha).getTime();
@@ -132,9 +136,13 @@ function bucketSeries(current, range) {
     const returning = [...frequency.values()].filter(count => count > 1).length;
     const day = new Date(cursor);
     buckets.push({
-      label: step === 1
+      label: interval === "day"
         ? day.toLocaleDateString("es-PE", { day: "numeric", month: "short" })
-        : day.toLocaleDateString("es-PE", { month: "short", year: "2-digit" }),
+        : interval === "week"
+          ? `${day.toLocaleDateString("es-PE", { day: "numeric", month: "short" })}–${addDays(end, -1).toLocaleDateString("es-PE", { day: "numeric", month: "short" })}`
+          : interval === "month"
+            ? day.toLocaleDateString("es-PE", { month: "short", year: "2-digit" })
+            : String(day.getFullYear()),
       visitas: visits.length,
       clientesNuevos: current.customers.filter(customer => inRange(customer.fechaRegistro, cursor, end)).length,
       ventas: Number(visits.reduce((sum, item) => sum + Number(item.monto || 0), 0).toFixed(2)),
@@ -144,8 +152,9 @@ function bucketSeries(current, range) {
       tasaRetorno: frequency.size ? Number((returning / frequency.size * 100).toFixed(1)) : 0,
       ticket: visits.length ? Number((visits.reduce((sum, item) => sum + Number(item.monto || 0), 0) / visits.length).toFixed(2)) : 0
     });
+    cursor = end;
   }
-  return { interval: step === 1 ? "day" : step === 7 ? "week" : "month", items: buckets };
+  return { interval, items: buckets };
 }
 
 function createBreakdowns(db, query, range) {
@@ -382,7 +391,7 @@ export const metricsOverviewHandlers = [
         plan: db.configuracion.plan || "Emprende",
         range: { from: query.from, to: query.to, compare: query.compare || "previous" },
         kpis: summarize(current, previous),
-        series: bucketSeries(current, range),
+        series: bucketSeries(current, range, query.interval),
         breakdowns: createBreakdowns(db, query, range),
         programs: programDetails(db, query, range),
         traffic: heatmapFor(current.visits),

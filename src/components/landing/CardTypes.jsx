@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import cashbackCard from "../../assets/card-cashback.png";
 import basketCashbackCard from "../../assets/card-cashback-basket.png";
 import cineGiftCard from "../../assets/card-gift-cine.png";
@@ -37,10 +37,27 @@ const CARD_LANES = [
   { id: "up", direction: "up", rows: CARD_ROWS.filter((_, index) => index % 2 === 0) },
   { id: "down", direction: "down", rows: CARD_ROWS.filter((_, index) => index % 2 === 1) }
 ];
+const MOBILE_CARDS = CARD_ROWS.flat().filter(card => card.id !== "gift-cine-copy");
 
 /** Selector de programas junto con ejemplos visuales de los cuatro tipos de tarjeta. */
 export function CardTypes() {
   const [selectedId, setSelectedId] = useState(CARD_TYPES[0].id);
+  const [activeCard, setActiveCard] = useState(0);
+  const carouselRef = useRef(null);
+
+  const updateActiveCard = () => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+    const left = carousel.getBoundingClientRect().left;
+    const distances = Array.from(carousel.children, item => Math.abs(item.getBoundingClientRect().left - left));
+    setActiveCard(distances.indexOf(Math.min(...distances)));
+  };
+
+  const showCard = index => {
+    const carousel = carouselRef.current;
+    const card = carousel?.children[index];
+    if (card) carousel.scrollTo({ left: carousel.scrollLeft + card.getBoundingClientRect().left - carousel.getBoundingClientRect().left, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
 
   return (
     <section className="types" id="tarjetas">
@@ -60,8 +77,8 @@ export function CardTypes() {
           {CARD_LANES.map(lane => (
             <div className="types-lane" key={lane.id}>
               <div className={`types-track is-${lane.direction}`}>
-                {[...lane.rows, ...lane.rows].map((row, rowIndex) => (
-                  <div className="types-row" key={`${lane.id}-${rowIndex}`} aria-hidden={rowIndex >= lane.rows.length}>
+                {(lane.rows.length === 2 ? [...lane.rows, lane.rows[0]] : lane.rows).map((row, rowIndex) => (
+                  <div className="types-row" key={`${lane.id}-${rowIndex}`} style={{ animationDelay: `${rowIndex * 6}s` }} aria-hidden={rowIndex >= lane.rows.length}>
                     {row.map(card => (
                       <figure className={`types-card${card.program === selectedId ? " is-selected" : ""}`} key={card.id}>
                         <img src={card.src} alt={rowIndex >= lane.rows.length ? "" : card.alt} loading="lazy" />
@@ -72,6 +89,20 @@ export function CardTypes() {
               </div>
             </div>
           ))}
+        </div>
+        <div className="types-mobile-gallery" role="region" aria-label="Galería de tarjetas de fidelización">
+          <div className="types-carousel" ref={carouselRef} onScroll={updateActiveCard} tabIndex={0} aria-label="Desliza para ver las tarjetas">
+            {MOBILE_CARDS.map(card => (
+              <figure className={`types-card${card.program === selectedId ? " is-selected" : ""}`} key={card.id}>
+                <img src={card.src} alt={card.alt} loading="lazy" />
+              </figure>
+            ))}
+          </div>
+          <div className="types-dots" aria-label="Elegir tarjeta">
+            {MOBILE_CARDS.map((card, index) => (
+              <button type="button" key={card.id} aria-label={`Ver tarjeta ${index + 1}: ${card.alt}`} aria-current={index === activeCard ? "true" : undefined} onClick={() => showCard(index)} />
+            ))}
+          </div>
         </div>
       </div>
     </section>
