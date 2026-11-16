@@ -194,3 +194,16 @@ body.dark-theme .metrics-program-stat, body.dark-theme .metrics-rank { backgroun
   body, .panel, .metrics-kpi { background: white !important; color: black !important; box-shadow: none !important; }
   .panel, .metrics-kpi { break-inside: avoid; }
 }
+
+/* Ajustes de revisión: leyenda punteada, filtro de eventos, rango inválido, tema oscuro y celular */
+.metrics-trend-legend i.is-dashed { width: 16px; height: 0; border-top: 2px dashed var(--legend-color); border-radius: 0; background: none !important; }
+.metrics-activity-filters label { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 13px; font-weight: 650; }
+.metrics-activity-filters .filter-select { min-height: 36px; font-size: 13px; }
+.metrics-updated { font-size: 12px; }
+.metrics-calendar-error { margin: 10px 0 0; color: var(--danger); font-size: 13px; line-height: 1.45; }
+.metrics-calendar-dates input[aria-invalid="true"] { border-color: var(--danger); }
+body.dark-theme .metrics-filters { background: transparent; }
+@media (max-width: 640px) {
+  .metrics-combo-chart svg, .metrics-trend-chart svg { height: auto; }
+  .metrics-combo-chart svg text, .metrics-trend-chart svg text { font-size: 10px; }
+}

@@ -44,7 +44,7 @@ export function ActivityTable({ program, branchId, from, to }) {
     };
   }, [refresh]);
 
-  const events = ["all", "Se registró", "+1 sello", "Canjeó premio", "Usó cashback", "Subió de nivel", "Compró gift card", "Registró una visita"];
+  const events = ["all", "Se registró", "+1 sello", "Canjeó premio", "Consultó su tarjeta", "Usó cashback", "Subió de nivel", "Compró gift card", "Registró una visita"];
   const updatedMinutes = Math.floor((Date.now() - updatedAt) / 60000);
   const updatedText = updatedMinutes < 1
     ? "Actualizado hace menos de 1 min"
@@ -59,7 +59,7 @@ export function ActivityTable({ program, branchId, from, to }) {
     <div className="metrics-activity-table">
       <div className="metrics-activity-filters">
         <label>Evento
-          <select value={pagination.filters.actType} onChange={event => pagination.setFilter("actType", event.target.value)}>
+          <select className="filter-select" value={pagination.filters.actType} onChange={event => pagination.setFilter("actType", event.target.value)}>
             {events.map(event => <option key={event} value={event}>{event === "all" ? "Todos los eventos" : event}</option>)}
           </select>
         </label>

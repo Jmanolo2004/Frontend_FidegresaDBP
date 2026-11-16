@@ -17,7 +17,7 @@ export function passStyle(card) {
     "--pass-bg": primary,
     "--pass-accent": accent,
     "--pass-ink": isLight ? "#1d1626" : "#ffffff",
-    "--pass-ink-soft": isLight ? "rgb(29 22 38 / 74%)" : "rgb(255 255 255 / 78%)",
+    "--pass-ink-soft": isLight ? "rgb(29 22 38 / 80%)" : "rgb(255 255 255 / 92%)",
     "--pass-line": isLight ? "rgb(29 22 38 / 18%)" : "rgb(255 255 255 / 20%)"
   };
 }

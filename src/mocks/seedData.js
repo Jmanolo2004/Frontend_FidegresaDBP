@@ -59,13 +59,16 @@ export function createSeedData() {
       return candidate;
     }).concat(lastDays).sort((first,second)=>second-first);
     const visits = visitDays.map((daysAgo,visitIndex) => {
+      const premioCanjeado = location.id%2===1&&visitIndex>0&&visitIndex%10===0;
+      // Algunos escaneos no llevan compra: el canje del premio es gratis y otras veces el cliente solo consulta su saldo.
+      const soloEscaneo = premioCanjeado || (index*7 + visitIndex*3) % 9 === 0;
       return {
         id:`${index+1}-${visitIndex+1}`,
         clienteId:index+1,
         ubicacionId:location.id,
         fecha:dateDaysAgo(daysAgo),
-        monto:Number((18 + ((index*13 + visitIndex*11) % 73) + (location.id*2.5)).toFixed(2)),
-        premioCanjeado:location.id%2===1&&visitIndex>0&&visitIndex%10===0
+        monto:soloEscaneo ? 0 : Number((18 + ((index*13 + visitIndex*11) % 73) + (location.id*2.5)).toFixed(2)),
+        premioCanjeado
       };
     });
     visitsByCustomer.push(visits);
@@ -107,7 +110,7 @@ export function createSeedData() {
     { id:3, nombre:"Cashback de la Plaza", tipo:"Cashback", negocio:locations[0].nombre, descripcion:"Recibe saldo con cada compra.", colores:{primario:"#0f4a32",acento:"#9fd8b4"}, estilo:"minimal", imagen:null, portada:coverCafePlaza, estado:"Activa", vigenciaMeses:12, terminos:"El saldo se acumula en la cuenta del cliente.", reglas:{porcentaje:5,topeMensual:100,saldoMinimoCanje:10,expiraDias:180} },
     { id:4, nombre:"Cashback Barbería Norte", tipo:"Cashback", negocio:locations[2].nombre, descripcion:"Un beneficio para volver a tu barbería.", colores:{primario:"#1b2230",acento:"#e0b45a"}, estilo:"elegante", imagen:null, portada:null, estado:"En pausa", vigenciaMeses:3, terminos:"Saldo válido solo en Barbería Norte.", reglas:{porcentaje:8,topeMensual:150,saldoMinimoCanje:15,expiraDias:90} },
     { id:5, nombre:"Círculo de la Plaza", tipo:"Niveles", negocio:locations[0].nombre, descripcion:"Más visitas, más beneficios.", colores:{primario:"#8e3be3",acento:"#ffd166"}, estilo:"minimal", imagen:null, portada:coverCafePlaza, estado:"Activa", vigenciaMeses:12, terminos:"Los puntos no son transferibles.", reglas:{niveles:[{nombre:"Bronce",desdePuntos:0,beneficio:"Acceso al programa",color:"#b8794f"},{nombre:"Plata",desdePuntos:100,beneficio:"5% de descuento",color:"#9da5ad"},{nombre:"Oro",desdePuntos:300,beneficio:"Bebida de cortesía",color:"#d4a84e"}],puntosPorSol:1} },
-    { id:6, nombre:"Nube de beneficios", tipo:"Niveles", negocio:locations[4].nombre, descripcion:"Un detalle especial en cada nivel.", colores:{primario:"#3f7cc4",acento:"#ffd166"}, estilo:"vibrante", imagen:null, portada:null, estado:"Borrador", vigenciaMeses:12, terminos:"Beneficios sujetos a disponibilidad.", reglas:{niveles:[{nombre:"Amigo",desdePuntos:0,beneficio:"Bienvenida especial",color:"#bf8a65"},{nombre:"Frecuente",desdePuntos:150,beneficio:"10% de descuento",color:"#c8894f"},{nombre:"Preferente",desdePuntos:400,beneficio:"Producto de regalo",color:"#603f2a"}],puntosPorSol:2} },
+    { id:6, nombre:"Nube de beneficios", tipo:"Niveles", negocio:locations[4].nombre, descripcion:"Un detalle especial en cada nivel.", colores:{primario:"#2f67ad",acento:"#ffd166"}, estilo:"vibrante", imagen:null, portada:null, estado:"Borrador", vigenciaMeses:12, terminos:"Beneficios sujetos a disponibilidad.", reglas:{niveles:[{nombre:"Amigo",desdePuntos:0,beneficio:"Bienvenida especial",color:"#bf8a65"},{nombre:"Frecuente",desdePuntos:150,beneficio:"10% de descuento",color:"#c8894f"},{nombre:"Preferente",desdePuntos:400,beneficio:"Producto de regalo",color:"#603f2a"}],puntosPorSol:2} },
     { id:7, nombre:"Un regalo de la Plaza", tipo:"Giftcard", negocio:locations[0].nombre, descripcion:"Regala una pausa para disfrutar.", colores:{primario:"#0b1f7a",acento:"#ffd166"}, estilo:"elegante", imagen:null, portada:coverCafePlaza, estado:"Activa", vigenciaMeses:12, terminos:"La gift card no es canjeable por efectivo.", reglas:{montos:[50,100,200],permiteMontoLibre:true,montoMin:30,montoMax:500,vigenciaMeses:12,mensajeRegalo:"Un momento rico para ti"} },
     { id:8, nombre:"Dulce regalo", tipo:"Giftcard", negocio:locations[1].nombre, descripcion:"Comparte algo dulce con quien quieres.", colores:{primario:"#b3264f",acento:"#ffd9e3"}, estilo:"vibrante", imagen:null, portada:null, estado:"Activa", vigenciaMeses:6, terminos:"Válida por una sola compra hasta agotar saldo.", reglas:{montos:[50,100,200],permiteMontoLibre:false,montoMin:50,montoMax:200,vigenciaMeses:6,mensajeRegalo:"Para endulzar tu día"} }
   ].map(card => {

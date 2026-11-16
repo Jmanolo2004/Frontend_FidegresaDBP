@@ -12,6 +12,7 @@ const QUICK_RANGES = [
 export function MetricsFilters({ filters, update }) {
   const [open, setOpen] = useState(false);
   const [dates, setDates] = useState({ from: filters.from, to: filters.to });
+  const invalidRange = Boolean(dates.from && dates.to && dates.from > dates.to);
 
   useEffect(() => {
     setDates({ from: filters.from, to: filters.to });
@@ -53,10 +54,11 @@ export function MetricsFilters({ filters, update }) {
             ))}
           </div>
           <div className="metrics-calendar-dates">
-            <label>Desde<input aria-label="Fecha desde" type="date" value={filters.from} onChange={event => updateDate("from", event.target.value)} /></label>
+            <label>Desde<input aria-label="Fecha desde" type="date" value={dates.from} max={dates.to || undefined} aria-invalid={invalidRange} aria-describedby={invalidRange ? "metrics-range-error" : undefined} onChange={event => updateDate("from", event.target.value)} /></label>
             <span aria-hidden="true">—</span>
-            <label>Hasta<input aria-label="Fecha hasta" type="date" value={filters.to} onChange={event => updateDate("to", event.target.value)} /></label>
+            <label>Hasta<input aria-label="Fecha hasta" type="date" value={dates.to} min={dates.from || undefined} aria-invalid={invalidRange} aria-describedby={invalidRange ? "metrics-range-error" : undefined} onChange={event => updateDate("to", event.target.value)} /></label>
           </div>
+          {invalidRange && <p className="metrics-calendar-error" id="metrics-range-error" role="alert">La fecha "Desde" debe ser igual o anterior a "Hasta". Mientras tanto se muestra el periodo anterior.</p>}
         </div>
       </details>
     </section>

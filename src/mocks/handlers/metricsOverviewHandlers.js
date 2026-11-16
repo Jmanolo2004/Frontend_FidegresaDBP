@@ -89,7 +89,8 @@ function filteredData(db, from, to, query) {
     active,
     created,
     returningRate: unique ? (returning / unique) * 100 : 0,
-    ticket: visits.length ? sales / visits.length : 0
+    // El ticket promedio se calcula solo sobre las visitas con compra.
+    ticket: transactions ? sales / transactions : 0
   };
 }
 
@@ -150,7 +151,7 @@ function bucketSeries(current, range, requestedInterval) {
       clientesRecurrentes: returning,
       clientesActivos: activeCustomerIds.size,
       tasaRetorno: frequency.size ? Number((returning / frequency.size * 100).toFixed(1)) : 0,
-      ticket: visits.length ? Number((visits.reduce((sum, item) => sum + Number(item.monto || 0), 0) / visits.length).toFixed(2)) : 0
+      ticket: visits.some(item => Number(item.monto) > 0) ? Number((visits.reduce((sum, item) => sum + Number(item.monto || 0), 0) / visits.filter(item => Number(item.monto) > 0).length).toFixed(2)) : 0
     });
     cursor = end;
   }
@@ -298,7 +299,9 @@ function makeActivity(db, query) {
       if (!customer || (program && customer.tipoTarjeta !== program.type)) return [];
       const type = customer.tipoTarjeta;
       const isRedemption = visit.premioCanjeado;
+      const scanOnly = !isRedemption && !(Number(visit.monto) > 0);
       const event = isRedemption ? "Canjeó premio" :
+        scanOnly ? "Consultó su tarjeta" :
         type === "Estampillas" ? "+1 sello" :
           type === "Cashback" ? "Usó cashback" :
             type === "Niveles" && visit.id.endsWith("1") ? "Subió de nivel" :
@@ -324,7 +327,7 @@ function makeActivity(db, query) {
         balance: Number(customer.saldoCashback || 0),
         level: ["Bronce", "Plata", "Oro", "Diamante"][customer.id % 4],
         event,
-        amount: isRedemption || type === "Cashback" ? Number(visit.monto || 0) : null,
+        amount: type === "Cashback" && !scanOnly && !isRedemption ? Number(visit.monto || 0) : null,
         signal,
         date: visit.fecha
       }];

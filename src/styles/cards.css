@@ -28,7 +28,7 @@
 .card-gallery-title > div > span { display: block; overflow: hidden; margin-top: 4px; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .program-status { display: inline-flex; flex: none; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 20px; background: var(--green-soft); color: var(--green); font-size: 10px; font-weight: 650; white-space: nowrap; }
 .program-status i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.program-status.paused { background: #f3eee8; color: #866c56; }
+.program-status.paused { background: #f3eee8; color: #6f5644; }
 .program-status.draft { background: #fbf3e6; color: #8f5a22; }
 .card-gallery-stats { display: flex; flex-wrap: wrap; gap: 7px 12px; margin: 12px 0; color: var(--muted); font-size: 11px; }
 .card-gallery-stats strong { color: var(--text); }
