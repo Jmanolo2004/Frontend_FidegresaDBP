@@ -10,7 +10,6 @@ import { PageHeader } from "../../components/common/PageHeader";
 import { Pagination } from "../../components/common/Pagination";
 import { Skeleton } from "../../components/common/Skeleton";
 import { GeoMap } from "../../components/map/GeoMap";
-import { LimaMap } from "../../components/geo/LimaMap";
 import { audienceService } from "../../services/audienceService";
 import { branchService } from "../../services/branchService";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -92,7 +91,6 @@ export default function AudienceDetailPage() {
     longitud: Number(customer.longitud),
     distance: Number(customer.distance) || 0
   }));
-  const fallbackMap = <div className="geo-map-fallback"><p role="status">Mapa ilustrativo. La audiencia está centrada en {data.local}.</p><LimaMap location={branch} customers={people} radius={Number(data.radius)} onMove={() => {}} onMoveEnd={() => {}} onCenter={() => {}} /></div>;
   const otherBranches = branches.length ? branches : [branch];
 
   return (
@@ -120,7 +118,6 @@ export default function AudienceDetailPage() {
             district={data.zoneType === "district" ? data.district : undefined}
             onBranchMove={() => {}}
             ariaLabel="Mapa estático de la zona de la audiencia"
-            fallback={fallbackMap}
           />
         </section>
         <section className="audience-detail-metrics">

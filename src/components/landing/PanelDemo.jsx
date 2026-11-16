@@ -7,6 +7,14 @@ const VIEWS = [
   { id: "programs", label: "Tarjetas" }
 ];
 
+const DEMO_ACTIVITY = [
+  { customer: "Camila Torres", branch: "Café de la Plaza", event: "+1 sello", amount: "—", when: "ayer" },
+  { customer: "Isabella Cruz", branch: "Dulce Encuentro", event: "Registró una visita", amount: "—", when: "hace 3 días" },
+  { customer: "Mateo Fernández", branch: "Café de la Plaza", event: "Usó cashback", amount: "S/ 30.50", when: "hace 4 días" },
+  { customer: "Lucía Martínez", branch: "Café de la Plaza", event: "Consultó su tarjeta", amount: "—", when: "hace 5 días" },
+  { customer: "Sebastián Castro", branch: "Barbería Norte", event: "Usó cashback", amount: "S/ 78.50", when: "hace 5 días" }
+];
+
 function MetricsView() {
   const [activeProgram, setActiveProgram] = useState(CARD_TYPES[0].id);
   const selected = CARD_TYPES.find(program => program.id === activeProgram) || CARD_TYPES[0];
@@ -43,13 +51,31 @@ function MetricsView() {
         ))}
       </div>
       <p className="demo-program-caption">{selected.text}</p>
+      <section className="demo-activity" aria-label="Actividad reciente">
+        <h3>Actividad reciente</h3>
+        <div className="demo-activity-scroll">
+          <table className="demo-table demo-activity-table">
+            <thead>
+              <tr><th scope="col">Cliente y local</th><th scope="col">Evento</th><th scope="col">Importe</th><th scope="col">Cuándo</th></tr>
+            </thead>
+            <tbody>
+              {DEMO_ACTIVITY.map(item => (
+                <tr key={`${item.customer}-${item.event}-${item.when}`}>
+                  <td><span className="demo-customer"><strong>{item.customer}</strong><small>{item.branch}</small></span></td>
+                  <td>{item.event}</td><td>{item.amount}</td><td>{item.when}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </>
   );
 }
 
 function CustomersView() {
   return (
-    <table className="demo-table">
+    <table className="demo-table demo-customers-table">
       <thead>
         <tr>
           <th>Cliente</th>

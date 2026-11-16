@@ -11,8 +11,6 @@ import { usePagination } from "../../hooks/usePagination";
 import { metricsService } from "../../services/metricsService";
 import { formatMoney, formatDate, timeAgo } from "../../utils/format";
 
-const PROGRAM_COLOR = { Estampillas: "#603f2a", Cashback: "#c8894f", Niveles: "#4e8066", Giftcard: "#8a5a7a" };
-
 export function ActivityTable({ program, branchId, from, to }) {
   const pagination = usePagination({ actType: "all" });
   const [updatedAt, setUpdatedAt] = useState(Date.now());
@@ -68,21 +66,15 @@ export function ActivityTable({ program, branchId, from, to }) {
       {loading && !data ? <Skeleton height={280} /> : data?.content?.length ? <>
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Cliente y local</th><th>Programa y tarjeta</th><th>Evento</th><th>Importe</th><th>Señal</th><th>Cuándo</th></tr></thead>
+            <thead><tr><th>Cliente y local</th><th>Evento</th><th>Importe</th><th>Cuándo</th></tr></thead>
             <tbody>{data.content.map(item => (
               <tr key={item.id}>
                 <td data-label="Cliente y local"><div className="metrics-customer">
                   <Avatar name={item.customerName} initials={item.initials} />
                   <span><Link className="customer-link" to={`/panel/clientes/${item.customerId}`}>{item.customerName}</Link><small>{item.branch}</small></span>
                 </div></td>
-                <td data-label="Programa y tarjeta"><Link className="metrics-program-chip" style={{ "--program-accent": PROGRAM_COLOR[item.program] }} to={item.cardId ? `/panel/tarjetas/${item.cardId}` : "/panel/tarjetas"}>{item.cardName}
-                  {item.program === "Estampillas" ? <span className="metrics-progress"><i style={{ width: `${Math.min(100, item.progress / item.target * 100)}%` }} />{item.progress} de {item.target}</span>
-                    : item.program === "Cashback" ? <small>Saldo {formatMoney(item.balance)}</small>
-                      : item.program === "Niveles" ? <small>Nivel {item.level}</small> : <small>Gift card activa</small>}
-                </Link></td>
                 <td data-label="Evento">{item.event}</td>
                 <td data-label="Importe">{item.amount === null ? "—" : formatMoney(item.amount)}</td>
-                <td data-label="Señal">{item.signal ? <span className={`metrics-signal ${item.signal.includes("Riesgo") ? "risk" : item.signal.includes("nuevo") ? "new" : item.signal.includes("Vence") ? "warning" : "positive"}`}>{item.signal}</span> : "—"}</td>
                 <td data-label="Cuándo" title={formatDate(item.date)}>{timeAgo(item.date)}</td>
               </tr>
             ))}</tbody>

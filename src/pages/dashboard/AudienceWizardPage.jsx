@@ -3,7 +3,6 @@ import { useBlocker, useLoaderData, useNavigate, useSearchParams } from "react-r
 import PropTypes from "prop-types";
 import { AddressSearch } from "../../components/map/AddressSearch";
 import { GeoMap } from "../../components/map/GeoMap";
-import { LimaMap } from "../../components/geo/LimaMap";
 import { Avatar } from "../../components/common/Avatar";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { FormField } from "../../components/common/FormField";
@@ -89,17 +88,6 @@ function NotificationPreview({ title, message, action }) {
 }
 
 NotificationPreview.propTypes = { title: PropTypes.string, message: PropTypes.string, action: PropTypes.string };
-
-function WizardMapFallback({ branch, radius, customers, onMove, onMoveEnd }) {
-  return (
-    <div className="geo-map-fallback">
-      <p role="status">No se pudo cargar el mapa en línea. El área ilustrativa conserva la zona y los clientes.</p>
-      <LimaMap location={{ ...branch, mapX: Number(branch.mapX) || 410, mapY: Number(branch.mapY) || 325 }} customers={customers} radius={radius} onMove={onMove} onMoveEnd={onMoveEnd} onCenter={() => onMoveEnd({ x: Number(branch.mapX) || 410, y: Number(branch.mapY) || 325 })} />
-    </div>
-  );
-}
-
-WizardMapFallback.propTypes = { branch: PropTypes.object.isRequired, radius: PropTypes.number.isRequired, customers: PropTypes.array.isRequired, onMove: PropTypes.func.isRequired, onMoveEnd: PropTypes.func.isRequired };
 
 function AudienceWizardForm({ audience }) {
   const navigate = useNavigate();
@@ -253,12 +241,6 @@ function AudienceWizardForm({ audience }) {
     else submit(form.values.trigger === "scheduled" ? "Programada" : "Activa");
   };
   const selectedBranch = currentBranch ? { ...currentBranch, latitud: Number(form.values.latitud), longitud: Number(form.values.longitud) } : null;
-  const legacyCustomers = (branchCustomers || []).map(person => ({ ...person, distance: Number(person.distance) || 0 }));
-  const legacyUpdate = point => {
-    const position = coordinatesFromMap(currentBranch?.distrito, point.x, point.y);
-    setField("latitud", position.latitud);
-    setField("longitud", position.longitud);
-  };
   const closeBlocker = () => blocker.reset?.();
   const leave = () => blocker.proceed?.();
   const estimatedCount = preview?.total ?? 0;
@@ -372,7 +354,6 @@ function AudienceWizardForm({ audience }) {
               district={form.values.zoneType === "district" ? form.values.district : undefined}
               onBranchMove={position => { setField("latitud", position.lat); setField("longitud", position.lng); }}
               ariaLabel="Mapa de vista previa de la zona seleccionada"
-              fallback={selectedBranch ? <WizardMapFallback branch={selectedBranch} radius={Number(form.values.radius)} customers={legacyCustomers} onMove={legacyUpdate} onMoveEnd={legacyUpdate} /> : <div className="audience-map-offline" role="status">El mapa interactivo no está disponible. Se conservará la zona configurada.</div>}
             />
           ) : <Skeleton height={360} />)}
           {step !== 2 && <div className="audience-live-count"><strong>{estimatedCount}</strong><span>clientes alcanzables</span><small>{preview?.excluidosSinConsentimiento || 0} excluidos por privacidad</small></div>}

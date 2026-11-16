@@ -1,5 +1,6 @@
-.metrics-filters { position: relative; z-index: 4; display: flex; justify-content: flex-end; margin: 0 0 16px; }
-.metrics-program-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.metrics-controls-row { position: relative; z-index: 4; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; }
+.metrics-filters { display: flex; justify-content: flex-end; margin: 0; }
+.metrics-program-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
 .metrics-program-filters button[aria-pressed="true"] { border-color: var(--brown); background: var(--brown); color: #fff; }
 body.dark-theme .metrics-program-filters button[aria-pressed="true"] { color: #2b1d14; }
 .metrics-calendar { position: relative; }
@@ -151,6 +152,8 @@ body.dark-theme .metrics-program-stat, body.dark-theme .metrics-rank { backgroun
   .metrics-summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 @media (max-width: 700px) {
+  .metrics-controls-row { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .metrics-filters { justify-content: flex-start; }
   .metrics-calendar-popover { right: 0; }
   .metrics-calendar-dates { flex-wrap: wrap; }
   .metrics-calendar-dates label { flex: 1 1 120px; }

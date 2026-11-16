@@ -67,7 +67,6 @@ a.text-button:hover, .text-button:hover { text-decoration: underline; }
 .auth-form .terms-check input { width: 16px; min-height: 16px; height: 16px; margin: 2px 0 0; padding: 0; accent-color: var(--brown); }
 .terms-check a { color: var(--brown); font-weight: 650; text-decoration: underline; }
 a.link-button { display: inline; }
-a.connection-link { width: fit-content; text-align: center; }
 
 /* ---------- Acceso con Google y Apple ---------- */
 .social-auth { margin-top: 18px; }

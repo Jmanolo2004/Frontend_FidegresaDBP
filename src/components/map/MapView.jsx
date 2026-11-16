@@ -11,31 +11,25 @@ import { OtherBranchesLayer } from "./OtherBranchesLayer";
 import { RadiusLayer } from "./RadiusLayer";
 import { boundsForPoints, distanceInMeters, formatDistance } from "../../utils/mapUtils";
 
-const LIGHT_STYLE = import.meta.env.VITE_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty";
-const DARK_STYLE = import.meta.env.VITE_MAP_DARK_STYLE_URL || "https://tiles.openfreemap.org/styles/dark";
-const MAP_ATTRIBUTION = "© OpenStreetMap · OpenFreeMap";
+const MAP_STYLE = {
+  version: 8,
+  glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  sources: {
+    streets: {
+      type: "raster",
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>'
+    }
+  },
+  layers: [{ id: "streets", type: "raster", source: "streets" }]
+};
 
 // MapLibre busca su worker junto a su propio archivo; con Vite ese archivo se mueve y el mapa no carga.
 // Le indicamos la ruta real del worker y le pasamos al mapa esta misma copia de MapLibre (mapLib),
 // para que no cargue otra copia por su cuenta sin esa configuración.
 maplibregl.setWorkerUrl(maplibreWorkerUrl);
-
-function applyPalette(map, dark) {
-  const styles = dark
-    ? { background: "#28231f", water: "#343d40", park: "#34443a", road: "#65594f" }
-    : { background: "#f7f3ee", water: "#dce7e5", park: "#e1eadf", road: "#e7d8c8" };
-  map.getStyle()?.layers?.forEach(layer => {
-    const id = layer.id.toLowerCase();
-    const paint = layer.paint || {};
-    const color = id.includes("water") ? styles.water : id.includes("park") || id.includes("grass") ? styles.park :
-      id.includes("road") || id.includes("street") || id.includes("path") ? styles.road :
-      id.includes("background") ? styles.background : null;
-    if (!color) return;
-    ["fill-color", "line-color", "background-color"].forEach(property => {
-      if (paint[property] !== undefined) map.setPaintProperty(layer.id, property, color);
-    });
-  });
-}
 
 export function MapView({
   branch, branches, customers, radius, onBranchMove,
@@ -43,26 +37,16 @@ export function MapView({
 }) {
   const mapRef = useRef(null);
   const mapLoaded = useRef(false);
-  const warningTimer = useRef(null);
   const [mapError, setMapError] = useState(null);
   const [mapAttempt, setMapAttempt] = useState(0);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [viewport, setViewport] = useState({ longitude: branch.longitud, latitude: branch.latitud, zoom: 12.5 });
-  const [dark, setDark] = useState(typeof document !== "undefined" && document.body.classList.contains("dark-theme"));
   const hoveredId = useRef(null);
   const center = useMemo(() => ({ lat: Number(branch.latitud), lng: Number(branch.longitud) }), [branch.latitud, branch.longitud]);
   const mappedCustomers = useMemo(() => customers.map(customer => ({
     ...customer,
     distance: Math.round(distanceInMeters(center, { lat: customer.latitud, lng: customer.longitud }))
   })), [customers, center]);
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => setDark(document.body.classList.contains("dark-theme")));
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => () => window.clearTimeout(warningTimer.current), []);
 
   useEffect(() => {
     setViewport(previous => ({ ...previous, longitude: center.lng, latitude: center.lat }));
@@ -82,24 +66,19 @@ export function MapView({
 
   const onLoad = useCallback(event => {
     mapLoaded.current = true;
-    window.clearTimeout(warningTimer.current);
     setMapError(null);
-    applyPalette(event.target, dark);
     // Al abrir, encuadra el radio de alcance para que se vea quién queda dentro.
     const latDelta = (radius * 1.5) / 110540;
     const lngDelta = (radius * 1.5) / (111320 * Math.cos((center.lat * Math.PI) / 180));
     event.target.fitBounds([[center.lng - lngDelta, center.lat - latDelta], [center.lng + lngDelta, center.lat + latDelta]], { padding: 24, maxZoom: 16, duration: 0 });
     // Solo al cargar: después el usuario mueve el mapa a su gusto.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dark]);
+  }, []);
   const handleMapError = useCallback(event => {
     const message = event.error?.message || "No se pudo cargar el mapa.";
     const recoverable = Boolean(event.sourceId || event.tile || mapLoaded.current);
-    setMapError({ message, recoverable });
-    if (recoverable) {
-      window.clearTimeout(warningTimer.current);
-      warningTimer.current = window.setTimeout(() => setMapError(null), 8000);
-    } else {
+    setMapError({ message: recoverable ? "Algunas calles no se cargaron. Revisa tu conexión." : "No se pudo cargar el mapa de OpenStreetMap.", recoverable });
+    if (!recoverable) {
       onMapError?.(message);
     }
   }, [onMapError]);
@@ -115,7 +94,7 @@ export function MapView({
   };
   const handleClick = event => {
     const map = mapRef.current?.getMap();
-    if (!map) return;
+    if (!map || !map.getLayer("customer-clusters") || !map.getLayer("customer-points")) return;
     const features = map.queryRenderedFeatures(event.point, { layers: ["customer-clusters", "customer-points"] });
     const feature = features[0];
     if (!feature) {
@@ -124,9 +103,10 @@ export function MapView({
     }
     if (feature.properties.cluster) {
       const source = map.getSource("geo-customers");
-      source.getClusterExpansionZoom(feature.properties.cluster_id, (error, zoom) => {
-        if (error) return;
+      source.getClusterExpansionZoom(feature.properties.cluster_id).then(zoom => {
         map.jumpTo({ center: feature.geometry.coordinates, zoom });
+      }).catch(() => {
+        setMapError({ message: "No se pudo ampliar el grupo de clientes.", recoverable: true });
       });
       return;
     }
@@ -136,10 +116,9 @@ export function MapView({
       latitude: feature.geometry.coordinates[1]
     });
   };
-  const handleMove = event => {
-    setViewport(event.viewState);
+  const handleMouseMove = event => {
     const map = mapRef.current?.getMap();
-    if (map) {
+    if (map && map.getLayer("customer-clusters") && map.getLayer("customer-points")) {
       const features = map.queryRenderedFeatures(event.point, { layers: ["customer-clusters", "customer-points"] });
       map.getCanvas().style.cursor = features.length ? "pointer" : "";
     }
@@ -153,13 +132,14 @@ export function MapView({
           key={mapAttempt}
           mapLib={maplibregl}
           {...viewport}
-          onMove={handleMove}
+          onMove={event => setViewport(event.viewState)}
+          onMouseMove={handleMouseMove}
           onMoveEnd={handleMoveEnd}
           onClick={handleClick}
           onLoad={onLoad}
           onError={handleMapError}
-          mapStyle={dark ? DARK_STYLE : LIGHT_STYLE}
-          attributionControl={{ compact: false, customAttribution: MAP_ATTRIBUTION }}
+          mapStyle={MAP_STYLE}
+          attributionControl={{ compact: false }}
           maxBounds={[[-77.3, -12.45], [-76.65, -11.65]]}
           minZoom={9}
           maxZoom={19}
@@ -189,12 +169,12 @@ export function MapView({
         </Map>
       {mapError && (
         <div className={`map-load-warning${mapError.recoverable ? "" : " is-fatal"}`} role={mapError.recoverable ? "status" : "alert"}>
-          <span>{mapError.recoverable ? "Algunas calles no se cargaron. Revisa tu conexión." : "No se pudo cargar el mapa real."}</span>
-          {!mapError.recoverable && <button type="button" className="secondary-button" onClick={() => {
+          <span>{mapError.message}</span>
+          <button type="button" className="secondary-button" onClick={() => {
             mapLoaded.current = false;
             setMapError(null);
             setMapAttempt(previous => previous + 1);
-          }}>Intentar de nuevo</button>}
+          }}>Intentar de nuevo</button>
         </div>
       )}
     </div>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { PageHeader } from "../../components/common/PageHeader";
-import { KpiCard } from "../../components/common/KpiCard";
 import { PanelHeading } from "../../components/common/PanelHeading";
 import { SearchInput } from "../../components/common/SearchInput";
 import { FilterSelect } from "../../components/common/FilterSelect";
@@ -8,7 +7,7 @@ import { Pagination } from "../../components/common/Pagination";
 import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
 import { Icon } from "../../components/common/Icon";
-import { KpiSkeletonGrid, TableSkeleton } from "../../components/common/Skeleton";
+import { TableSkeleton } from "../../components/common/Skeleton";
 import { CustomerTable } from "../../components/customers/CustomerTable";
 import { CustomerDialog } from "../../components/customers/CustomerDialog";
 import { useFetch } from "../../hooks/useFetch";
@@ -92,17 +91,6 @@ export default function CustomersPage() {
           </div>
         }
       />
-
-      {stats.data ? (
-        <div className="stats-grid">
-          <KpiCard label="Clientes registrados" value={stats.data.total} explanation="Personas inscritas en el programa." icon="users" />
-          <KpiCard label="Clientes activos" value={stats.data.active} explanation="Personas con una visita en los últimos 60 días." icon="users" />
-          <KpiCard label="Visitas totales" value={stats.data.totalVisits} explanation="Visitas guardadas en el programa." icon="visits" />
-          <KpiCard label="Promedio de visitas" value={stats.data.averageVisits.toFixed(1)} explanation="Visitas por persona en promedio." icon="chart" />
-        </div>
-      ) : (
-        !stats.error && <KpiSkeletonGrid />
-      )}
 
       <article className="panel activity-panel">
         <PanelHeading title="Directorio de clientes" subtitle="Encuentra a alguien y revisa cómo participa" />

@@ -29,23 +29,25 @@ MapErrorBoundary.propTypes = {
   onError: PropTypes.func
 };
 
-export function GeoMap({ fallback, onError, ...props }) {
+export function GeoMap({ onError, ...props }) {
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const reportFailure = message => {
     setFailed(true);
     onError?.(message);
   };
-  if (failed) return (
-    <div className={`geo-map-recovery ${props.className || ""}`}>
-      {fallback}
-      <button className="secondary-button geo-map-retry" type="button" onClick={() => {
+  const fallback = (
+    <div className={`map-view map-load-error ${props.className || ""}`} role="alert">
+      <strong>No se pudo cargar el mapa de OpenStreetMap.</strong>
+      <span>Comprueba tu conexión e inténtalo de nuevo.</span>
+      <button className="secondary-button" type="button" onClick={() => {
         setFailed(false);
         setAttempt(previous => previous + 1);
         onError?.(null);
-      }}>Cargar mapa de calles</button>
+      }}>Intentar de nuevo</button>
     </div>
   );
+  if (failed) return fallback;
   return (
     <MapErrorBoundary key={attempt} fallback={fallback} onError={reportFailure}>
       <Suspense fallback={<Skeleton height={480} radius={13} />}>
@@ -56,7 +58,6 @@ export function GeoMap({ fallback, onError, ...props }) {
 }
 
 GeoMap.propTypes = {
-  fallback: PropTypes.node.isRequired,
   onError: PropTypes.func,
   branch: PropTypes.object.isRequired,
   branches: PropTypes.array.isRequired,

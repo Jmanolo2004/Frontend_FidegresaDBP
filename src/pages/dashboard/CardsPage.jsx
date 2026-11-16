@@ -6,7 +6,6 @@ import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
 import { FilterSelect } from "../../components/common/FilterSelect";
 import { Icon } from "../../components/common/Icon";
-import { KpiCard } from "../../components/common/KpiCard";
 import { PageHeader } from "../../components/common/PageHeader";
 import { SearchInput } from "../../components/common/SearchInput";
 import { Skeleton } from "../../components/common/Skeleton";
@@ -79,39 +78,6 @@ function CardTile({ card, onStatusChange, onDuplicate, onDelete }) {
       <Link to={`/panel/tarjetas/${card.id}`} className="card-gallery-preview" aria-label={`Ver detalle de ${card.nombre}`}>
         <CardFront card={card} size="md" />
       </Link>
-      <div className="card-gallery-meta">
-        <div className="card-gallery-title">
-          <div><h2>{card.nombre}</h2><span>{CARD_TYPE_CONFIG[card.tipo]?.label} · {card.negocio}</span></div>
-          <span className={`program-status ${statusClass}`}><i />{card.estado}</span>
-        </div>
-        <div className="card-gallery-stats">
-          <span><strong>{card.metricas?.clientesActivos || 0}</strong> clientes activos</span>
-          <span><strong>{card.metricas?.canjes || 0}</strong> canjes</span>
-          <span>{formatMoney(card.metricas?.ventasAsociadas || 0)}</span>
-        </div>
-        <dl className={`card-gallery-details card-gallery-details-${String(card.tipo || "estampillas").toLowerCase()}`}>
-          {getCardDetails(card).map((detail, index) => (
-            <div key={`${detail.label}-${index}`}>
-              <dt>{detail.label}</dt>
-              <dd>{detail.value}</dd>
-            </div>
-          ))}
-        </dl>
-        <div className="card-gallery-actions">
-          <Link className="secondary-button" to={`/panel/tarjetas/${card.id}`}>Ver detalle</Link>
-          <Link className="small-action" to={`/panel/tarjetas/${card.id}/editar`} aria-label={`Editar ${card.nombre}`}><Icon name="settings" size={15} />Editar</Link>
-          <details className="card-action-menu" open={menuOpen} onToggle={event => setMenuOpen(event.currentTarget.open)}>
-            <summary aria-label={`Más acciones para ${card.nombre}`} aria-expanded={menuOpen}>⋯</summary>
-            <div className="card-action-menu-items">
-              <button type="button" onClick={() => { setMenuOpen(false); onDuplicate(card); }}>Duplicar</button>
-              <button type="button" onClick={() => { setMenuOpen(false); onStatusChange(card, card.estado === "Activa" ? "En pausa" : "Activa"); }}>
-                {card.estado === "Activa" ? "Pausar" : "Activar"}
-              </button>
-              <button type="button" className="danger-text" onClick={() => { setMenuOpen(false); onDelete(card); }}>Eliminar</button>
-            </div>
-          </details>
-        </div>
-      </div>
       </div>
     </article>
   );
@@ -163,10 +129,6 @@ export default function CardsPage() {
       cards: cards.filter(card => card.tipo === cardType)
     }))
     .filter(group => group.cards.length > 0);
-  const activePrograms = totals.filter(card => card.estado === "Activa").length;
-  const activeCustomers = totals.reduce((sum, card) => sum + (card.metricas?.clientesActivos || 0), 0);
-  const monthlyRedemptions = totals.reduce((sum, card) => sum + (card.metricas?.canjesMes || 0), 0);
-
   const handleStatusChange = async (card, nextStatus) => {
     try {
       await loyaltyProgramService.setStatus(card.id, nextStatus);
@@ -211,17 +173,6 @@ export default function CardsPage() {
         summary="Diseña y administra los programas digitales de fidelización para tus clientes."
         actions={<Link className="primary-button" to="/panel/tarjetas/nueva"><Icon name="plus" size={16} />Crear tarjeta</Link>}
       />
-
-      {allPrograms.data ? (
-        <div className="stats-grid card-program-stats">
-          <KpiCard label="Programas" value={totals.length} icon="card" />
-          <KpiCard label="Activos" value={activePrograms} icon="chart" />
-          <KpiCard label="Clientes en programas" value={activeCustomers} icon="users" />
-          <KpiCard label="Canjes del mes" value={monthlyRedemptions} icon="reward" />
-        </div>
-      ) : (
-        <div className="stats-grid card-program-stats">{[0, 1, 2, 3].map(index => <Skeleton key={index} height={95} radius={13} />)}</div>
-      )}
 
       <article className="panel card-gallery-panel">
         <div className="card-type-tabs" role="tablist" aria-label="Filtrar tarjetas por tipo">

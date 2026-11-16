@@ -31,7 +31,7 @@ export function CustomerLayer({ customers, center, radius, highlightedCustomerId
       }} />
       <Layer id="customer-cluster-count" type="symbol" filter={["has", "point_count"]} layout={{
         "text-field": "{point_count_abbreviated}",
-        "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+        "text-font": ["Noto Sans Regular"],
         "text-size": 12
       }} paint={{ "text-color": "#fff" }} />
       <Layer id="customer-points" type="circle" filter={["!", ["has", "point_count"]]} paint={{

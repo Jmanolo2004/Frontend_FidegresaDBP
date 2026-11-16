@@ -61,8 +61,7 @@ export default function RegisterPage() {
         showToast(`¡Listo! ${values.businessName.trim()} ya tiene su programa de fidelización.`);
         navigate("/panel/metricas", { replace: true });
       } catch (error) {
-        if (error.isNetworkError) navigate("/sin-conexion");
-        else if (error.status === 409) setErrors({ email: "Ya existe una cuenta con este correo. Inicia sesión o usa otro correo." });
+        if (error.status === 409) setErrors({ email: "Ya existe una cuenta con este correo. Inicia sesión o usa otro correo." });
         else setErrors({ form: error.message });
       }
     }

@@ -12,7 +12,6 @@ import { Pagination } from "../../components/common/Pagination";
 import { Skeleton } from "../../components/common/Skeleton";
 import { AddressSearch } from "../../components/map/AddressSearch";
 import { GeoMap } from "../../components/map/GeoMap";
-import { ReachPlan } from "../../components/map/ReachPlan";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
@@ -276,15 +275,6 @@ export default function GeolocationPage() {
   if (!base || !location) return <><PageHeader title="Geolocalización" summary="Cargando locales y zonas de alcance…" /><Skeleton height={520} radius={13} /></>;
 
   const radiusLabel = formatDistance(radius);
-  const reachPlan = (
-    <ReachPlan
-      branch={location}
-      customers={filteredNearby}
-      radius={radius}
-      highlightedCustomerId={highlightedCustomerId || undefined}
-      address={`${location.direccion} · ${location.distrito}, Lima`}
-    />
-  );
   const funnel = [
     { label: `Dentro de ${radiusLabel}`, value: inside.length },
     { label: "Aceptaron compartir ubicación", value: consented },
@@ -320,8 +310,8 @@ export default function GeolocationPage() {
                 onBranchMove={position => saveBranchPosition({ lat: Number(position.lat), lng: Number(position.lng) })}
                 className="geo-main-map"
                 ariaLabel="Mapa interactivo con el alcance del local y clientes cercanos"
-                fallback={reachPlan}
               />
+              <div className="geo-privacy-note"><Icon name="target" size={16} /><span><b>Privacidad · Ley N° 29733</b><br />Solo se notifica a clientes que aceptaron compartir su ubicación. Fidegresa no rastrea a las personas desde la web.</span></div>
             </article>
             <aside className="panel geo-settings">
               <h2>Zona y segmento</h2>
@@ -352,7 +342,6 @@ export default function GeolocationPage() {
                   <Icon name="users" size={16} /> {reachable.length ? `Crear audiencia con ${reachable.length} ${reachable.length === 1 ? "cliente" : "clientes"}` : "Nadie puede recibir avisos aún"}
                 </button>
               </section>
-              <div className="geo-privacy-note"><Icon name="target" size={16} /><span><b>Privacidad · Ley N° 29733</b><br />Solo se notifica a clientes que aceptaron compartir su ubicación. Fidegresa no rastrea a las personas desde la web.</span></div>
               <div className="nearby-list" tabIndex={0} aria-label="Clientes por distancia, lista alternativa al mapa">
                 {filteredNearby.length ? (
                   <>

@@ -488,8 +488,7 @@ body.dark-theme {
 .auth-primary:hover { transform: translateY(-1px); background: var(--brown-dark); }
 .auth-switch { margin: 20px 0 8px; color: var(--muted); font-size: 12px; text-align: center; }
 .link-button { padding: 3px; border: 0; background: none; color: var(--brown); font-size: inherit; font-weight: 700; }
-.link-button:hover, .connection-link:hover { text-decoration: underline; }
-.connection-link { display: block; margin: 0 auto; padding: 5px; border: 0; background: none; color: #8d6847; font-size: 12px; }
+.link-button:hover { text-decoration: underline; }
 .prototype-note { margin: 17px 0 0; color: #9b9087; font-size: 11px; line-height: 1.5; text-align: center; }
 .auth-copyright { position: absolute; bottom: 18px; left: clamp(28px, 6vw, 86px); color: var(--muted); font-size: 12px; }
 .auth-showcase { position: relative; display: flex; min-height: 100vh; overflow: hidden; flex-direction: column; justify-content: center; padding: clamp(34px, 6vw, 80px); background: linear-gradient(145deg, #68472f, #432a1d); color: #fff8ef; }
@@ -498,14 +497,12 @@ body.dark-theme {
 .showcase-kicker { color: #e3bf98; font-size: 12px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; }
 .showcase-copy h2 { margin: 14px 0 9px; font: 600 clamp(30px, 4vw, 46px)/1.13 Georgia, serif; letter-spacing: -.5px; }
 .showcase-copy p { max-width: 390px; margin: 0; color: #e0cbbb; font-size: 12px; line-height: 1.65; }
-.showcase-cards { display: grid; width: min(100%, 480px); gap: 12px; margin: 38px auto 0; }
-.showcase-card { display: grid; gap: 6px; min-height: 116px; padding: 15px 18px; border: 1px solid rgb(255 255 255 / 35%); border-radius: 13px; background: linear-gradient(120deg, #b08055, #815938); box-shadow: 0 14px 28px rgb(27 16 9 / 17%); transform: rotate(-2deg); }
-.showcase-card-2 { margin-left: 8%; background: linear-gradient(120deg, #7b9679, #536d59); transform: rotate(1.5deg); }
-.showcase-card-3 { margin-right: 10%; background: linear-gradient(120deg, #bd906b, #8e6248); transform: rotate(-1deg); }
-.showcase-card-type { color: #f2dfca; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
-.showcase-card strong { font: 600 18px Georgia, serif; }
-.showcase-card-reward { color: #f5e8db; font-size: 12px; }
-.showcase-card-bottom { display: flex; align-items: center; gap: 6px; margin-top: 3px; color: #f0decc; font-size: 11px; }
+.showcase-demo-label { margin: 28px 0 0; color: #f0decc; font-size: 12px; }
+.showcase-cards { display: grid; grid-auto-columns: minmax(190px, 220px); grid-auto-flow: column; align-items: start; gap: 16px; max-width: 100%; margin-top: 12px; padding: 4px 4px 14px; overflow-x: auto; }
+.showcase-cards:focus-visible { outline: 2px solid #fff8ef; outline-offset: 3px; }
+.showcase-card-example { display: grid; gap: 6px; min-width: 0; }
+.showcase-card-example > strong { margin-top: 5px; font-size: 14px; }
+.showcase-card-example > span { color: #f0decc; font-size: 12px; }
 .showcase-decoration { position: absolute; right: 11%; bottom: 6%; width: 110px; height: 110px; border: 1px solid rgb(255 255 255 / 10%); border-radius: 50%; }
 .register-form-wrap { width: min(100%, 460px); padding-top: 25px; padding-bottom: 28px; }
 .register-form-wrap .auth-intro { margin-bottom: 16px; }
@@ -540,7 +537,6 @@ body.dark-theme {
   .auth-form-wrap { margin: auto; padding: 42px 0 30px; }
   .auth-copyright { bottom: 15px; left: 25px; }
   .auth-showcase { min-height: 560px; padding: 42px 25px; }
-  .showcase-cards { margin-top: 28px; }
   .register-panel { min-height: auto; }
   .register-form-wrap { padding-top: 28px; padding-bottom: 38px; }
   .register-screen .auth-copyright { position: static; margin-top: auto; }
@@ -576,7 +572,6 @@ body.dark-theme {
 .signout-button [data-icon] { color: #ffe5df; }
 
 @media (max-width: 420px) {
-  .showcase-card { padding: 13px; }
 }
 
 .legal-screen { --marketing-brown: #603f2a; --marketing-dark: #4a2f20; --marketing-caramel: #c8894f; --marketing-cream: #f7f3ee; --marketing-line: #e8dfd5; min-height: 100vh; background: #fff; color: #493a30; }

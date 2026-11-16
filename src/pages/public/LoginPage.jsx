@@ -36,10 +36,6 @@ export default function LoginPage() {
         showToast(`Bienvenida de vuelta, ${profile.fullName.split(" ")[0]}.`);
         navigate(redirectTo, { replace: true });
       } catch (error) {
-        if (error.isNetworkError) {
-          navigate("/sin-conexion");
-          return;
-        }
         if (error.status === 401) setErrors({ form: "Correo o contraseña incorrectos. Revisa tus datos e inténtalo otra vez." });
         else if (error.status === 400) setErrors({ form: error.message });
         else setErrors({ form: error.message });
@@ -85,9 +81,6 @@ export default function LoginPage() {
           Crear cuenta
         </Link>
       </p>
-      <Link className="connection-link" to="/sin-conexion">
-        ¿Problemas para conectarte?
-      </Link>
       {DEMO_ACCOUNT && (
         <p className="prototype-note">
           Modo demostración · cuenta de prueba {DEMO_ACCOUNT.email} ·{" "}

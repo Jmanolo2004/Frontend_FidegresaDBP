@@ -39,6 +39,8 @@ Con `VITE_USE_MOCK=true` la app funciona sin backend: un adaptador de Axios (`sr
 
 **Públicas:** landing con historia animada por scroll, selector de tarjetas y demo del panel, iniciar sesión, crear cuenta, continuar con Google y con Apple, términos y condiciones, política de privacidad, pantalla de carga, pantalla sin conexión y error 404.
 
+El inicio de sesión muestra únicamente tarjetas de ejemplo de los datos iniciales de la demo; no publica tarjetas de negocios. La pantalla sin conexión aparece cuando el navegador detecta la pérdida de conexión y devuelve al usuario a la pantalla anterior al recuperarla. Los errores de conexión con el servidor se muestran en la pantalla correspondiente.
+
 **Panel (rutas protegidas):**
 
 | Ruta | Sección |

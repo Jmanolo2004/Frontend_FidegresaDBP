@@ -1,17 +1,25 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { ErrorScreen } from "../../components/errors/ErrorScreen";
-import { useDocumentTitle } from "../../hooks/useDocumentTitle";
+import { useOnlineStatus } from "../../hooks/useOnlineStatus";
 import { useToast } from "../../hooks/useToast";
 
 export default function ConnectionErrorPage() {
-  useDocumentTitle("Sin conexión");
-  const navigate = useNavigate();
+  const online = useOnlineStatus();
   const { showError } = useToast();
 
+  useEffect(() => {
+    if (online) return undefined;
+    const previousTitle = document.title;
+    document.title = "Sin conexión | Fidegresa";
+    return () => { document.title = previousTitle; };
+  }, [online]);
+
   const retry = () => {
-    if (navigator.onLine) navigate("/login", { replace: true });
-    else showError("Seguimos sin conexión. Revisa tu red e inténtalo otra vez.");
+    if (!navigator.onLine) showError("Seguimos sin conexión. Revisa tu red e inténtalo otra vez.");
   };
+
+  if (online) return <Navigate to="/login" replace />;
 
   return (
     <ErrorScreen
@@ -20,8 +28,6 @@ export default function ConnectionErrorPage() {
       description="No pudimos conectar con Fidegresa. Comprueba tu conexión e inténtalo nuevamente."
       primaryLabel="Reintentar conexión"
       onPrimary={retry}
-      secondaryLabel="Volver al inicio de sesión"
-      onSecondary={() => navigate("/login")}
     />
   );
 }

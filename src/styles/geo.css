@@ -102,6 +102,7 @@
 .audience-wizard-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(310px, .9fr); align-items: start; gap: 14px; }
 .audience-wizard-form, .audience-wizard-preview { min-width: 0; padding: 17px; }
 .audience-wizard-preview { position: sticky; top: 15px; }
+.audience-wizard-preview .map-view { height: 360px; }
 .audience-wizard-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; margin: 0 0 20px; padding: 0; list-style: none; }
 .audience-wizard-steps li { min-width: 0; }
 .audience-wizard-steps button { display: flex; width: 100%; align-items: center; gap: 5px; padding: 6px 2px; border: 0; border-bottom: 2px solid var(--line); background: transparent; color: var(--muted); text-align: left; }
@@ -255,6 +256,7 @@
 .geo-funnel-action { width: 100%; justify-content: center; min-height: 42px; margin-top: 2px; font-size: 14px; }
 .geo-funnel-action:disabled { opacity: .55; cursor: not-allowed; }
 .geo-privacy-note { margin: 0 0 12px; font-size: 12px; }
+.geo-map-panel > .geo-privacy-note { margin: 12px; }
 
 .nearby-list { max-height: 340px; padding: 10px 12px; }
 .panel-title { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 4px; font-size: 13px; }

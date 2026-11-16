@@ -8,6 +8,7 @@ import { DashboardLayout } from "../components/layout/DashboardLayout";
 import { tokenStorage } from "../api/tokenStorage";
 import { loyaltyProgramService } from "../services/loyaltyProgramService";
 import { audienceService } from "../services/audienceService";
+import ConnectionErrorPage from "../pages/public/ConnectionErrorPage";
 
 // Cada pantalla se descarga solo cuando se visita (code splitting con React.lazy).
 const LandingPage = lazy(() => import("../pages/public/LandingPage"));
@@ -15,7 +16,6 @@ const LoginPage = lazy(() => import("../pages/public/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/public/RegisterPage"));
 const TermsPage = lazy(() => import("../pages/public/TermsPage"));
 const PrivacyPage = lazy(() => import("../pages/public/PrivacyPage"));
-const ConnectionErrorPage = lazy(() => import("../pages/public/ConnectionErrorPage"));
 const NotFoundPage = lazy(() => import("../pages/public/NotFoundPage"));
 
 const MetricsPage = lazy(() => import("../pages/dashboard/MetricsPage"));

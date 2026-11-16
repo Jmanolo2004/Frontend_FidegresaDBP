@@ -90,14 +90,16 @@ export default function MetricsPage() {
 
   return <>
     <PageHeader title={`Hola, ${data?.owner || "bienvenido"}`} summary={summary} />
-    <div className="metrics-program-filters" role="group" aria-label="Filtrar métricas por programa">
-      {PROGRAMS.map(([value, label]) => (
-        <button type="button" key={value} className="metrics-calendar-trigger" aria-pressed={filters.program === value} onClick={() => update({ program: value })}>
-          {label}
-        </button>
-      ))}
+    <div className="metrics-controls-row">
+      <div className="metrics-program-filters" role="group" aria-label="Filtrar métricas por programa">
+        {PROGRAMS.map(([value, label]) => (
+          <button type="button" key={value} className="metrics-calendar-trigger" aria-pressed={filters.program === value} onClick={() => update({ program: value })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <MetricsFilters filters={filters} update={update} />
     </div>
-    <MetricsFilters filters={filters} update={update} />
     {error && <ErrorState error={error} onRetry={reload} />}
     {loading && data && <p className="metrics-loading-note" role="status">Actualizando indicadores…</p>}
     {!error && (data

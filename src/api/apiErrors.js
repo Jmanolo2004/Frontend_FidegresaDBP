@@ -38,7 +38,7 @@ export function toApiError(error) {
     return new ApiError({ message: "El servidor tardó demasiado en responder. Inténtalo de nuevo.", code: "TIMEOUT" });
   }
   if (!error?.response) {
-    return new ApiError({ message: "No pudimos conectar con Fidegresa. Revisa tu conexión a internet.", code: "NETWORK" });
+    return new ApiError({ message: "No pudimos conectar con Fidegresa. Comprueba tu conexión o inténtalo más tarde.", code: "NETWORK" });
   }
   const { status, data } = error.response;
   const serverMessage = typeof data?.message === "string" && data.message.trim() ? data.message : null;

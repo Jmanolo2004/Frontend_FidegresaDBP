@@ -19,8 +19,7 @@ export function useSocialLogin(redirectTo) {
       showToast(`Bienvenido, ${profile.fullName}. Ingresaste con ${PROVIDER_NAMES[provider]}.`);
       navigate(redirectTo, { replace: true });
     } catch (error) {
-      if (error.isNetworkError) navigate("/sin-conexion");
-      else showError(error.message);
+      showError(error.message);
     } finally {
       setLoadingProvider(null);
     }
