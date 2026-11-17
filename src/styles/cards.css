@@ -383,3 +383,17 @@
 .dark-theme .card-wizard-step-content .form-field :is(input:not([type="color"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea) { border-color: var(--line); background: var(--surface); color: var(--text); }
 .card-wizard-step-count { color: #8f5a22; }
 .dark-theme .card-wizard-step-count { color: #e0b382; }
+
+/* Google Wallet: botón y diálogo de la tarjeta de prueba */
+.google-wallet-button { display: inline-flex; align-items: center; gap: 9px; min-height: 42px; margin-top: 10px; padding: 0 18px; border: 1px solid #747775; border-radius: 999px; background: #1f1f1f; color: #fff; font: 600 14px/1 "Segoe UI", Arial, sans-serif; text-decoration: none; cursor: pointer; }
+.google-wallet-button:hover { background: #3c3c3c; }
+.google-wallet-button:focus-visible { outline: 3px solid var(--caramel); outline-offset: 2px; }
+.wallet-form, .wallet-ready { display: grid; gap: 14px; }
+.wallet-ready { justify-items: start; }
+.wallet-ready p { margin: 0; color: var(--text); font-size: 14px; line-height: 1.5; }
+.wallet-ready small { color: var(--muted); font-size: 12px; }
+.wallet-preview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 14px 16px; border-radius: 14px; background: var(--wallet-bg); color: #fff; }
+.wallet-preview div { min-width: 0; }
+.wallet-preview dt { font-size: 11px; opacity: .85; }
+.wallet-preview dd { overflow: hidden; margin: 3px 0 0; font-size: 14px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 560px) { .wallet-preview { grid-template-columns: 1fr 1fr; } }

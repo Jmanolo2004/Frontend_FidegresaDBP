@@ -7,6 +7,7 @@ import { Avatar } from "../../components/common/Avatar";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
 import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
+import { Icon } from "../../components/common/Icon";
 import { KpiCard } from "../../components/common/KpiCard";
 import { PageHeader } from "../../components/common/PageHeader";
 import { PanelHeading } from "../../components/common/PanelHeading";
@@ -16,6 +17,7 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
 import { usePagination } from "../../hooks/usePagination";
 import { useToast } from "../../hooks/useToast";
+import { GoogleWalletDialog } from "../../components/wallet/GoogleWalletDialog";
 import { loyaltyProgramService } from "../../services/loyaltyProgramService";
 import { formatDate, formatMoney, timeAgo } from "../../utils/format";
 import { CARD_TYPE_CONFIG } from "../../components/cards/cardTypes";
@@ -67,6 +69,7 @@ export default function CardDetailPage() {
   const { showToast, showError } = useToast();
   const [card, setCard] = useState(loadedCard);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
   const activeTab = TABS.some(tab => tab.id === searchParams.get("vista")) ? searchParams.get("vista") : "resumen";
   const pagination = usePagination();
   const customerPage = useFetch(({ signal }) => loyaltyProgramService.getCustomers(programId, { page: pagination.page, size: pagination.size }, { signal }), [programId, pagination.page, pagination.size], { enabled: activeTab === "clientes" });
@@ -144,6 +147,10 @@ export default function CardDetailPage() {
           <p>{card.descripcion || "Programa de fidelización para tus clientes."}</p>
           <p><strong>Local:</strong> {card.negocio}</p>
           <p><strong>Creada:</strong> {formatDate(card.creadaEn)}</p>
+          <button type="button" className="google-wallet-button" onClick={() => setWalletOpen(true)}>
+            <Icon name="card" size={18} />
+            <span>Agregar a Google Wallet</span>
+          </button>
         </div>
       </div>
 
@@ -218,6 +225,7 @@ export default function CardDetailPage() {
 
       {activeTab === "cliente" && <article className="panel card-detail-panel"><PanelHeading title="En el celular del cliente" subtitle="Vista ilustrativa de la tarjeta digital" /><PhoneMockup card={card} /></article>}
 
+      <GoogleWalletDialog open={walletOpen} card={card} detail={ruleDescription(card)} onClose={() => setWalletOpen(false)} />
       <ConfirmDialog open={deleteOpen} title="Eliminar tarjeta" description={`¿Quieres eliminar “${card.nombre}”? Esta acción no se puede deshacer.`} confirmLabel="Eliminar tarjeta" onConfirm={removeCard} onClose={() => setDeleteOpen(false)} />
     </>
   );
