@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
   const startSession = useCallback(async session => {
     tokenStorage.set(session);
     const profile = await authService.getCurrentUser();
-    setUser(profile);
+    setUser(session.locationNotCreated ? { ...profile, locationNotCreated: true } : profile);
     setExpired(false);
     setStatus("authenticated");
     return profile;
@@ -53,7 +53,11 @@ export function AuthProvider({ children }) {
   );
 
   const login = useCallback(async credentials => startSession(await authService.login(credentials)), [startSession]);
-  const register = useCallback(async payload => startSession(await authService.register(payload)), [startSession]);
+  const register = useCallback(async payload => {
+    const session = await authService.register(payload);
+    const profile = await startSession(session);
+    return { ...profile, locationNotCreated: session.locationNotCreated };
+  }, [startSession]);
   const loginWithProvider = useCallback(async provider => startSession(await authService.loginWithProvider(provider)), [startSession]);
 
   const logout = useCallback(async () => {
@@ -64,6 +68,14 @@ export function AuthProvider({ children }) {
     }
     tokenStorage.clear();
     setUser(null);
+    setStatus("anonymous");
+  }, []);
+
+  const deleteDemoAccount = useCallback(async () => {
+    await authService.deleteDemoAccount();
+    tokenStorage.clear();
+    setUser(null);
+    setExpired(false);
     setStatus("anonymous");
   }, []);
 
@@ -79,9 +91,10 @@ export function AuthProvider({ children }) {
       register,
       loginWithProvider,
       logout,
+      deleteDemoAccount,
       updateUser
     }),
-    [user, status, expired, login, register, loginWithProvider, logout, updateUser]
+    [user, status, expired, login, register, loginWithProvider, logout, deleteDemoAccount, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

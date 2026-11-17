@@ -15,7 +15,7 @@ const rules = {
   horario: [maxLength(60, "Usa hasta 60 caracteres.")]
 };
 
-function LocationForm({ location, onClose, onSaved }) {
+function LocationForm({ location, onClose, onSaved, onLimitReached }) {
   const { showToast, showError } = useToast();
   const editing = Boolean(location);
   const categories = location?.categoria && !BUSINESS_CATEGORIES.includes(location.categoria) ? [...BUSINESS_CATEGORIES, location.categoria] : BUSINESS_CATEGORIES;
@@ -35,7 +35,8 @@ function LocationForm({ location, onClose, onSaved }) {
         showToast(editing ? "Ubicación actualizada." : "Ubicación agregada.");
         onSaved(saved);
       } catch (error) {
-        if (error.status === 409) setErrors({ nombre: error.message });
+        if (error.status === 422 && !editing) onLimitReached(error.message);
+        else if (error.status === 409) setErrors({ nombre: error.message });
         else showError(error.message);
       }
     }
@@ -80,7 +81,7 @@ function LocationForm({ location, onClose, onSaved }) {
   );
 }
 
-LocationForm.propTypes = { location: PropTypes.object, onClose: PropTypes.func.isRequired, onSaved: PropTypes.func.isRequired };
+LocationForm.propTypes = { location: PropTypes.object, onClose: PropTypes.func.isRequired, onSaved: PropTypes.func.isRequired, onLimitReached: PropTypes.func.isRequired };
 
 export function LocationDialog({ open, ...props }) {
   return open ? <LocationForm {...props} /> : null;

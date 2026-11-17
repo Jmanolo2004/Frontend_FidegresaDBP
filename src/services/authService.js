@@ -7,5 +7,6 @@ export const authService = {
   register: payload => apiClient.post("/auth/register", payload, publicRequest).then(response => response.data),
   loginWithProvider: provider => apiClient.post(`/auth/oauth/${provider}`, {}, publicRequest).then(response => response.data),
   getCurrentUser: options => apiClient.get("/auth/me", options).then(response => response.data),
+  deleteDemoAccount: () => apiClient.delete("/demo/account").then(response => response.data),
   logout: () => apiClient.post("/auth/logout", {}, { skipRefresh: true })
 };

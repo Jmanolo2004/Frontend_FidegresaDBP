@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "../../components/common/PageHeader";
 import { PanelHeading } from "../../components/common/PanelHeading";
 import { SearchInput } from "../../components/common/SearchInput";
@@ -37,6 +37,28 @@ export default function CustomersPage() {
   const { page, size, filters, setPage, setSize, setFilter, setFilters } = usePagination({ q: "", estado: "Todos", orden: "recent" });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef(null);
+  const exportButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (!exportMenuOpen) return undefined;
+    const closeOnOutsideClick = event => {
+      if (!exportMenuRef.current?.contains(event.target)) setExportMenuOpen(false);
+    };
+    const closeOnEscape = event => {
+      if (event.key === "Escape") {
+        setExportMenuOpen(false);
+        exportButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [exportMenuOpen]);
 
   const stats = useFetch(({ signal }) => customerService.getStats({ signal }), []);
   const customers = useFetch(
@@ -48,14 +70,23 @@ export default function CustomersPage() {
   const pageData = customers.data;
   const hasFilters = filters.q || filters.estado !== "Todos";
 
-  const exportCustomers = async () => {
+  const exportCustomers = async format => {
+    setExportMenuOpen(false);
+    exportButtonRef.current?.focus();
     setExporting(true);
     try {
-      const rows = await customerService.getAllForExport({ search: filters.q, status: filters.estado });
-      downloadCsv("clientes-fidegresa.csv", [
+      const rows = await customerService.getAllForExport({ search: filters.q, status: filters.estado, sort: filters.orden });
+      const data = [
         ["Nombre", "Correo", "Teléfono", "Local", "Distrito", "Estado", "Visitas", "Última visita"],
         ...rows.map(person => [person.nombre, person.correo, person.telefono, person.localNombre, person.distrito, person.estado, person.visitas, formatDate(person.ultimaVisita)])
-      ]);
+      ];
+      if (format === "xlsx") {
+        const { default: writeExcelFile } = await import("write-excel-file/browser");
+        const cells = data.map(row => row.map(value => typeof value === "number" ? value : String(value ?? "")));
+        await writeExcelFile(cells, { sheet: "Clientes" }).toFile("clientes-fidegresa.xlsx");
+      } else {
+        downloadCsv("clientes-fidegresa.csv", data);
+      }
       showToast(`Lista de ${rows.length} clientes descargada.`);
     } catch (error) {
       showError(error.message);
@@ -80,10 +111,18 @@ export default function CustomersPage() {
         summary={stats.data ? `${stats.data.total} personas registradas; ${activeLabel} en los últimos 60 días.` : "Cargando tu directorio de clientes…"}
         actions={
           <div className="page-actions">
-            <button type="button" className="secondary-button" onClick={exportCustomers} disabled={exporting || !pageData?.totalElements}>
-              <Icon name="download" size={16} />
-              {exporting ? "Preparando…" : "Descargar lista"}
-            </button>
+            <div className="customer-export" ref={exportMenuRef}>
+              <button ref={exportButtonRef} type="button" className="secondary-button" onClick={() => setExportMenuOpen(open => !open)} disabled={exporting || !pageData?.totalElements} aria-expanded={exportMenuOpen} aria-controls="customer-export-options">
+                <Icon name="download" size={16} />
+                {exporting ? "Preparando…" : "Descargar lista"}
+              </button>
+              {exportMenuOpen && (
+                <div id="customer-export-options" className="customer-export-options" aria-label="Formato de descarga">
+                  <button type="button" onClick={() => exportCustomers("xlsx")}>Excel (.xlsx)</button>
+                  <button type="button" onClick={() => exportCustomers("csv")}>CSV (.csv)</button>
+                </div>
+              )}
+            </div>
             <button type="button" className="primary-button" onClick={() => setDialogOpen(true)}>
               <Icon name="plus" size={16} />
               Agregar cliente

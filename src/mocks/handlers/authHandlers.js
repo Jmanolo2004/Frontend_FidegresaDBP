@@ -1,7 +1,8 @@
 import { getDatabase, hashPassword, saveDatabase } from "../database";
-import { badRequest, conflict, nextId, requireText, respond, unauthorized } from "../http";
+import { badRequest, conflict, HttpError, nextId, requireText, respond, unauthorized } from "../http";
 import { DISTRICT_NAMES } from "../../utils/constants";
 import { mapPositionFor } from "../../utils/geo";
+import { findSubscriptionPlan } from "../../utils/subscriptionPlans";
 
 const ACCESS_TOKEN_MINUTES = 30;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -20,7 +21,7 @@ function decode(token) {
 
 function issueSession(user) {
   const db = getDatabase();
-  const token = `demo.${encode({ sub: user.email, exp: Date.now() + ACCESS_TOKEN_MINUTES * 60000 })}`;
+  const token = `demo.${encode({ sub: user.email, uid: user.authId, exp: Date.now() + ACCESS_TOKEN_MINUTES * 60000 })}`;
   const refreshToken = `refresh.${crypto.randomUUID()}`;
   db.refreshTokens = [...(db.refreshTokens || []).filter(item => item.email !== user.email), { token: refreshToken, email: user.email }];
   saveDatabase();
@@ -32,7 +33,7 @@ export function userFromAuthorization(header) {
   if (!token.startsWith("demo.")) return null;
   const payload = decode(token.slice(5));
   if (!payload || payload.exp < Date.now()) return null;
-  return getDatabase().usuarios.find(user => user.email === payload.sub) || null;
+  return getDatabase().usuarios.find(user => user.email === payload.sub && (user.authId ? payload.uid === user.authId : !payload.uid)) || null;
 }
 
 function profileOf(user) {
@@ -80,12 +81,18 @@ export const authHandlers = [
       const businessName = requireText(body.businessName, "El nombre del negocio es obligatorio");
       const firstName = requireText(body.firstName, "El nombre es obligatorio");
       const lastName = requireText(body.lastName, "El apellido es obligatorio");
+      const plan = findSubscriptionPlan(body.planId);
+      if (!plan) throw badRequest("Selecciona un plan válido.");
+      if (body.simulatedPaymentConfirmed !== true) throw badRequest("Confirma el pago simulado para crear la cuenta.");
       if (!DISTRICT_NAMES.includes(body.district)) throw badRequest("Selecciona un distrito válido");
       if (db.usuarios.some(user => user.email === email)) {
         throw conflict("Ya existe una cuenta registrada con este correo.");
       }
+      const previousSettings = { ...db.configuracion };
+      const previousGeoLocationId = db.geolocalizacion.ubicacionId;
       const user = {
         id: nextId(db.usuarios),
+        authId: crypto.randomUUID(),
         email,
         passwordHash: hashPassword(password),
         fullName: `${firstName} ${lastName}`,
@@ -94,10 +101,15 @@ export const authHandlers = [
       };
       db.usuarios.push(user);
       db.configuracion.marca = businessName;
+      db.configuracion.plan = plan.name;
       syncProfile(user);
       db.configuracion.perfilTelefono = "";
       let location = db.ubicaciones.find(place => place.nombre.toLowerCase() === businessName.toLowerCase());
-      if (!location) {
+      let locationNotCreated = false;
+      let locationCreated = false;
+      if (!location && db.ubicaciones.length >= plan.maxLocations) {
+        locationNotCreated = true;
+      } else if (!location) {
         const position = mapPositionFor(body.district);
         location = {
           id: nextId(db.ubicaciones),
@@ -114,10 +126,17 @@ export const authHandlers = [
           activa: true
         };
         db.ubicaciones.unshift(location);
+        locationCreated = true;
       }
-      db.geolocalizacion.ubicacionId = location.id;
-      saveDatabase();
-      return respond(issueSession(user), 201);
+      if (location) db.geolocalizacion.ubicacionId = location.id;
+      if (!saveDatabase()) {
+        db.usuarios.pop();
+        if (locationCreated) db.ubicaciones.shift();
+        db.configuracion = previousSettings;
+        db.geolocalizacion.ubicacionId = previousGeoLocationId;
+        throw new HttpError(500, "No se pudo guardar la cuenta de demostración.");
+      }
+      return respond({ ...issueSession(user), locationNotCreated }, 201);
     }
   },
   {
@@ -133,6 +152,7 @@ export const authHandlers = [
       if (!user) {
         user = {
           id: nextId(db.usuarios),
+          authId: crypto.randomUUID(),
           email,
           passwordHash: null,
           fullName: `Cuenta de ${providerName}`,
@@ -143,6 +163,24 @@ export const authHandlers = [
       }
       syncProfile(user);
       return respond(issueSession(user));
+    }
+  },
+  {
+    method: "delete",
+    path: "/demo/account",
+    auth: true,
+    handler: ({ user }) => {
+      const db = getDatabase();
+      const previousUsers = db.usuarios;
+      const previousTokens = db.refreshTokens;
+      db.usuarios = db.usuarios.filter(item => item !== user);
+      db.refreshTokens = (db.refreshTokens || []).filter(item => item.email !== user.email);
+      if (!saveDatabase()) {
+        db.usuarios = previousUsers;
+        db.refreshTokens = previousTokens;
+        throw new HttpError(500, "No se pudo eliminar la cuenta de demostración.");
+      }
+      return respond(null, 204);
     }
   },
   {

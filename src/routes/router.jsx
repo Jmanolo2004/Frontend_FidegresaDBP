@@ -20,6 +20,7 @@ const NotFoundPage = lazy(() => import("../pages/public/NotFoundPage"));
 
 const MetricsPage = lazy(() => import("../pages/dashboard/MetricsPage"));
 const CustomersPage = lazy(() => import("../pages/dashboard/CustomersPage"));
+const TeamPage = lazy(() => import("../pages/dashboard/TeamPage"));
 const CustomerDetailPage = lazy(() => import("../pages/dashboard/CustomerDetailPage"));
 const ReviewsPage = lazy(() => import("../pages/dashboard/ReviewsPage"));
 const CardsPage = lazy(() => import("../pages/dashboard/CardsPage"));
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
                   { path: ":customerId", element: <CustomerDetailPage />, handle: { crumb: params => `Cliente #${params.customerId}` } }
                 ]
               },
+              { path: "equipo", element: <TeamPage />, handle: { crumb: "Equipo" } },
               { path: "resenas", element: <ReviewsPage />, handle: { crumb: "Reseñas" } },
               {
                 path: "tarjetas",

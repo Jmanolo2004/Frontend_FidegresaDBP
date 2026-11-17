@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { settingsService } from "../services/settingsService";
+import { subscriptionService } from "../services/subscriptionService";
 import { useFetch } from "../hooks/useFetch";
 
 export const SettingsContext = createContext(null);
@@ -49,6 +50,12 @@ export function SettingsProvider({ children }) {
     return saved;
   }, [refreshNotices]);
 
+  const upgradeSubscription = useCallback(async planId => {
+    const saved = await subscriptionService.upgrade(planId);
+    setSettings(current => ({ ...current, plan: saved.plan }));
+    return saved;
+  }, []);
+
   const value = useMemo(
     () => ({
       settings,
@@ -56,11 +63,12 @@ export function SettingsProvider({ children }) {
       error: settingsRequest.error,
       reloadSettings: settingsRequest.reload,
       updateSettings,
+      upgradeSubscription,
       resetSettings,
       notices: noticesRequest.data || [],
       refreshNotices
     }),
-    [settings, settingsRequest.loading, settingsRequest.error, settingsRequest.reload, updateSettings, resetSettings, noticesRequest.data, refreshNotices]
+    [settings, settingsRequest.loading, settingsRequest.error, settingsRequest.reload, updateSettings, upgradeSubscription, resetSettings, noticesRequest.data, refreshNotices]
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

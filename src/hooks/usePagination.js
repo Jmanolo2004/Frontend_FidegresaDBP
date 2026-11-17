@@ -6,7 +6,7 @@ import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from "../utils/constants";
  * Guarda la página, el tamaño y los filtros en los query params (?page=2&size=25&q=...)
  * para que la URL se pueda compartir y el botón "atrás" conserve el estado.
  */
-export function usePagination(filterDefaults = {}) {
+export function usePagination(filterDefaults = {}, { preventScrollReset = false } = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const pageParam = Number(searchParams.get("page"));
   const sizeParam = Number(searchParams.get("size"));
@@ -30,9 +30,9 @@ export function usePagination(filterDefaults = {}) {
           else next.set(key, String(value));
         }
         return next;
-      });
+      }, { preventScrollReset });
     },
-    [filtersKey, setSearchParams]
+    [filtersKey, preventScrollReset, setSearchParams]
   );
 
   return {

@@ -100,6 +100,8 @@
 .audience-activity-panel, .audience-history-panel { margin-bottom: 14px; padding: 16px; }
 .audience-history-panel .empty-state { padding: 20px; }
 .audience-wizard-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(310px, .9fr); align-items: start; gap: 14px; }
+.audience-wizard-main { min-width: 0; }
+.audience-wizard-main > .geo-privacy-note { margin: 12px 0 0; }
 .audience-wizard-form, .audience-wizard-preview { min-width: 0; padding: 17px; }
 .audience-wizard-preview { position: sticky; top: 15px; }
 .audience-wizard-preview .map-view { height: 360px; }
@@ -194,7 +196,7 @@
   .geo-settings { padding: 14px; }
   .audience-wizard-preview { position: static; grid-row: 1; }
   .audience-preview-toggle { display: inline-flex; }
-  .audience-wizard-form { grid-row: 2; }
+  .audience-wizard-main { grid-row: 2; }
   .audience-wizard-preview:not(.open) .map-view, .audience-wizard-preview:not(.open) .notification-phone, .audience-wizard-preview:not(.open) .audience-live-count, .audience-wizard-preview:not(.open) .audience-preview-people, .audience-wizard-preview:not(.open) > .geo-privacy-note { display: none; }
   .audience-detail-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .audience-toolbar { align-items: stretch; flex-direction: column; }

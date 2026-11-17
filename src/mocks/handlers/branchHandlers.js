@@ -1,7 +1,8 @@
 import { getDatabase, saveDatabase } from "../database";
-import { badRequest, conflict, nextId, notFound, requireText, respond } from "../http";
+import { badRequest, conflict, HttpError, nextId, notFound, requireText, respond } from "../http";
 import { DISTRICT_NAMES, MAP_METERS_PER_UNIT } from "../../utils/constants";
 import { clampMapPoint, coordinatesFromMap, mapPositionFor } from "../../utils/geo";
+import { assertLocationCapacity } from "./subscriptionHandlers";
 
 function withCustomerCount(db, location) {
   return { ...location, clientes: db.clientes.filter(customer => Number(customer.localId) === Number(location.id)).length };
@@ -45,6 +46,7 @@ export const branchHandlers = [
     auth: true,
     handler: ({ body }) => {
       const db = getDatabase();
+      assertLocationCapacity(db);
       const data = validateBranch(db, body);
       const position = mapPositionFor(data.distrito);
       const branch = {
@@ -57,7 +59,10 @@ export const branchHandlers = [
         activa: true
       };
       db.ubicaciones.push(branch);
-      saveDatabase();
+      if (!saveDatabase()) {
+        db.ubicaciones.pop();
+        throw new HttpError(500, "No se pudo guardar el local de demostración.");
+      }
       return respond(withCustomerCount(db, branch), 201);
     }
   },

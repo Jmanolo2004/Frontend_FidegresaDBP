@@ -7,6 +7,7 @@ import "./styles/cards.css";
 import "./styles/wallet-pass.css";
 import "./styles/geo.css";
 import "./styles/metrics.css";
+import "./styles/team.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

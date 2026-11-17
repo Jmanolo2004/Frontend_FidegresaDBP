@@ -252,6 +252,7 @@ function AudienceWizardForm({ audience }) {
     <>
       <PageHeader title={audience ? "Editar audiencia" : "Crear audiencia"} summary="Configura zona, segmento y notificación para tus clientes." />
       <div className="audience-wizard-layout">
+        <div className="audience-wizard-main">
         <section className="panel audience-wizard-form">
           <ol className="audience-wizard-steps" aria-label="Pasos para configurar la audiencia">
             {STEPS.map((item, index) => <li key={item} className={index === step ? "current" : index < step ? "complete" : ""}><button type="button" aria-current={index === step ? "step" : undefined} disabled={index > step} onClick={() => index < step && setStep(index)}><span>{index < step ? "✓" : index + 1}</span><small>{item}</small></button></li>)}
@@ -343,6 +344,8 @@ function AudienceWizardForm({ audience }) {
             </div>
           </form>
         </section>
+          <p className="geo-privacy-note"><Icon name="target" size={15} /><span>Solo se notifica a clientes que aceptaron compartir su ubicación. Fidegresa no rastrea a las personas desde la web.</span></p>
+        </div>
         <aside className={`panel audience-wizard-preview${mobileMapOpen ? " open" : ""}`}>
           <div className="audience-preview-header"><div><h2>{step === 2 ? "Vista previa del aviso" : "Zona y alcance"}</h2><p>{step === 2 ? "Así verán el mensaje en su celular." : `${estimatedCount} personas elegibles`}</p></div><button className="secondary-button audience-preview-toggle" type="button" onClick={() => setMobileMapOpen(value => !value)} aria-expanded={mobileMapOpen}>{mobileMapOpen ? "Ocultar" : "Mostrar"} vista</button></div>
           {mobileMapOpen && (step === 2 ? <NotificationPreview title={form.values.title} message={form.values.text} action={form.values.action} /> : currentBranch ? (
@@ -358,7 +361,6 @@ function AudienceWizardForm({ audience }) {
           ) : <Skeleton height={360} />)}
           {step !== 2 && <div className="audience-live-count"><strong>{estimatedCount}</strong><span>clientes alcanzables</span><small>{preview?.excluidosSinConsentimiento || 0} excluidos por privacidad</small></div>}
           {preview?.clientes?.length > 0 && step !== 2 && <ul className="audience-preview-people">{preview.clientes.slice(0, 5).map(person => <li key={person.id}><Avatar name={person.nombre} /><span><b>{person.nombre}</b><small>{person.distrito} · {formatDistance(person.distancia)}</small></span></li>)}</ul>}
-          <p className="geo-privacy-note"><Icon name="target" size={15} /><span>Solo se notifica a clientes que aceptaron compartir su ubicación. Fidegresa no rastrea a las personas desde la web.</span></p>
         </aside>
       </div>
       <ConfirmDialog open={blocker.state === "blocked"} title="¿Salir sin guardar?" description="Tienes cambios sin guardar. Si sales ahora, se perderán." confirmLabel="Salir" onClose={closeBlocker} onConfirm={leave} />

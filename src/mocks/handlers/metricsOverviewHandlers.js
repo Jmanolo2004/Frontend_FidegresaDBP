@@ -327,7 +327,9 @@ function makeActivity(db, query) {
         balance: Number(customer.saldoCashback || 0),
         level: ["Bronce", "Plata", "Oro", "Diamante"][customer.id % 4],
         event,
-        amount: type === "Cashback" && !scanOnly && !isRedemption ? Number(visit.monto || 0) : null,
+        amount: visit.monto !== null && visit.monto !== undefined && visit.monto !== "" && Number.isFinite(Number(visit.monto))
+          ? Number(visit.monto)
+          : null,
         signal,
         date: visit.fecha
       }];

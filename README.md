@@ -35,6 +35,14 @@ Cuenta de demostración: `maria@fidegresa.com` · `Fidegresa2026` (en el login t
 
 Con `VITE_USE_MOCK=true` la app funciona sin backend: un adaptador de Axios (`src/mocks/`) responde con la **misma forma** que la API REST (rutas `/api/v1`, páginas tipo Spring y `ErrorResponseDto`), con latencia, cancelación y códigos HTTP reales (400, 401, 404, 409, 500). Así la demo nunca depende de que el servidor esté encendido. Para conectar el backend real basta con poner `VITE_USE_MOCK=false`.
 
+### Suscripción de demostración
+
+Todos los planes ofrecen las mismas funciones; Emprende permite 2 locales, Crece 5 y Avanza 15, incluidos los pausados. La demo conserva los cinco locales iniciales aunque superen el límite de Emprende y bloquea solo las nuevas altas. En Configuración se puede mejorar consecutivamente a Crece y Avanza mediante una confirmación simulada, sin cobro real.
+
+Las cuentas de un mismo navegador comparten el negocio, sus locales y su plan de demostración. Al registrarse, el plan elegido sustituye el plan compartido; si ya no hay capacidad, se crea la cuenta pero no el local solicitado y se muestra un aviso. Esta gestión de suscripción y los límites solo funcionan en modo demo: para producción faltan la integración de pagos y su validación en el backend.
+
+Desde Configuración se puede eliminar la cuenta de demostración actual tras confirmarlo. Se revocan sus sesiones, pero no se borran el negocio ni los datos compartidos. La eliminación de cuentas reales y las opciones de seguridad mostradas en Configuración requieren implementación en el backend.
+
 ## Pantallas
 
 **Públicas:** landing con historia animada por scroll, selector de tarjetas y demo del panel, iniciar sesión, crear cuenta, continuar con Google y con Apple, términos y condiciones, política de privacidad, pantalla de carga, pantalla sin conexión y error 404.

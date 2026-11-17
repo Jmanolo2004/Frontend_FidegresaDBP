@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useLocation, useOutletContext, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../components/common/PageHeader";
 import { KpiCard } from "../../components/common/KpiCard";
 import { StatusPill } from "../../components/common/StatusPill";
@@ -11,37 +12,66 @@ import { LocationDialog } from "../../components/locations/LocationDialog";
 import { useBranchToggle } from "../../components/locations/useBranchToggle";
 import { useFetch } from "../../hooks/useFetch";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
+import { useSettings } from "../../hooks/useSettings";
 import { branchService } from "../../services/branchService";
 import { pluralize } from "../../utils/format";
+import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
+import { USE_MOCK } from "../../api/apiClient";
 
 export default function LocationsPage() {
   useDocumentTitle("Ubicaciones");
   const { data: locations, error, reload, refresh, setData } = useFetch(({ signal }) => branchService.getAll({ signal }), []);
+  const { settings } = useSettings();
+  const routeLocation = useLocation();
+  const [searchParams] = useSearchParams();
+  const { reloadBranches } = useOutletContext();
   const [dialog, setDialog] = useState({ open: false, location: null });
+  const [limitMessage, setLimitMessage] = useState(routeLocation.state?.registrationLimit ? "La cuenta se creó, pero no se agregó el local solicitado porque la empresa de demostración ya alcanzó el límite del plan." : "");
   const { toggle, pendingId } = useBranchToggle(setData);
 
   const list = locations || [];
-  const activeCount = list.filter(location => location.activa).length;
-  const linkedCustomers = list.reduce((total, location) => total + location.clientes, 0);
-  const categories = new Set(list.map(location => location.categoria));
+  const selectedBranchId = searchParams.get("branchId") || "";
+  const visibleLocations = selectedBranchId ? list.filter(location => String(location.id) === selectedBranchId) : list;
+  const activeCount = visibleLocations.filter(location => location.activa).length;
+  const linkedCustomers = visibleLocations.reduce((total, location) => total + location.clientes, 0);
+  const categories = new Set(visibleLocations.map(location => location.categoria));
+  const plan = findSubscriptionPlan(settings.plan || "Emprende");
+
+  const addLocation = () => {
+    if (USE_MOCK && !plan) {
+      setLimitMessage("No se reconoce el plan de demostración actual. Revisa la suscripción en Configuración.");
+    } else if (USE_MOCK && list.length >= plan.maxLocations) {
+      const maximum = plan === SUBSCRIPTION_PLANS[SUBSCRIPTION_PLANS.length - 1];
+      setLimitMessage(`Límite de locales alcanzado: ${plan.name} permite hasta ${plan.maxLocations}. Los locales pausados también cuentan.${maximum ? " Es el plan máximo disponible." : ""}`);
+    } else {
+      setLimitMessage("");
+      setDialog({ open: true, location: null });
+    }
+  };
 
   const handleSaved = () => {
     setDialog({ open: false, location: null });
     refresh();
+    reloadBranches();
   };
 
   return (
     <>
       <PageHeader
         title="Ubicaciones"
-        summary={locations ? `${activeCount} de ${list.length} locales reciben clientes en tu programa.` : "Cargando tus locales…"}
+        summary={locations ? `${activeCount} de ${visibleLocations.length} ${visibleLocations.length === 1 ? "local recibe" : "locales reciben"} clientes en tu programa.` : "Cargando tus locales…"}
         actions={
-          <button type="button" className="primary-button" onClick={() => setDialog({ open: true, location: null })}>
+          <button type="button" className="primary-button" onClick={addLocation} disabled={!locations}>
             <Icon name="pin" size={16} />
             Agregar local
           </button>
         }
       />
+      {limitMessage && (
+        <p className="form-alert" role="alert">
+          {limitMessage}{" "}<Link to="/panel/configuracion#suscripcion">Ver suscripción</Link>.
+        </p>
+      )}
       {error && !locations ? (
         <ErrorState error={error} onRetry={reload} />
       ) : !locations ? (
@@ -56,16 +86,18 @@ export default function LocationsPage() {
       ) : (
         <>
           <div className="stats-grid">
-            <KpiCard label="Locales" value={list.length} explanation="Negocios registrados en tu comunidad." icon="pin" />
+            <KpiCard label="Locales" value={visibleLocations.length} explanation="Negocios registrados en tu comunidad." icon="pin" />
             <KpiCard label="Activos" value={activeCount} explanation="Locales que reciben clientes." icon="chart" />
             <KpiCard label="Clientes vinculados" value={linkedCustomers} explanation="Personas relacionadas con tus locales." icon="users" />
             <KpiCard label="Categorías" value={categories.size} explanation="Tipos de negocio que participan." icon="card" />
           </div>
-          {list.length === 0 ? (
-            <EmptyState message="Todavía no hay locales. Agrega el primero para comenzar." actionLabel="Agregar local" onAction={() => setDialog({ open: true, location: null })} />
+          {selectedBranchId && visibleLocations.length === 0 ? (
+            <EmptyState message="No encontramos la ubicación seleccionada. Elige otra ubicación o muestra todos los locales." />
+          ) : list.length === 0 ? (
+            <EmptyState message="Todavía no hay locales. Agrega el primero para comenzar." actionLabel="Agregar local" onAction={addLocation} />
           ) : (
             <div className="location-grid">
-              {list.map(location => (
+              {visibleLocations.map(location => (
                 <article className="panel location-card" key={location.id}>
                   <span className="location-icon">
                     <Icon name="pin" size={22} />
@@ -96,7 +128,7 @@ export default function LocationsPage() {
           )}
         </>
       )}
-      <LocationDialog open={dialog.open} location={dialog.location} onClose={() => setDialog({ open: false, location: null })} onSaved={handleSaved} />
+      <LocationDialog open={dialog.open} location={dialog.location} onClose={() => setDialog({ open: false, location: null })} onSaved={handleSaved} onLimitReached={message => { setDialog({ open: false, location: null }); setLimitMessage(message); refresh(); }} />
     </>
   );
 }

@@ -12,6 +12,12 @@ const DEMO_USER = {
 
 let database = null;
 
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", event => {
+    if (event.key === STORAGE_KEY || event.key === null) database = null;
+  });
+}
+
 // Hash simple (no criptográfico) para no guardar contraseñas en texto plano dentro del modo demo.
 export function hashPassword(password) {
   let hash = 5381;
@@ -49,8 +55,10 @@ export function getDatabase() {
 export function saveDatabase() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(database));
+    return true;
   } catch {
     // El modo demo sigue funcionando en memoria si el navegador bloquea el almacenamiento.
+    return false;
   }
 }
 

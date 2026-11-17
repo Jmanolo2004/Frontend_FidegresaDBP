@@ -6,7 +6,7 @@ import { useSettings } from "../../hooks/useSettings";
 import { useToast } from "../../hooks/useToast";
 import { useState } from "react";
 
-export function Topbar({ profileName, noticeCount, branches, branchesError, menuOpen, onToggleMenu, onOpenNotices, onOpenProfile }) {
+export function Topbar({ profileName, noticeCount, branches, branchesLoading, branchesError, menuOpen, onToggleMenu, onOpenNotices, onOpenProfile }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { settings, updateSettings } = useSettings();
   const { showError } = useToast();
@@ -44,6 +44,7 @@ export function Topbar({ profileName, noticeCount, branches, branchesError, menu
         <span>Seleccionar Ubicación:</span>
         <select value={branchId} onChange={selectBranch} aria-label={branchesError ? `No se pudieron cargar las ubicaciones: ${branchesError.message}` : "Seleccionar ubicación"} disabled={Boolean(branchesError)}>
           <option value="">{branchesError ? "No disponibles" : "Todos los locales"}</option>
+          {branchId && !branchesLoading && !branchesError && !branches.some(branch => String(branch.id) === branchId) && <option value={branchId}>Ubicación no disponible</option>}
           {branches.map(branch => <option key={branch.id} value={branch.id}>{branch.nombre}</option>)}
         </select>
         <Icon name="chevron" size={15} />
@@ -70,6 +71,7 @@ Topbar.propTypes = {
   profileName: PropTypes.string.isRequired,
   noticeCount: PropTypes.number.isRequired,
   branches: PropTypes.arrayOf(PropTypes.object).isRequired,
+  branchesLoading: PropTypes.bool,
   branchesError: PropTypes.object,
   menuOpen: PropTypes.bool.isRequired,
   onToggleMenu: PropTypes.func.isRequired,

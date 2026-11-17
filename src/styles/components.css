@@ -10,6 +10,10 @@
   .sidebar-backdrop { position: fixed; inset: 0; z-index: 4; display: block; border: 0; background: rgb(34 25 19 / 40%); }
 }
 .page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.customer-export { position: relative; }
+.customer-export-options { position: absolute; z-index: 3; top: calc(100% + 5px); right: 0; min-width: 100%; padding: 5px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+.customer-export-options button { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 5px; background: transparent; color: var(--text); font: inherit; text-align: left; white-space: nowrap; }
+.customer-export-options button:hover, .customer-export-options button:focus-visible { background: var(--cream); }
 .back-link { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 14px; color: #8d6847; font-size: 12px; font-weight: 650; }
 .back-link:hover { text-decoration: underline; }
 .toolbar-status { color: var(--muted); font-size: 12px; }
@@ -68,20 +72,15 @@ a.text-button:hover, .text-button:hover { text-decoration: underline; }
 .terms-check a { color: var(--brown); font-weight: 650; text-decoration: underline; }
 a.link-button { display: inline; }
 
-/* ---------- Acceso con Google y Apple ---------- */
+/* ---------- Acceso con Google ---------- */
 .social-auth { margin-top: 18px; }
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; color: var(--muted); font-size: 12px; }
 .auth-divider::before, .auth-divider::after { flex: 1; height: 1px; background: var(--line); content: ""; }
 .register-divider { margin: 16px 0 14px; }
-.social-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.social-buttons { display: grid; grid-template-columns: 1fr; }
 .social-button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 12px; font-weight: 650; transition: background .15s, border-color .15s, transform .15s; }
 .social-button:hover:not(:disabled) { border-color: #d3c1ae; background: #fbf8f4; transform: translateY(-1px); }
-.social-apple { border-color: #1d1d1f; background: #1d1d1f; color: #fff; }
-.social-apple:hover:not(:disabled) { border-color: #000; background: #000; }
 .social-button .inline-spinner { width: 16px; height: 16px; }
-@media (max-width: 420px) {
-  .social-buttons { grid-template-columns: 1fr; }
-}
 
 /* ---------- Paginación ---------- */
 .pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }

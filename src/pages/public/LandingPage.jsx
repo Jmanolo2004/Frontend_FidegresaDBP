@@ -70,6 +70,7 @@ export default function LandingPage() {
   }, [reducedMotion]);
 
   const goToRegister = () => navigate(isAuthenticated ? ROUTES.dashboard : ROUTES.register);
+  const selectPlan = plan => navigate(isAuthenticated ? "/panel/configuracion#suscripcion" : `${ROUTES.register}?plan=${encodeURIComponent(plan)}`);
   const goToLogin = () => navigate(ROUTES.login);
 
   return (
@@ -116,7 +117,7 @@ export default function LandingPage() {
             <p>Cambia la tarjeta de cartón por una tarjeta digital con sellos, cashback o niveles. Tú ves quién vuelve y tu cliente nunca la pierde.</p>
             <div className="hero-actions">
               <button type="button" className="lp-button is-primary" onClick={goToRegister}>
-                Crear mi programa gratis
+                Crear mi programa
               </button>
               <a className="lp-button is-ghost" href="#como-funciona">
                 Ver cómo funciona
@@ -146,7 +147,7 @@ export default function LandingPage() {
         <ScrollStory />
         <CardTypes />
         <PanelDemo />
-        <PricingList onSelect={goToRegister} />
+        <PricingList onSelect={selectPlan} />
 
         <section className="faq" id="preguntas">
           <div className="lp-wrap faq-grid">
@@ -166,7 +167,7 @@ export default function LandingPage() {
           <StampMark className="closing-stamp" />
           <h2>Empieza con la primera visita.</h2>
           <button type="button" className="lp-button is-dark" onClick={goToRegister}>
-            Crear mi programa gratis
+            Crear mi programa
           </button>
         </section>
       </main>

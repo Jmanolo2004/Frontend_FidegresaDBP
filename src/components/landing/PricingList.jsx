@@ -5,7 +5,7 @@ export function PricingList({ onSelect }) {
   return (
     <section className="plans" id="planes">
       <div className="lp-wrap">
-        <h2>Empieza gratis y crece a tu ritmo</h2>
+        <h2>Elige el plan para tu negocio</h2>
         <ul className="plans-list">
           {PLANS.map(plan => (
             <li className={`plan-row${plan.featured ? " is-featured" : ""}`} key={plan.name}>
@@ -23,7 +23,7 @@ export function PricingList({ onSelect }) {
                   <li key={feature}>{feature}</li>
                 ))}
               </ul>
-              <button type="button" className="lp-button" onClick={onSelect}>
+              <button type="button" className="lp-button" onClick={() => onSelect(plan.id)}>
                 {plan.cta}
               </button>
             </li>

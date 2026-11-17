@@ -8,6 +8,8 @@ import { useForm } from "../../hooks/useForm";
 import { useToast } from "../../hooks/useToast";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { BUSINESS_CATEGORIES, DISTRICT_NAMES } from "../../utils/constants";
+import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
+import { USE_MOCK } from "../../api/apiClient";
 import { email, maxLength, minLength, required, strongPassword } from "../../utils/validators";
 
 const rules = {
@@ -42,13 +44,18 @@ export default function RegisterPage() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedPlan = findSubscriptionPlan(new URLSearchParams(location.search).get("plan"));
 
   const form = useForm({
-    initialValues,
-    rules,
+    initialValues: { ...initialValues, planId: selectedPlan?.id || "", simulatedPaymentConfirmed: false },
+    rules: USE_MOCK ? {
+      ...rules,
+      planId: [value => (findSubscriptionPlan(value) ? "" : "Selecciona un plan.")],
+      simulatedPaymentConfirmed: [value => (value ? "" : "Confirma el pago simulado para continuar.")]
+    } : rules,
     onSubmit: async (values, { setErrors }) => {
       try {
-        await register({
+        const result = await register({
           businessName: values.businessName.trim(),
           category: values.category,
           district: values.district,
@@ -56,10 +63,15 @@ export default function RegisterPage() {
           firstName: values.firstName.trim(),
           lastName: values.lastName.trim(),
           email: values.email.trim(),
-          password: values.password
+          password: values.password,
+          ...(USE_MOCK ? { planId: values.planId, simulatedPaymentConfirmed: values.simulatedPaymentConfirmed } : {})
         });
-        showToast(`¡Listo! ${values.businessName.trim()} ya tiene su programa de fidelización.`);
-        navigate("/panel/metricas", { replace: true });
+        if (result.locationNotCreated) {
+          navigate("/panel/ubicaciones", { replace: true, state: { registrationLimit: true } });
+        } else {
+          showToast(USE_MOCK ? "Cuenta de demostración creada. No se realizó ningún cobro." : `¡Listo! ${values.businessName.trim()} ya tiene su programa de fidelización.`);
+          navigate("/panel/metricas", { replace: true });
+        }
       } catch (error) {
         if (error.status === 409) setErrors({ email: "Ya existe una cuenta con este correo. Inicia sesión o usa otro correo." });
         else setErrors({ form: error.message });
@@ -127,6 +139,22 @@ export default function RegisterPage() {
             <PasswordInput autoComplete="new-password" placeholder="Repite tu contraseña" {...field("confirmPassword")} />
           </FormField>
         </div>
+        {USE_MOCK && (
+          <>
+            <FormField label="Plan de demostración" error={form.errors.planId} variant="auth">
+              <select {...field("planId")}>
+                <option value="">Selecciona un plan</option>
+                {SUBSCRIPTION_PLANS.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · hasta {plan.maxLocations} locales · S/ {plan.price}/mes</option>)}
+              </select>
+            </FormField>
+            <p className="form-alert info">Esta demostración comparte el negocio, sus locales y su plan entre todas las cuentas de este navegador. El plan elegido reemplazará el plan compartido. No se realizará ningún cobro real.</p>
+            <label className="terms-check">
+              <input type="checkbox" name="simulatedPaymentConfirmed" checked={form.values.simulatedPaymentConfirmed} onChange={form.handleChange} aria-invalid={form.errors.simulatedPaymentConfirmed ? "true" : undefined} />
+              <span>Confirmo el pago simulado del plan seleccionado.</span>
+            </label>
+            {form.errors.simulatedPaymentConfirmed && <small className="field-error" role="alert">{form.errors.simulatedPaymentConfirmed}</small>}
+          </>
+        )}
         <label className="terms-check">
           <input type="checkbox" name="acceptTerms" checked={form.values.acceptTerms} onChange={form.handleChange} aria-invalid={form.errors.acceptTerms ? "true" : undefined} />
           <span>

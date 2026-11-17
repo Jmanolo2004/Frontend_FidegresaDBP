@@ -67,6 +67,7 @@ function DashboardShell() {
           profileName={profileName}
           noticeCount={notices.length}
           branches={branchesRequest.data || []}
+          branchesLoading={branchesRequest.loading}
           branchesError={branchesRequest.error}
           menuOpen={sidebarOpen}
           onToggleMenu={() => setSidebarOpen(value => !value)}
@@ -80,6 +81,7 @@ function DashboardShell() {
               <Outlet context={{
                 openProfile: () => setProfileOpen(true),
                 branches: branchesRequest.data || [],
+                branchesLoading: branchesRequest.loading,
                 branchesError: branchesRequest.error,
                 reloadBranches: branchesRequest.reload
               }} />

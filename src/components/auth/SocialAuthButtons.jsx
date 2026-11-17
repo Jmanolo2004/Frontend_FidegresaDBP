@@ -12,19 +12,6 @@ function GoogleMark() {
   );
 }
 
-function AppleMark() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-      <path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.65l.05-.04ZM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.01.08 2.05-.52 2.68-1.28Z" />
-    </svg>
-  );
-}
-
-const PROVIDERS = [
-  { id: "google", label: "Continuar con Google", Mark: GoogleMark },
-  { id: "apple", label: "Continuar con Apple", Mark: AppleMark }
-];
-
 export function SocialAuthButtons({ onSelect, loadingProvider = null, disabled = false, showDivider = true }) {
   return (
     <div className="social-auth">
@@ -34,19 +21,16 @@ export function SocialAuthButtons({ onSelect, loadingProvider = null, disabled =
         </div>
       )}
       <div className="social-buttons">
-        {PROVIDERS.map(({ id, label, Mark }) => (
-          <button
-            key={id}
-            type="button"
-            className={`social-button social-${id}`}
-            onClick={() => onSelect(id)}
-            disabled={disabled || Boolean(loadingProvider)}
-            aria-busy={loadingProvider === id || undefined}
-          >
-            {loadingProvider === id ? <Spinner label={`Conectando con ${id}`} /> : <Mark />}
-            <span>{label}</span>
-          </button>
-        ))}
+        <button
+          type="button"
+          className="social-button social-google"
+          onClick={() => onSelect("google")}
+          disabled={disabled || Boolean(loadingProvider)}
+          aria-busy={loadingProvider === "google" || undefined}
+        >
+          {loadingProvider === "google" ? <Spinner label="Conectando con Google" /> : <GoogleMark />}
+          <span>Continuar con Google</span>
+        </button>
       </div>
     </div>
   );
@@ -54,7 +38,7 @@ export function SocialAuthButtons({ onSelect, loadingProvider = null, disabled =
 
 SocialAuthButtons.propTypes = {
   onSelect: PropTypes.func.isRequired,
-  loadingProvider: PropTypes.oneOf(["google", "apple", null]),
+  loadingProvider: PropTypes.oneOf(["google", null]),
   disabled: PropTypes.bool,
   showDivider: PropTypes.bool
 };

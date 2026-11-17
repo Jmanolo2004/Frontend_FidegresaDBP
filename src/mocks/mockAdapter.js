@@ -9,6 +9,8 @@ import { programHandlers } from "./handlers/programHandlers";
 import { branchHandlers } from "./handlers/branchHandlers";
 import { geoHandlers } from "./handlers/geoHandlers";
 import { settingsHandlers } from "./handlers/settingsHandlers";
+import { teamHandlers } from "./handlers/teamHandlers";
+import { subscriptionHandlers } from "./handlers/subscriptionHandlers";
 
 /*
  * Servidor de demostración: responde con la misma forma que el backend REST
@@ -24,13 +26,15 @@ const routes = [
   ...programHandlers,
   ...branchHandlers,
   ...geoHandlers,
-  ...settingsHandlers
+  ...settingsHandlers,
+  ...teamHandlers,
+  ...subscriptionHandlers
 ].map(route => ({
   ...route,
   matcher: new RegExp(`^${route.path.replace(/:(\w+)/g, "(?<$1>[^/]+)")}$`)
 }));
 
-const STATUS_TEXT = { 200: "OK", 201: "Created", 204: "No Content", 400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 409: "Conflict", 500: "Internal Server Error" };
+const STATUS_TEXT = { 200: "OK", 201: "Created", 204: "No Content", 400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 409: "Conflict", 422: "Unprocessable Entity", 500: "Internal Server Error" };
 
 function wait(milliseconds, signal) {
   return new Promise((resolve, reject) => {

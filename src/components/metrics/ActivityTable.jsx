@@ -12,7 +12,7 @@ import { metricsService } from "../../services/metricsService";
 import { formatMoney, formatDate, timeAgo } from "../../utils/format";
 
 export function ActivityTable({ program, branchId, from, to }) {
-  const pagination = usePagination({ actType: "all" });
+  const pagination = usePagination({ actType: "all" }, { preventScrollReset: true });
   const [updatedAt, setUpdatedAt] = useState(Date.now());
   const request = useMemo(() => ({
     page: pagination.page,
@@ -74,7 +74,11 @@ export function ActivityTable({ program, branchId, from, to }) {
                   <span><Link className="customer-link" to={`/panel/clientes/${item.customerId}`}>{item.customerName}</Link><small>{item.branch}</small></span>
                 </div></td>
                 <td data-label="Evento">{item.event}</td>
-                <td data-label="Importe">{item.amount === null ? "—" : formatMoney(item.amount)}</td>
+                <td data-label="Importe">{
+                  item.amount == null || item.amount === "" || !Number.isFinite(Number(item.amount))
+                    ? item.event === "Se registró" ? "Sin compra" : "Sin importe"
+                    : Number(item.amount) === 0 ? "Sin compra" : formatMoney(item.amount)
+                }</td>
                 <td data-label="Cuándo" title={formatDate(item.date)}>{timeAgo(item.date)}</td>
               </tr>
             ))}</tbody>
