@@ -1,0 +1,78 @@
+/* Login y registro con la misma identidad que la portada: letra, colores, botones y foto */
+.auth-screen {
+  --espresso: #241510;
+  --toasted: #3a241a;
+  --cream: #f6ecdd;
+  --kraft: #d8b98c;
+  --caramel: #e08e3f;
+  --leaf: #2f6b57;
+  --ink: #2a1a12;
+  --ink-soft: #5e4a3c;
+  --on-dark-soft: #d9c7b4;
+  --display: "Bricolage Grotesque Variable", "Segoe UI", sans-serif;
+  --body: "Instrument Sans Variable", "Segoe UI", sans-serif;
+  grid-template-columns: minmax(440px, 1fr) minmax(0, 1.05fr);
+  background: #fbf6ef;
+  color: var(--ink);
+  font-family: var(--body);
+}
+
+/* Marca */
+.auth-screen .auth-brand { color: var(--ink); font: 700 22px var(--display); }
+.auth-screen .auth-brand img { width: 36px; height: 36px; }
+.auth-screen .auth-brand small { display: none; }
+
+/* Formulario */
+.auth-screen .auth-form-wrap { width: min(100%, 440px); }
+.auth-screen .auth-form-wrap h1 { color: var(--ink); font-family: var(--display); font-size: clamp(46px, 5.2vw, 76px); font-stretch: 78%; font-weight: 800; letter-spacing: -.03em; line-height: .95; }
+.auth-screen .auth-intro { margin: 14px 0 28px; color: var(--ink-soft); font-size: 16px; line-height: 1.5; }
+.auth-screen .auth-form { gap: 12px; }
+.auth-screen .auth-form label, .auth-screen .auth-form .auth-field label { color: var(--ink); font-size: 14px; font-weight: 600; }
+.auth-screen .auth-form input, .auth-screen .auth-form select { min-height: 50px; padding: 0 16px; border: 1.5px solid #e2d3c1; border-radius: 12px; background: #fff; color: var(--ink); font-family: var(--body); font-size: 15px; }
+.auth-screen .auth-form input::placeholder { color: #9b8878; }
+.auth-screen .auth-form input:focus, .auth-screen .auth-form select:focus { border-color: var(--caramel); box-shadow: 0 0 0 4px rgb(224 142 63 / 18%); }
+.auth-screen .auth-form .field-hint { color: var(--ink-soft); font-size: 13px; }
+.auth-screen .auth-primary { min-height: 54px; margin-top: 14px; border-radius: 999px; background: var(--caramel); color: var(--espresso); font-family: var(--body); font-size: 16px; font-weight: 700; }
+.auth-screen .auth-primary:hover { background: var(--espresso); color: var(--cream); transform: none; }
+.auth-screen .auth-primary:active { transform: scale(.98); }
+.auth-screen .auth-divider { margin: 22px 0 14px; color: var(--ink-soft); font-size: 13px; }
+.auth-screen .auth-divider::before, .auth-screen .auth-divider::after { background: #e2d3c1; }
+.auth-screen .social-button { min-height: 50px; border: 1.5px solid #e2d3c1; border-radius: 999px; background: #fff; color: var(--ink); font-family: var(--body); font-size: 15px; font-weight: 600; }
+.auth-screen .social-button:hover:not(:disabled) { border-color: var(--ink); background: #fff; transform: none; }
+.auth-screen .social-apple { border-color: var(--ink); background: var(--ink); color: #fff; }
+.auth-screen .social-apple:hover:not(:disabled) { background: #000; }
+.auth-screen .auth-switch { margin-top: 24px; color: var(--ink-soft); font-size: 15px; }
+.auth-screen .link-button, .auth-screen .connection-link, .auth-screen .inline-link, .auth-screen .terms-check a { color: var(--ink); font-weight: 700; text-decoration: underline; text-decoration-color: var(--caramel); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.auth-screen .connection-link { display: block; width: fit-content; margin: 6px auto 0; font-size: 14px; font-weight: 600; }
+.auth-screen .prototype-note { margin-top: 26px; padding: 12px 14px; border-radius: 12px; background: #f3e7d7; color: var(--ink-soft); font-size: 13px; line-height: 1.5; text-align: center; }
+.auth-screen .terms-check { color: var(--ink-soft); font-size: 14px; }
+.auth-screen .terms-check input { accent-color: var(--caramel); }
+.auth-screen .auth-copyright { color: var(--ink-soft); font-size: 13px; }
+.auth-screen .form-alert { border-radius: 12px; font-size: 14px; }
+
+/* Panel derecho: la escena del café de la portada */
+.auth-screen .auth-showcase { display: grid; min-height: 100vh; grid-template-rows: auto 1fr; align-items: start; padding: clamp(40px, 5vw, 72px); background: var(--espresso); color: var(--cream); isolation: isolate; }
+.auth-screen .auth-showcase::before { inset: 0; top: 0; right: 0; width: auto; height: auto; border: 0; border-radius: 0; z-index: -1;
+  background: linear-gradient(180deg, rgb(36 21 16 / 94%) 0%, rgb(36 21 16 / 72%) 30%, rgb(36 21 16 / 18%) 60%, rgb(36 21 16 / 55%) 100%); }
+.auth-showcase-media { position: absolute; inset: 0; z-index: -2; }
+.auth-showcase-media img { width: 100%; height: 100%; object-fit: cover; object-position: 72% 40%; filter: saturate(.95) sepia(.08); }
+.auth-showcase-copy { position: relative; max-width: 560px; }
+.auth-showcase-copy h2 { margin: 0; font-family: var(--display); font-size: clamp(40px, 4.4vw, 68px); font-stretch: 78%; font-weight: 800; letter-spacing: -.03em; line-height: .95; }
+.auth-showcase-copy p { max-width: 44ch; margin: 16px 0 0; color: #eadccb; font-size: 17px; line-height: 1.5; }
+.auth-screen .phone.auth-showcase-phone { position: absolute; bottom: -90px; left: clamp(40px, 5vw, 72px); width: clamp(230px, 17vw, 280px); transform: rotate(-4deg); filter: drop-shadow(0 40px 60px rgb(0 0 0 / 60%)); }
+.auth-screen .auth-showcase-phone .phone-screen { min-height: 0; padding-bottom: 22px; }
+
+@media (max-width: 1080px) {
+  .auth-screen { grid-template-columns: minmax(400px, 1fr) minmax(0, .9fr); }
+}
+@media (max-width: 860px) {
+  .auth-screen { grid-template-columns: 1fr; }
+  .auth-screen .auth-showcase { display: none; }
+  .auth-screen .auth-form-wrap h1 { font-size: clamp(44px, 13vw, 64px); }
+}
+.auth-screen .auth-form select { padding: 0 34px 0 12px; font-size: 14px; }
+/* En registro el formulario es largo: la foto se queda fija mientras se llena */
+.register-screen .auth-showcase { position: sticky; top: 0; align-self: start; height: 100vh; min-height: 0; }
+.auth-screen .optional-label { color: var(--ink-soft); }
+.auth-showcase.is-register .auth-showcase-media img { object-position: 58% 30%; }
+.auth-screen .auth-showcase.is-register::before { background: linear-gradient(180deg, rgb(36 21 16 / 95%) 0%, rgb(36 21 16 / 80%) 30%, rgb(36 21 16 / 25%) 58%, rgb(36 21 16 / 55%) 100%); }

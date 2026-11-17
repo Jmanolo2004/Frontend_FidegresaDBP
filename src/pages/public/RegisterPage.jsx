@@ -71,7 +71,6 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout variant="register">
-      <p className="eyebrow">Empieza hoy</p>
       <h1>Crea tu cuenta</h1>
       <p className="auth-intro">Cuéntanos de tu negocio y prepara tu programa de fidelización.</p>
       {form.errors.form && (
@@ -87,7 +86,7 @@ export default function RegisterPage() {
           <FormField label="Tipo de negocio" error={form.errors.category} variant="auth">
             <select {...field("category")}>
               <option value="" disabled>
-                Selecciona una categoría
+                Elige una
               </option>
               {BUSINESS_CATEGORIES.map(category => (
                 <option key={category}>{category}</option>
@@ -97,7 +96,7 @@ export default function RegisterPage() {
           <FormField label="Distrito del local" error={form.errors.district} variant="auth">
             <select {...field("district")}>
               <option value="" disabled>
-                Selecciona tu distrito
+                Elige uno
               </option>
               {DISTRICT_NAMES.map(district => (
                 <option key={district}>{district}</option>
@@ -121,7 +120,7 @@ export default function RegisterPage() {
         </FormField>
         <div className="form-pair">
           <FormField label="Contraseña" error={form.errors.password} hint="Mínimo 8 caracteres, con letras y números." variant="auth">
-            <PasswordInput autoComplete="new-password" placeholder="Al menos 8 caracteres" {...field("password")} />
+            <PasswordInput autoComplete="new-password" placeholder="Crea una contraseña" {...field("password")} />
           </FormField>
           <FormField label="Confirmar contraseña" error={form.errors.confirmPassword} variant="auth">
             <PasswordInput autoComplete="new-password" placeholder="Repite tu contraseña" {...field("confirmPassword")} />
