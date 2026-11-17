@@ -1,0 +1,65 @@
+/* Panel con la misma identidad que la portada, el login y el registro: letra, colores y botones */
+.app-shell {
+  --espresso: #241510;
+  --toasted: #3a241a;
+  --kraft: #d8b98c;
+  --leaf: #2f6b57;
+  --ink: #2a1a12;
+  --ink-soft: #5e4a3c;
+  --on-dark-soft: #d9c7b4;
+  font-family: var(--font-ui);
+  font-size: 15px;
+}
+
+/* Barra lateral: espresso como el encabezado de la portada */
+.app-shell .sidebar { background: var(--espresso); color: #f6ecdd; }
+.app-shell .brand-copy strong { font: 700 22px var(--font-display); font-stretch: 100%; letter-spacing: 0; }
+.app-shell .brand-copy small { color: var(--on-dark-soft); font-size: 13px; letter-spacing: .02em; }
+.app-shell .nav-link { min-height: 44px; border-radius: 999px; color: var(--on-dark-soft); font-size: 15px; font-weight: 550; }
+.app-shell .nav-link:hover { background: var(--toasted); color: #f6ecdd; }
+.app-shell .nav-link.active { background: var(--caramel); color: var(--espresso); font-weight: 700; }
+.app-shell .nav-link.active .sidebar-icon { color: var(--espresso); }
+.app-shell .sidebar-icon { color: var(--kraft); }
+.app-shell .profile-mini { border-top-color: var(--toasted); }
+.app-shell .profile-mini strong { font-size: 14px; }
+.app-shell .profile-mini small, .app-shell .profile-dots { color: var(--on-dark-soft); }
+.app-shell .avatar, .app-shell .top-avatar { background: var(--kraft); color: var(--espresso); }
+
+/* Encabezados de página: gruesos y condensados como en la portada */
+.app-shell .eyebrow { color: var(--caramel); font-size: 13px; letter-spacing: .08em; }
+.app-shell .page-heading h1 { color: var(--ink); font: 800 clamp(34px, 3.6vw, 48px)/.98 var(--font-display); font-stretch: 78%; letter-spacing: -.03em; }
+.app-shell .page-heading p { color: var(--ink-soft); font-size: 16px; }
+.app-shell .panel-heading h2, .app-shell .panel-title { color: var(--ink); font: 700 18px/1.2 var(--font-display); letter-spacing: -.01em; }
+.app-shell .panel-heading p { color: var(--ink-soft); font-size: 14px; }
+.app-shell .kpi-value { color: var(--ink); letter-spacing: -.02em; }
+
+/* Botones tipo píldora: el principal en caramel */
+.app-shell .primary-button, .app-shell .secondary-button, .app-shell .danger-button { min-height: 44px; padding: 0 20px; border-radius: 999px; font-family: var(--font-ui); font-size: 15px; font-weight: 700; }
+.app-shell .primary-button { background: var(--caramel); color: var(--espresso); }
+.app-shell .primary-button:hover { background: var(--espresso); color: #f6ecdd; transform: none; }
+.app-shell .primary-button:active, .app-shell .secondary-button:active { transform: scale(.98); }
+.app-shell .secondary-button { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+.app-shell .secondary-button:hover { border-color: var(--ink); background: var(--surface); }
+.app-shell .text-button { color: var(--ink); font-size: 14px; text-decoration: underline; text-decoration-color: var(--caramel); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+/* Tarjetas, campos y barra superior */
+.app-shell .panel, .app-shell .kpi-card { border-color: var(--line); border-radius: 18px; }
+.app-shell .kpi-icon { border-radius: 12px; background: #f3e7d7; color: var(--ink); }
+.app-shell .select-control, .app-shell .search-input, .app-shell .filter-select, .app-shell .form-control { min-height: 42px; border: 1.5px solid var(--line); border-radius: 12px; font-family: var(--font-ui); font-size: 15px; }
+.app-shell .select-control:focus, .app-shell .search-input:focus, .app-shell .filter-select:focus, .app-shell .form-control:focus { border-color: var(--caramel); box-shadow: 0 0 0 4px rgb(224 142 63 / 18%); }
+.app-shell .topbar-location-picker { min-height: 42px; border-radius: 999px; font-size: 13px; }
+.app-shell .topbar-location-picker select { font-size: 14px; }
+.app-shell .icon-button { width: 40px; height: 40px; border-radius: 50%; color: var(--ink); }
+.app-shell .breadcrumb { font-size: 14px; }
+.app-shell .footer { color: var(--ink-soft); font-size: 14px; }
+.app-shell .footer b { color: var(--caramel); }
+.app-shell .modal-card { border-radius: 20px; }
+.app-shell .modal-head h2 { color: var(--ink); font-size: 26px; letter-spacing: -.02em; }
+
+/* Tema oscuro: mismos acentos, superficies oscuras */
+body.dark-theme .app-shell .sidebar { background: #1c110d; }
+body.dark-theme .app-shell .page-heading h1, body.dark-theme .app-shell .panel-heading h2, body.dark-theme .app-shell .panel-title, body.dark-theme .app-shell .kpi-value, body.dark-theme .app-shell .modal-head h2 { color: #f6ecdd; }
+body.dark-theme .app-shell .page-heading p, body.dark-theme .app-shell .panel-heading p { color: var(--muted); }
+body.dark-theme .app-shell .secondary-button, body.dark-theme .app-shell .text-button, body.dark-theme .app-shell .icon-button { color: var(--text); }
+body.dark-theme .app-shell .secondary-button:hover { border-color: var(--text); }
+body.dark-theme .app-shell .kpi-icon { background: #423a34; color: var(--text); }

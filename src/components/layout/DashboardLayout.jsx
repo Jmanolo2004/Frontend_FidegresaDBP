@@ -1,3 +1,5 @@
+import "@fontsource-variable/bricolage-grotesque/standard.css";
+import "@fontsource-variable/instrument-sans/index.css";
 import { Suspense, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
@@ -17,6 +19,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../hooks/useToast";
 import { branchService } from "../../services/branchService";
+import "../../styles/panel.css";
 
 function DashboardShell() {
   const { settings, loading, error, reloadSettings, notices } = useSettings();
