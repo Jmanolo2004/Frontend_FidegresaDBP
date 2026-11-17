@@ -8,7 +8,6 @@ import { PageHeader } from "../../components/common/PageHeader";
 import { SearchInput } from "../../components/common/SearchInput";
 import { StatusPill } from "../../components/common/StatusPill";
 import { TeamMemberDialog } from "../../components/team/TeamMemberDialog";
-import { USE_MOCK } from "../../api/apiClient";
 import { useAuth } from "../../hooks/useAuth";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
@@ -27,7 +26,7 @@ export default function TeamPage() {
   const [dialog, setDialog] = useState({ open: false, member: null });
   const [removing, setRemoving] = useState(null);
   const account = user && typeof user === "object" ? user : null;
-  const canManage = Boolean(USE_MOCK && account && ["ADMIN", "BRAND_ADMIN"].includes(account.role));
+  const canManage = Boolean(account && ["ADMIN", "BRAND_ADMIN"].includes(account.role));
   const team = useFetch(({ signal }) => teamService.getAll({ signal }), [], { enabled: canManage });
   const name = account?.fullName || account?.email || "Cuenta actual";
   const role = ROLES[account?.role];
@@ -42,7 +41,7 @@ export default function TeamPage() {
     try {
       await teamService.remove(removing.id);
       setRemoving(null);
-      showToast("Miembro de demostración eliminado.");
+      showToast("Miembro eliminado del equipo.");
       team.refresh();
     } catch (error) {
       showError(error.message);
@@ -63,13 +62,11 @@ export default function TeamPage() {
         }
       />
       <p className="team-notice" id="team-availability" role="status">
-        {USE_MOCK
-          ? "Modo demostración: los miembros se guardan solo en este navegador. No se envían invitaciones ni se concede acceso real."
-          : "La gestión real de miembros y permisos aún no está disponible."}
+        Registra a las personas de tu equipo y los locales donde atienden. Por ahora no se envían invitaciones por correo.
       </p>
-      {USE_MOCK && !canManage && <p className="team-notice">Solo una cuenta administradora puede gestionar el equipo de demostración.</p>}
+      {!canManage && <p className="team-notice">Solo una cuenta administradora puede gestionar el equipo.</p>}
       {canManage && branchesError && <ErrorState error={branchesError} onRetry={reloadBranches} compact />}
-      {canManage && !branchesLoading && !branchesError && !branches.length && <p className="team-notice">Agrega un local para asignarlo a un miembro de demostración.</p>}
+      {canManage && !branchesLoading && !branchesError && !branches.length && <p className="team-notice">Agrega un local para asignarlo a un miembro del equipo.</p>}
       <article className="panel team-panel">
         <div className="section-toolbar team-toolbar">
           <SearchInput value={search} onSearch={setSearch} label="Buscar equipo por nombre o correo" placeholder="Buscar por nombre o correo" />
@@ -106,11 +103,11 @@ export default function TeamPage() {
             </tbody>
           </table>
         </div>
-        {canManage && team.loading && !team.data && <p className="team-empty" role="status">Cargando equipo de demostración…</p>}
+        {canManage && team.loading && !team.data && <p className="team-empty" role="status">Cargando equipo…</p>}
         {!accountMatches && filtered.length === 0 && !team.loading && !team.error && <p className="team-empty" role="status">No se encontraron miembros para esta búsqueda.</p>}
       </article>
       <TeamMemberDialog open={dialog.open} member={dialog.member} branches={branches} onClose={() => setDialog({ open: false, member: null })} onSaved={() => { setDialog({ open: false, member: null }); team.refresh(); }} />
-      <ConfirmDialog open={Boolean(removing)} title="Eliminar miembro simulado" description={`Se eliminará ${removing?.name || "este miembro"} del equipo de demostración en este navegador.`} confirmLabel="Eliminar" onClose={() => setRemoving(null)} onConfirm={removeMember} />
+      <ConfirmDialog open={Boolean(removing)} title="Eliminar miembro" description={`Se eliminará ${removing?.name || "este miembro"} del equipo.`} confirmLabel="Eliminar" onClose={() => setRemoving(null)} onConfirm={removeMember} />
     </>
   );
 }

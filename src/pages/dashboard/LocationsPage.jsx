@@ -16,7 +16,6 @@ import { useSettings } from "../../hooks/useSettings";
 import { branchService } from "../../services/branchService";
 import { pluralize } from "../../utils/format";
 import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
-import { USE_MOCK } from "../../api/apiClient";
 
 export default function LocationsPage() {
   useDocumentTitle("Ubicaciones");
@@ -26,7 +25,7 @@ export default function LocationsPage() {
   const [searchParams] = useSearchParams();
   const { reloadBranches } = useOutletContext();
   const [dialog, setDialog] = useState({ open: false, location: null });
-  const [limitMessage, setLimitMessage] = useState(routeLocation.state?.registrationLimit ? "La cuenta se creó, pero no se agregó el local solicitado porque la empresa de demostración ya alcanzó el límite del plan." : "");
+  const [limitMessage, setLimitMessage] = useState(routeLocation.state?.registrationLimit ? "La cuenta se creó, pero no se agregó el local solicitado porque ya se alcanzó el límite del plan." : "");
   const { toggle, pendingId } = useBranchToggle(setData);
 
   const list = locations || [];
@@ -38,9 +37,9 @@ export default function LocationsPage() {
   const plan = findSubscriptionPlan(settings.plan || "Emprende");
 
   const addLocation = () => {
-    if (USE_MOCK && !plan) {
-      setLimitMessage("No se reconoce el plan de demostración actual. Revisa la suscripción en Configuración.");
-    } else if (USE_MOCK && list.length >= plan.maxLocations) {
+    if (!plan) {
+      setLimitMessage("No se reconoce tu plan actual. Revisa la suscripción en Configuración.");
+    } else if (list.length >= plan.maxLocations) {
       const maximum = plan === SUBSCRIPTION_PLANS[SUBSCRIPTION_PLANS.length - 1];
       setLimitMessage(`Límite de locales alcanzado: ${plan.name} permite hasta ${plan.maxLocations}. Los locales pausados también cuentan.${maximum ? " Es el plan máximo disponible." : ""}`);
     } else {

@@ -2,7 +2,8 @@ import axios from "axios";
 import { tokenStorage } from "./tokenStorage";
 import { toApiError } from "./apiErrors";
 
-const API_URL = import.meta.env.VITE_API_URL || "/api/v1";
+// Backend publicado en Render; se puede cambiar con la variable VITE_API_URL.
+const API_URL = import.meta.env.VITE_API_URL || "https://fidegresa-api.onrender.com/api/v1";
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 const MAX_RETRIES = 2;
