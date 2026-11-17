@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import "@fontsource-variable/bricolage-grotesque/standard.css";
 import "@fontsource-variable/instrument-sans/index.css";
 import "../../styles/landing.css";
+import heroPhoto from "../../assets/hero-cafe.jpg";
+import heroPhotoWebp from "../../assets/hero-cafe.webp";
 import { CardTypes } from "../../components/landing/CardTypes";
 import { AUDIENCES, FAQS } from "../../components/landing/landingContent";
 import { PanelDemo } from "../../components/landing/PanelDemo";
@@ -111,6 +113,11 @@ export default function LandingPage() {
 
       <main>
         <section className="hero">
+          {/* Foto: SpotOn POS en Pexels (licencia libre), volteada en espejo; se difuminó el texto de una prenda. */}
+          <picture className="hero-media" aria-hidden="true">
+            <source srcSet={heroPhotoWebp} type="image/webp" />
+            <img src={heroPhoto} alt="" width="1920" height="1440" fetchPriority="high" decoding="async" />
+          </picture>
           <div className="hero-copy">
             <h1>Que te elijan otra vez.</h1>
             <p>Cambia la tarjeta de cartón por una tarjeta digital con sellos, cashback o niveles. Tú ves quién vuelve y tu cliente nunca la pierde.</p>
