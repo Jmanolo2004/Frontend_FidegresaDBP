@@ -9,7 +9,6 @@ import { useToast } from "../../hooks/useToast";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { BUSINESS_CATEGORIES, DISTRICT_NAMES } from "../../utils/constants";
 import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
-import { USE_MOCK } from "../../api/apiClient";
 import { email, maxLength, minLength, required, strongPassword } from "../../utils/validators";
 
 const rules = {
@@ -48,11 +47,11 @@ export default function RegisterPage() {
 
   const form = useForm({
     initialValues: { ...initialValues, planId: selectedPlan?.id || "", simulatedPaymentConfirmed: false },
-    rules: USE_MOCK ? {
+    rules: {
       ...rules,
       planId: [value => (findSubscriptionPlan(value) ? "" : "Selecciona un plan.")],
       simulatedPaymentConfirmed: [value => (value ? "" : "Confirma el pago simulado para continuar.")]
-    } : rules,
+    },
     onSubmit: async (values, { setErrors }) => {
       try {
         const result = await register({
@@ -64,12 +63,13 @@ export default function RegisterPage() {
           lastName: values.lastName.trim(),
           email: values.email.trim(),
           password: values.password,
-          ...(USE_MOCK ? { planId: values.planId, simulatedPaymentConfirmed: values.simulatedPaymentConfirmed } : {})
+          planId: values.planId,
+          simulatedPaymentConfirmed: values.simulatedPaymentConfirmed
         });
         if (result.locationNotCreated) {
           navigate("/panel/ubicaciones", { replace: true, state: { registrationLimit: true } });
         } else {
-          showToast(USE_MOCK ? "Cuenta de demostración creada. No se realizó ningún cobro." : `¡Listo! ${values.businessName.trim()} ya tiene su programa de fidelización.`);
+          showToast(`¡Listo! ${values.businessName.trim()} ya tiene su programa de fidelización. No se realizó ningún cobro.`);
           navigate("/panel/metricas", { replace: true });
         }
       } catch (error) {
@@ -138,15 +138,15 @@ export default function RegisterPage() {
             <PasswordInput autoComplete="new-password" placeholder="Repite tu contraseña" {...field("confirmPassword")} />
           </FormField>
         </div>
-        {USE_MOCK && (
+        {(
           <>
-            <FormField label="Plan de demostración" error={form.errors.planId} variant="auth">
+            <FormField label="Plan" error={form.errors.planId} variant="auth">
               <select {...field("planId")}>
                 <option value="">Selecciona un plan</option>
                 {SUBSCRIPTION_PLANS.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · hasta {plan.maxLocations} locales · S/ {plan.price}/mes</option>)}
               </select>
             </FormField>
-            <p className="form-alert info">Esta demostración comparte el negocio, sus locales y su plan entre todas las cuentas de este navegador. El plan elegido reemplazará el plan compartido. No se realizará ningún cobro real.</p>
+            <p className="form-alert info">El pago es simulado: no se pedirán datos de tarjeta ni se realizará ningún cobro real.</p>
             <label className="terms-check">
               <input type="checkbox" name="simulatedPaymentConfirmed" checked={form.values.simulatedPaymentConfirmed} onChange={form.handleChange} aria-invalid={form.errors.simulatedPaymentConfirmed ? "true" : undefined} />
               <span>Confirmo el pago simulado del plan seleccionado.</span>

@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { PasswordInput } from "../../components/auth/PasswordInput";
 import { SocialAuthButtons } from "../../components/auth/SocialAuthButtons";
+import { USE_MOCK } from "../../api/apiClient";
 import { useSocialLogin } from "../../components/auth/useSocialLogin";
 import { FormField } from "../../components/common/FormField";
 import { SubmitButton } from "../../components/common/SubmitButton";
@@ -11,7 +12,8 @@ import { useToast } from "../../hooks/useToast";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { email, required } from "../../utils/validators";
 
-const DEMO_ACCOUNT = import.meta.env.VITE_USE_MOCK === "true" ? { email: "maria@fidegresa.com", password: "Fidegresa2026" } : null;
+// Cuenta de prueba cargada en la base de datos para la presentación (también figura en el README).
+const DEMO_ACCOUNT = { email: "maria@fidegresa.com", password: "Fidegresa2026" };
 
 const rules = {
   email: [required("Escribe tu correo electrónico."), email()],
@@ -73,7 +75,8 @@ export default function LoginPage() {
           Iniciar sesión
         </SubmitButton>
       </form>
-      <SocialAuthButtons onSelect={social.continueWith} loadingProvider={social.loadingProvider} disabled={form.isSubmitting} />
+      {/* El acceso con Google necesita credenciales de Google: solo se muestra en el modo de demostración. */}
+      {USE_MOCK && <SocialAuthButtons onSelect={social.continueWith} loadingProvider={social.loadingProvider} disabled={form.isSubmitting} />}
       <p className="auth-switch">
         ¿Aún no tienes cuenta?{" "}
         <Link className="link-button" to="/registro" state={location.state}>
@@ -82,7 +85,7 @@ export default function LoginPage() {
       </p>
       {DEMO_ACCOUNT && (
         <p className="prototype-note">
-          Modo demostración · cuenta de prueba {DEMO_ACCOUNT.email} ·{" "}
+          Cuenta de prueba para la presentación: {DEMO_ACCOUNT.email} ·{" "}
           <button type="button" className="inline-link" onClick={useDemoAccount}>
             Usar cuenta demo
           </button>

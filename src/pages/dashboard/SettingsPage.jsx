@@ -115,7 +115,7 @@ export default function SettingsPage() {
     try {
       await upgradeSubscription(upgradePlan.id);
       setUpgradePlan(null);
-      showToast(`Plan ${upgradePlan.name} activado en la demostración. No se realizó ningún cobro.`);
+      showToast(`Plan ${upgradePlan.name} activado. El pago es simulado: no se realizó ningún cobro.`);
     } catch (error) {
       showError(error.message);
     } finally {
@@ -128,7 +128,7 @@ export default function SettingsPage() {
     setDeleting(true);
     try {
       await deleteDemoAccount();
-      showToast("Cuenta de demostración eliminada. Los datos compartidos del negocio se conservan.");
+      showToast("Tu cuenta y los datos del negocio fueron eliminados.");
       navigate("/login", { replace: true });
     } catch (error) {
       showError(error.message);
@@ -225,13 +225,11 @@ export default function SettingsPage() {
           <section className="panel settings-detail-panel">
             <h2>Tu suscripción</h2>
             <p>Todos los planes incluyen las mismas funciones; cambia el número de locales.</p>
-            {!USE_MOCK ? (
-              <p className="form-alert info">La gestión de suscripciones y pagos solo está disponible en la demostración.</p>
-            ) : !currentPlan ? (
-              <p className="form-alert" role="alert">No se reconoce el plan de demostración actual.</p>
+            {!currentPlan ? (
+              <p className="form-alert" role="alert">No se reconoce tu plan actual.</p>
             ) : (
               <>
-                <div className="settings-line"><div><strong>Plan actual: {currentPlan.name}</strong><small>S/ {currentPlan.price} al mes · máximo {currentPlan.maxLocations} locales · Plan simulado</small></div></div>
+                <div className="settings-line"><div><strong>Plan actual: {currentPlan.name}</strong><small>S/ {currentPlan.price} al mes · máximo {currentPlan.maxLocations} locales</small></div></div>
                 {SUBSCRIPTION_PLANS.map(plan => (
                   <div className="settings-line" key={plan.id}>
                     <div><strong>{plan.name}{plan.id === currentPlan.id ? " · Plan actual" : ""}</strong><small>Hasta {plan.maxLocations} locales · S/ {plan.price}/mes</small></div>
@@ -248,12 +246,8 @@ export default function SettingsPage() {
           <DetailHeader icon="trash" title="Eliminar cuenta" subtitle="Revisa las consecuencias antes de continuar" />
           <section className="panel settings-detail-panel">
             <h2>Eliminar cuenta</h2>
-            {USE_MOCK ? (
-              <>
-                <p>Se eliminará únicamente tu cuenta de demostración y se cerrará tu sesión. El negocio, sus locales y los demás datos compartidos se conservarán.</p>
-                <button type="button" className="danger-button" onClick={() => { setDeleteText(""); setDeleteOpen(true); }}>Eliminar cuenta de demostración</button>
-              </>
-            ) : <p>La eliminación de cuenta aún no está disponible para cuentas reales.</p>}
+            <p>Se eliminará tu cuenta y todos los datos del negocio: locales, clientes, tarjetas, movimientos y reseñas. Esta acción no se puede deshacer.</p>
+            <button type="button" className="danger-button" onClick={() => { setDeleteText(""); setDeleteOpen(true); }}>Eliminar cuenta</button>
           </section>
         </>
       ) : (
@@ -269,10 +263,10 @@ export default function SettingsPage() {
               <SettingsLink hash="apariencia" icon="settings" title="Apariencia" subtitle="Paleta y modo oscuro" />
             </SettingsSection>
             <SettingsSection title="Plan">
-              <SettingsLink hash="suscripcion" icon="card" title="Suscripción y facturación" subtitle="Plan actual y opciones de mejora" badge={USE_MOCK && currentPlan ? `Plan ${currentPlan.name}` : null} />
+              <SettingsLink hash="suscripcion" icon="card" title="Suscripción y facturación" subtitle="Plan actual y opciones de mejora" badge={currentPlan ? `Plan ${currentPlan.name}` : null} />
             </SettingsSection>
             <SettingsSection title="Zona de peligro">
-              <SettingsLink hash="eliminar-cuenta" icon="trash" title="Eliminar cuenta" subtitle={USE_MOCK ? "Eliminar solo tu cuenta de demostración" : "Opción no disponible"} danger />
+              <SettingsLink hash="eliminar-cuenta" icon="trash" title="Eliminar cuenta" subtitle="Elimina tu cuenta y los datos del negocio" danger />
             </SettingsSection>
             <SettingsSection title="Operación">
               <SettingsCard icon="pin" title="Locales participantes" subtitle="Controla dónde está disponible el programa">
@@ -310,9 +304,9 @@ export default function SettingsPage() {
       )}
       <BrandNameDialog open={brandOpen} onClose={() => setBrandOpen(false)} />
       <Modal open={Boolean(upgradePlan)} title="Confirmar mejora simulada" subtitle={upgradePlan ? `Cambiarás al plan ${upgradePlan.name}: hasta ${upgradePlan.maxLocations} locales por S/ ${upgradePlan.price} al mes.` : ""} onClose={() => setUpgradePlan(null)} onSubmit={confirmUpgrade} submitLabel="Confirmar pago simulado" submitting={upgrading}>
-        <p className="modal-message">Esta es una demostración compartida. No se solicitarán datos de pago ni se hará ningún cobro real.</p>
+        <p className="modal-message">El pago es simulado: no se solicitarán datos de pago ni se hará ningún cobro real.</p>
       </Modal>
-      <Modal open={deleteOpen} title="Eliminar cuenta de demostración" subtitle="Tu cuenta dejará de funcionar; los datos compartidos del negocio no se eliminarán." onClose={() => setDeleteOpen(false)} onSubmit={confirmDelete} submitLabel="Eliminar cuenta" submitting={deleting} submitDisabled={deleteText !== "ELIMINAR"} danger>
+      <Modal open={deleteOpen} title="Eliminar cuenta" subtitle="Se borrarán tu cuenta y todos los datos del negocio. No se puede deshacer." onClose={() => setDeleteOpen(false)} onSubmit={confirmDelete} submitLabel="Eliminar cuenta" submitting={deleting} submitDisabled={deleteText !== "ELIMINAR"} danger>
         <FormField label="Escribe ELIMINAR para confirmar"><input className="form-control" value={deleteText} onChange={event => setDeleteText(event.target.value)} autoComplete="off" /></FormField>
       </Modal>
       <ConfirmDialog open={resetOpen} title="Restablecer datos" description="Se reemplazarán tus cambios por los datos originales de demostración." confirmLabel="Restablecer" onConfirm={resetData} onClose={() => setResetOpen(false)} />

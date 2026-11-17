@@ -28,7 +28,7 @@ function TeamMemberForm({ member, branches, onClose, onSaved }) {
       try {
         if (member) await teamService.update(member.id, values);
         else await teamService.create(values);
-        showToast(member ? "Miembro de demostración actualizado." : "Miembro de demostración agregado. No se envió ninguna invitación.");
+        showToast(member ? "Miembro actualizado." : "Miembro agregado al equipo.");
         onSaved();
       } catch (error) {
         if (error.status === 409) setErrors({ email: error.message });
@@ -47,7 +47,7 @@ function TeamMemberForm({ member, branches, onClose, onSaved }) {
   const selectedBranches = branches.filter(branch => form.values.branchIds.includes(branch.id));
 
   return (
-    <Modal open title={member ? "Editar miembro de demostración" : "Añadir miembro de demostración"} subtitle="Los datos se guardan solo en este navegador. No se envía una invitación ni se concede acceso real." onClose={onClose} onSubmit={form.handleSubmit} submitLabel={member ? "Guardar cambios" : "Agregar miembro"} submitting={form.isSubmitting}>
+    <Modal open title={member ? "Editar miembro" : "Añadir miembro"} subtitle="Elige su rol y los locales donde atiende." onClose={onClose} onSubmit={form.handleSubmit} submitLabel={member ? "Guardar cambios" : "Agregar miembro"} submitting={form.isSubmitting}>
       <div className="form-grid">
         <FormField label="Nombre" error={form.errors.name} full>
           <input className="form-control" maxLength={100} autoComplete="name" {...form.getFieldProps("name")} />
