@@ -6,7 +6,8 @@
 .card-type-tabs button.selected, .card-preview-tabs button[aria-selected="true"], .card-detail-tabs button[aria-selected="true"] { border-color: var(--brown); background: var(--brown); color: #fff; }
 .card-type-tabs button span { min-width: 20px; padding: 2px 5px; border-radius: 12px; background: rgb(127 96 68 / 12%); color: inherit; text-align: center; font-size: 10px; }
 .card-gallery-toolbar { display: flex; align-items: center; gap: 9px; margin-bottom: 16px; }
-.card-gallery-toolbar .search-wrap { max-width: 440px; }
+.card-gallery-toolbar .search-wrap { min-width: 0; max-width: 440px; flex: 1 1 0; }
+.card-gallery-toolbar .search-wrap + .filter-select { margin-left: auto; }
 .card-gallery-groups { display: grid; gap: 22px; }
 .card-gallery-group { --card-group-accent: var(--brown); min-width: 0; padding: 16px; border: 1px solid var(--line); border-top: 3px solid var(--card-group-accent); border-radius: 12px; background: color-mix(in srgb, var(--surface), var(--cream) 24%); }
 .card-gallery-group-cashback { --card-group-accent: #4e8066; }
@@ -210,7 +211,7 @@
 .card-detail-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .card-detail-actions .secondary-button, .card-detail-actions .danger-button { min-height: 34px; padding: 0 10px; font-size: 11px; }
 .card-detail-hero { display: grid; grid-template-columns: minmax(280px,.8fr) minmax(0,1.2fr); align-items: center; gap: 20px; margin-bottom: 16px; padding: 18px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); box-shadow: var(--shadow); }
-.card-detail-hero-copy h2 { margin: 10px 0 6px; color: var(--brown-dark); font: 600 22px Georgia,serif; }
+.card-detail-hero-copy h1 { margin: 10px 0 6px; color: var(--brown-dark); font: 600 22px Georgia,serif; }
 .card-detail-hero-copy p { margin: 7px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .card-detail-hero-copy p strong { color: var(--text); }
 .card-detail-tabs { margin: 0 0 15px; padding-bottom: 3px; }
@@ -266,6 +267,7 @@
   .card-gallery-toolbar { flex-wrap: wrap; }
   .card-gallery-toolbar .search-wrap { max-width: none; flex-basis: 100%; }
   .card-gallery-toolbar .filter-select { flex: 1; min-width: 0; }
+  .card-gallery-toolbar .search-wrap + .filter-select { margin-left: 0; }
   .card-gallery-grid { grid-template-columns: 1fr; }
   .card-gallery-group { padding: 12px; }
   .card-gallery-item { max-width: 440px; width: 100%; margin: 0 auto; }

@@ -9,7 +9,6 @@ import { EmptyState } from "../../components/common/EmptyState";
 import { ErrorState } from "../../components/common/ErrorState";
 import { Icon } from "../../components/common/Icon";
 import { KpiCard } from "../../components/common/KpiCard";
-import { PageHeader } from "../../components/common/PageHeader";
 import { PanelHeading } from "../../components/common/PanelHeading";
 import { Pagination } from "../../components/common/Pagination";
 import { Skeleton } from "../../components/common/Skeleton";
@@ -20,7 +19,6 @@ import { useToast } from "../../hooks/useToast";
 import { GoogleWalletDialog } from "../../components/wallet/GoogleWalletDialog";
 import { loyaltyProgramService } from "../../services/loyaltyProgramService";
 import { formatDate, formatMoney, timeAgo } from "../../utils/format";
-import { CARD_TYPE_CONFIG } from "../../components/cards/cardTypes";
 
 const TABS = [
   { id: "resumen", label: "Resumen" },
@@ -126,24 +124,21 @@ export default function CardDetailPage() {
 
   return (
     <>
-      <PageHeader
-        title={card.nombre}
-        summary={`${CARD_TYPE_CONFIG[card.tipo]?.label || card.tipo} · ${card.negocio}`}
-        actions={
-          <div className="card-detail-actions">
-            <Link className="secondary-button" to={`/panel/tarjetas/${card.id}/editar`}>Editar</Link>
-            <button type="button" className="secondary-button" onClick={duplicate}>Duplicar</button>
-            <button type="button" className="secondary-button" onClick={updateStatus}>{card.estado === "Activa" ? "Pausar" : "Activar"}</button>
-            <button type="button" className="danger-button" onClick={() => setDeleteOpen(true)}>Eliminar</button>
-          </div>
-        }
-      />
+      <div className="page-heading">
+        <Link className="secondary-button" to="/panel/tarjetas"><Icon name="chevronLeft" size={16} />Volver</Link>
+        <div className="card-detail-actions">
+          <Link className="secondary-button" to={`/panel/tarjetas/${card.id}/editar`}>Editar</Link>
+          <button type="button" className="secondary-button" onClick={duplicate}>Duplicar</button>
+          <button type="button" className="secondary-button" onClick={updateStatus}>{card.estado === "Activa" ? "Pausar" : "Activar"}</button>
+          <button type="button" className="danger-button" onClick={() => setDeleteOpen(true)}>Eliminar</button>
+        </div>
+      </div>
 
       <div className="card-detail-hero">
         <CardFlip card={card} size="lg" />
         <div className="card-detail-hero-copy">
           <span className={`program-status ${card.estado === "Activa" ? "active" : card.estado === "En pausa" ? "paused" : "draft"}`}><i />{card.estado}</span>
-          <h2>{card.nombre}</h2>
+          <h1>{card.nombre}</h1>
           <p>{card.descripcion || "Programa de fidelización para tus clientes."}</p>
           <p><strong>Local:</strong> {card.negocio}</p>
           <p><strong>Creada:</strong> {formatDate(card.creadaEn)}</p>
