@@ -389,3 +389,42 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 @media (max-width: 360px) {
   .lp-header .lp-button.is-small { display: none; }
 }
+
+/* Portada con foto: una cajera entrega el café a una clienta en el mostrador */
+.hero { isolation: isolate; grid-template-columns: minmax(0, 1fr) auto; }
+.hero-media { position: absolute; inset: 0; z-index: -2; }
+.hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: saturate(.9) sepia(.12); }
+.hero::before { position: absolute; inset: 0; z-index: -1; content: "";
+  background:
+    linear-gradient(90deg, rgb(36 21 16 / 96%) 0%, rgb(36 21 16 / 88%) 32%, rgb(36 21 16 / 55%) 46%, rgb(36 21 16 / 10%) 60%, rgb(36 21 16 / 5%) 82%, rgb(36 21 16 / 40%) 100%),
+    linear-gradient(0deg, rgb(36 21 16 / 85%) 0%, rgb(36 21 16 / 0%) 32%); }
+.hero-copy, .hero-visual { position: relative; }
+.hero-copy > p { color: #eadccb; }
+.phone.hero-phone { width: clamp(240px, 19vw, 300px); filter: drop-shadow(0 40px 60px rgb(0 0 0 / 60%)); }
+@media (min-width: 861px) {
+  /* El título no pasa de la mitad de la pantalla, para no tapar a las personas de la foto */
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .hero-copy { max-width: 50vw; }
+  .hero-visual { position: absolute; right: calc(-1 * clamp(30px, 4vw, 70px)); bottom: clamp(-230px, -14vw, -90px); }
+}
+@media (min-width: 1200px) {
+  /* En pantallas grandes el celular va en la ventana, entre el texto y la clienta, por encima del café */
+  .hero-visual { top: 7%; right: auto; bottom: auto; left: 48%; transform: none; }
+  .hero-copy { max-width: 45vw; }
+  .phone.hero-phone { width: clamp(250px, 19vw, 310px); }
+  /* La pantalla se ajusta a la tarjeta: el celular se ve proporcionado, no alto y delgado */
+  .hero-phone .phone-screen { min-height: 0; padding-bottom: 22px; }
+}
+@media (max-width: 1100px) and (min-width: 861px) {
+  .hero::before { background:
+    linear-gradient(90deg, rgb(36 21 16 / 96%) 0%, rgb(36 21 16 / 88%) 40%, rgb(36 21 16 / 50%) 58%, rgb(36 21 16 / 20%) 75%, rgb(36 21 16 / 50%) 100%),
+    linear-gradient(0deg, rgb(36 21 16 / 85%) 0%, rgb(36 21 16 / 0%) 30%); }
+}
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-media img { object-position: 75% 25%; }
+  .hero::before { background:
+    linear-gradient(180deg, rgb(36 21 16 / 86%) 0%, rgb(36 21 16 / 76%) 45%, rgb(36 21 16 / 55%) 70%, rgb(36 21 16 / 92%) 100%); }
+  .hero-visual { justify-self: center; margin: 0; }
+  .phone.hero-phone { width: min(100%, 260px); }
+}

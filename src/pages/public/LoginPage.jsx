@@ -50,7 +50,6 @@ export default function LoginPage() {
 
   return (
     <AuthLayout variant="login">
-      <p className="eyebrow">Tu negocio, más cerca</p>
       <h1>Bienvenido de vuelta</h1>
       <p className="auth-intro">Ingresa tus datos para volver a tu espacio de fidelización.</p>
       {sessionExpired && !form.errors.form && (
