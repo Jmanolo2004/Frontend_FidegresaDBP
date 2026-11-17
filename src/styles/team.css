@@ -1,16 +1,16 @@
-.team-notice { margin: 0 0 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--muted); font-size: 12px; line-height: 1.5; }
+.team-notice { margin: 0 0 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--muted); font-size: 14px; line-height: 1.5; }
 .team-toolbar { justify-content: space-between; }
-.team-toolbar > span { color: var(--muted); font-size: 12px; font-weight: 600; }
+.team-toolbar > span { color: var(--muted); font-size: 14px; font-weight: 600; }
 .team-account { display: grid; gap: 4px; min-width: 0; }
 .team-account strong { color: var(--text); }
 .team-account small { color: var(--muted); overflow-wrap: anywhere; }
-.team-you { padding: 3px 7px; border-radius: 12px; background: var(--cream); color: var(--text); font-size: 10px; }
-.team-empty { margin: 16px 0 0; color: var(--muted); font-size: 12px; }
+.team-you { padding: 3px 7px; border-radius: 12px; background: var(--cream); color: var(--text); font-size: 12px; }
+.team-empty { margin: 16px 0 0; color: var(--muted); font-size: 14px; }
 .team-actions { display: inline-flex; gap: 12px; }
 .team-table td { white-space: normal; }
 .team-branches { display: grid; grid-column: 1 / -1; gap: 8px; margin: 0; padding: 12px; border: 1px solid var(--line); border-radius: 9px; }
-.team-branches legend { padding: 0 4px; color: var(--text); font-size: 12px; font-weight: 700; }
-.team-branches label { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 12px; }
+.team-branches legend { padding: 0 4px; color: var(--text); font-size: 14px; font-weight: 700; }
+.team-branches label { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 14px; }
 @media (max-width: 700px) {
   .team-toolbar > span { width: 100%; }
   .team-table .cell-inline { min-width: 0; flex-wrap: wrap; }
