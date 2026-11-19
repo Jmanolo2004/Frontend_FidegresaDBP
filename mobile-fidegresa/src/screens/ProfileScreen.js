@@ -8,7 +8,6 @@ import { BranchPicker } from "../components/BranchPicker";
 import { ConfirmSheet } from "../components/ConfirmSheet";
 import { useAuth } from "../hooks/useAuth";
 import { useBranch } from "../hooks/useBranch";
-import { API_URL } from "../services/apiClient";
 import { colors, radius, spacing, typography } from "../utils/theme";
 
 const SOURCE_LABELS = { gps: "Detectado por GPS", manual: "Elegido a mano", saved: "Último local usado" };
@@ -32,11 +31,6 @@ export function ProfileScreen() {
         <View style={styles.card}>
           <Row icon="storefront-outline" label="Local actual" value={selectedBranch?.name ?? "Sin elegir"} detail={selectedBranch ? SOURCE_LABELS[selectionSource] : `${branches.length} locales disponibles`} />
           <AppButton label="Cambiar local" icon="swap-horizontal" variant="secondary" onPress={() => setPickerOpen(true)} />
-        </View>
-
-        <View style={styles.card}>
-          <Row icon="server-outline" label="Servidor" value={API_URL} />
-          <Row icon="shield-checkmark-outline" label="Seguridad" value="Tu sesión se guarda cifrada en este celular." />
         </View>
 
         <View style={styles.options}>
