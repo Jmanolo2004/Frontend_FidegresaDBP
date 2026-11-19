@@ -1,7 +1,7 @@
 import { formatMoney } from "../../utils/format";
 
-// Valores de ejemplo de la tarjeta de prueba (los mismos que muestra la vista previa del panel).
-const SAMPLE = { stamps: 6, cashbackBalance: 24.5, points: 180 };
+// Una tarjeta nueva siempre empieza en cero: sin sellos, sin saldo de cashback y sin puntos.
+const NEW_CARD = { stamps: 0, cashbackBalance: 0, points: 0 };
 
 function currentLevel(levels, points) {
   return levels.reduce((found, level) => (points >= Number(level.desdePuntos || 0) ? level : found), levels[0]);
@@ -13,26 +13,26 @@ export function walletFields(card, issued = null) {
   if (issued) return issuedFields(card, issued);
   if (card.tipo === "Estampillas") {
     return [
-      { etiqueta: "Sellos", valor: `${SAMPLE.stamps} / ${rules.sellosMeta || 10}` },
+      { etiqueta: "Sellos", valor: `${NEW_CARD.stamps} / ${rules.sellosMeta || 10}` },
       { etiqueta: "Premio", valor: rules.premio || "Recompensa" }
     ];
   }
   if (card.tipo === "Cashback") {
     return [
-      { etiqueta: "Saldo", valor: formatMoney(SAMPLE.cashbackBalance) },
+      { etiqueta: "Saldo", valor: formatMoney(NEW_CARD.cashbackBalance) },
       { etiqueta: "Cashback", valor: `${rules.porcentaje || 0}% por compra` }
     ];
   }
   if (card.tipo === "Niveles") {
     const levels = rules.niveles?.length ? rules.niveles : [{ nombre: "Nivel 1", desdePuntos: 0 }];
     return [
-      { etiqueta: "Nivel", valor: currentLevel(levels, SAMPLE.points)?.nombre || "Nivel 1" },
-      { etiqueta: "Puntos", valor: String(SAMPLE.points) }
+      { etiqueta: "Nivel", valor: currentLevel(levels, NEW_CARD.points)?.nombre || "Nivel 1" },
+      { etiqueta: "Puntos", valor: String(NEW_CARD.points) }
     ];
   }
   const amounts = rules.montos?.length ? rules.montos : [100];
   return [
-    { etiqueta: "Saldo", valor: formatMoney(amounts[Math.min(1, amounts.length - 1)]) },
+    { etiqueta: "Saldo", valor: formatMoney(amounts[0]) },
     { etiqueta: "Vigencia", valor: `${rules.vigenciaMeses || card.vigenciaMeses || 12} meses` }
   ];
 }
