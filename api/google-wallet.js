@@ -8,6 +8,8 @@ import { createSign, randomBytes } from "node:crypto";
 
 const CLASS_SUFFIX = "fidegresa_tarjeta_v1";
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+// Código real de la tarjeta en el backend (lo genera CardIssuer): FDG-EST-7KQ2MA, FDG-CSH-…, FDG-NIV-…, FDG-GFT-…
+const CARD_TOKEN = /^FDG-[A-Z]{3}-[A-Z0-9]{4,12}$/;
 const SAVE_URL = "https://pay.google.com/gp/v/save/";
 
 function base64url(input) {
@@ -64,7 +66,10 @@ function buildObject(issuerId, body, siteOrigin) {
   const type = text(body.tipo, 20, "Estampillas");
   const business = text(body.negocio, 60, "Fidegresa");
   const fields = Array.isArray(body.campos) ? body.campos.slice(0, 2) : [];
-  const serial = `${type.slice(0, 3).toUpperCase()}-${randomBytes(3).toString("hex").toUpperCase()}`;
+  // Si llega el código de una tarjeta real del backend, el QR del pase es ese código: así la app de caja
+  // la encuentra al escanear. Si no llega, se crea un código de muestra que el backend no conoce.
+  const realToken = typeof body.qr === "string" && CARD_TOKEN.test(body.qr.trim().toUpperCase()) ? body.qr.trim().toUpperCase() : null;
+  const serial = realToken ? realToken.slice(4) : `${type.slice(0, 3).toUpperCase()}-${randomBytes(3).toString("hex").toUpperCase()}`;
   const logo = publicImage(body.logo, siteOrigin) || new URL("/icon-512.png", siteOrigin).toString();
   const hero = publicImage(body.portada, siteOrigin);
 
@@ -87,7 +92,7 @@ function buildObject(issuerId, body, siteOrigin) {
     hexBackgroundColor: HEX_COLOR.test(body.color || "") ? body.color : "#603f2a",
     logo: { sourceUri: { uri: logo }, contentDescription: localized(`Logo de ${business}`) },
     ...(hero ? { heroImage: { sourceUri: { uri: hero }, contentDescription: localized(`Portada de ${business}`) } } : {}),
-    barcode: { type: "QR_CODE", value: `FDG-${serial}`, alternateText: serial },
+    barcode: { type: "QR_CODE", value: realToken || `FDG-${serial}`, alternateText: serial },
     textModulesData
   };
 }

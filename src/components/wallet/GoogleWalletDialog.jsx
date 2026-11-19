@@ -4,7 +4,21 @@ import { FormField } from "../common/FormField";
 import { Icon } from "../common/Icon";
 import { Modal } from "../common/Modal";
 import { walletService } from "../../services/walletService";
+import { customerService } from "../../services/customerService";
 import { buildWalletPass, walletFields } from "./walletPass";
+
+/**
+ * Registra un cliente de prueba en el local del programa: el backend le entrega sus tarjetas con un QR real.
+ * Ese QR va en el pase de Google Wallet, así la app de caja lo reconoce y suma estampillas, saldo o puntos.
+ */
+async function issueRealCard(card, name) {
+  const email = `prueba.${Date.now()}@fidegresa.app`;
+  const customer = await customerService.create({ fullName: name, email, localId: card.ubicacionId });
+  const detail = await customerService.getById(customer.id);
+  const issued = (detail.tarjetas || []).find(item => item.programaId === card.id);
+  if (!issued?.qrToken) throw new Error("No pudimos emitir la tarjeta en el backend. Revisa que el programa esté activo en su local.");
+  return issued;
+}
 
 /** Crea una tarjeta de prueba en Google Wallet con los colores y datos de este programa. */
 export function GoogleWalletDialog({ open, card, detail, onClose }) {
@@ -25,10 +39,15 @@ export function GoogleWalletDialog({ open, card, detail, onClose }) {
       setError("Escribe el nombre que aparecerá en la tarjeta.");
       return;
     }
+    if (card.estado !== "Activa") {
+      setError("Activa esta tarjeta para poder emitirla: solo los programas activos entregan tarjetas.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
-      setSaveUrl(await walletService.createGoogleWalletLink(buildWalletPass(card, { client: name, detail })));
+      const issued = await issueRealCard(card, name);
+      setSaveUrl(await walletService.createGoogleWalletLink(buildWalletPass(card, { client: name, detail, issued })));
     } catch (requestError) {
       setError(requestError.message);
     } finally {
