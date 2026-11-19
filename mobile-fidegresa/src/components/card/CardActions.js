@@ -1,0 +1,310 @@
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { AppButton } from "../AppButton";
+import { ConfirmSheet } from "../ConfirmSheet";
+import { AmountAction } from "./AmountAction";
+import { PROGRAM_TYPES } from "../../services/cardService";
+import { formatSoles, roundToCents } from "../../utils/formatters";
+import { colors, radius, spacing, typography } from "../../utils/theme";
+
+/** Acciones del cajero según el tipo de programa de la tarjeta escaneada. */
+export function CardActions({ card, actions, mode = "card" }) {
+  if (card.status === "BLOCKED" || card.status === "INACTIVE") {
+    return (
+      <Notice icon="lock-closed-outline" tone="danger">
+        Esta tarjeta está {card.status === "BLOCKED" ? "bloqueada" : "inactiva"}. Reactívala desde el menú para registrar movimientos.
+      </Notice>
+    );
+  }
+
+  return (
+    <View style={styles.wrapper}>
+      {!actions.hasBranch ? (
+        <Notice icon="storefront-outline" tone="warning">
+          Elige tu local en la pestaña Escanear para poder registrar movimientos.
+        </Notice>
+      ) : null}
+      {card.type === PROGRAM_TYPES.CASHBACK ? <CashbackActions card={card} actions={actions} initialMode={mode === "reward" ? "use" : "earn"} /> : null}
+      {card.type === PROGRAM_TYPES.LEVELS ? <LevelsActions card={card} actions={actions} /> : null}
+      {card.type === PROGRAM_TYPES.GIFT_CARD ? <GiftCardActions card={card} actions={actions} /> : null}
+      {card.type === PROGRAM_TYPES.STAMPS ? <StampsActions card={card} actions={actions} /> : null}
+    </View>
+  );
+}
+
+function StampsActions({ card, actions }) {
+  const [quantity, setQuantity] = useState(1);
+  const [confirm, setConfirm] = useState(null); // "stamps" | "redeem"
+  const required = card.program.requiredStamps;
+  const remaining = Math.max(0, required - card.stampBalance);
+  const rewardReady = card.stampBalance >= required;
+  const eligibleRewards = card.program.rewards.filter(reward => reward.requiredStamps <= card.stampBalance);
+  const [rewardId, setRewardId] = useState(null);
+  const selectedReward = eligibleRewards.find(reward => reward.id === rewardId) ?? eligibleRewards[0] ?? null;
+  const maxQuantity = Math.max(1, Math.min(5, remaining || 5));
+  const disabled = !actions.hasBranch;
+
+  const runConfirmed = async () => {
+    const ok = confirm === "redeem" ? await actions.redeemReward(selectedReward) : await actions.addStamps(quantity);
+    setConfirm(null);
+    if (ok) setQuantity(1);
+  };
+
+  return (
+    <Section title="Registrar visita">
+      {rewardReady ? (
+        <Notice icon="gift-outline" tone="success">
+          ¡{card.customer.fullName.split(" ")[0]} completó su tarjeta! Puede canjear su premio ahora.
+        </Notice>
+      ) : (
+        <Text style={styles.caption}>{remaining === 1 ? "Le falta 1 sello para el premio." : `Le faltan ${remaining} sellos para el premio.`}</Text>
+      )}
+
+      {!rewardReady ? (
+        <View style={styles.stepperRow}>
+          <Text style={styles.stepperLabel}>Sellos a agregar</Text>
+          <View style={styles.stepper}>
+            <StepperButton icon="remove" label="Quitar un sello" onPress={() => setQuantity(value => Math.max(1, value - 1))} disabled={quantity <= 1} />
+            <Text style={styles.stepperValue} accessibilityLiveRegion="polite">
+              {quantity}
+            </Text>
+            <StepperButton icon="add" label="Agregar un sello" onPress={() => setQuantity(value => Math.min(maxQuantity, value + 1))} disabled={quantity >= maxQuantity} />
+          </View>
+        </View>
+      ) : null}
+
+      {!rewardReady ? (
+        <AppButton label={quantity === 1 ? "Acumular estampillas (1)" : `Acumular estampillas (${quantity})`} icon="add-circle-outline" onPress={() => setConfirm("stamps")} disabled={disabled} loading={actions.pendingAction === "stamps"} />
+      ) : (
+        <>
+          {eligibleRewards.length > 1 ? (
+            <View style={styles.chips}>
+              {eligibleRewards.map(reward => (
+                <Pressable key={reward.id} accessibilityRole="radio" accessibilityState={{ selected: reward.id === selectedReward?.id }} onPress={() => setRewardId(reward.id)} style={[styles.chip, reward.id === selectedReward?.id && styles.chipSelected]}>
+                  <Text style={[styles.chipText, reward.id === selectedReward?.id && styles.chipTextSelected]}>{reward.name}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+          <AppButton label={`Canjear ${selectedReward?.name ?? "premio"}`} icon="gift" variant="accent" onPress={() => setConfirm("redeem")} disabled={disabled} loading={actions.pendingAction === "redeem"} />
+        </>
+      )}
+
+      <ConfirmSheet
+        visible={confirm !== null}
+        title={confirm === "redeem" ? "¿Canjear el premio?" : "¿Agregar sellos?"}
+        message={
+          confirm === "redeem"
+            ? `Se entregará "${selectedReward?.name ?? "el premio"}" a ${card.customer.fullName} y la tarjeta volverá a empezar.`
+            : `Se ${quantity === 1 ? "agregará 1 sello" : `agregarán ${quantity} sellos`} a la tarjeta de ${card.customer.fullName}.`
+        }
+        confirmLabel={confirm === "redeem" ? "Canjear" : "Agregar"}
+        confirmVariant={confirm === "redeem" ? "accent" : "primary"}
+        loading={actions.pendingAction === "stamps" || actions.pendingAction === "redeem"}
+        onConfirm={runConfirmed}
+        onCancel={() => setConfirm(null)}
+      />
+    </Section>
+  );
+}
+
+function CashbackActions({ card, actions, initialMode = "earn" }) {
+  const [mode, setMode] = useState(initialMode);
+  const percent = card.program.cashbackPercent;
+  const balance = card.cashbackBalance;
+  const disabled = !actions.hasBranch;
+
+  return (
+    <Section title="Cashback">
+      <Segmented
+        value={mode}
+        onChange={setMode}
+        options={[
+          { value: "earn", label: "Registrar compra" },
+          { value: "use", label: "Usar saldo" }
+        ]}
+      />
+      {mode === "earn" ? (
+        <AmountAction
+          key="earn"
+          label="Monto de la compra"
+          buttonLabel="Registrar compra"
+          buttonIcon="receipt-outline"
+          describe={amount => `Ganará ${formatSoles(roundToCents((amount * percent) / 100))} de cashback (${percent}%).`}
+          confirmTitle="¿Registrar la compra?"
+          confirmMessage={amount => `Compra de ${formatSoles(amount)}. ${card.customer.fullName} recibirá ${formatSoles(roundToCents((amount * percent) / 100))} de cashback.`}
+          loading={actions.pendingAction === "purchase"}
+          disabled={disabled}
+          onSubmit={amount => actions.registerPurchase(amount, updated => `Compra registrada. Nuevo saldo: ${formatSoles(updated.cashbackBalance)}.`)}
+        />
+      ) : balance <= 0 ? (
+        <Text style={styles.caption}>El cliente todavía no tiene saldo de cashback para usar.</Text>
+      ) : (
+        <AmountAction
+          key="use"
+          label="Monto a descontar"
+          buttonLabel="Usar saldo"
+          buttonIcon="wallet-outline"
+          max={balance}
+          maxLabel={`El saldo disponible es ${formatSoles(balance)}.`}
+          quickAmounts={[{ label: `Todo (${formatSoles(balance)})`, value: balance }]}
+          describe={amount => `Quedarán ${formatSoles(Math.max(0, roundToCents(balance - amount)))} de saldo.`}
+          confirmTitle="¿Usar saldo de cashback?"
+          confirmMessage={amount => `Se descontarán ${formatSoles(amount)} del saldo de ${card.customer.fullName}.`}
+          loading={actions.pendingAction === "charge"}
+          disabled={disabled}
+          onSubmit={amount => actions.chargeBalance(amount, updated => `Saldo usado. Quedan ${formatSoles(updated.cashbackBalance)}.`)}
+        />
+      )}
+    </Section>
+  );
+}
+
+function LevelsActions({ card, actions }) {
+  const levels = card.program.levels;
+  const nextLevel = levels.find(level => level.number === card.level + 1);
+  const currentLevel = levels.find(level => level.number === card.level);
+  const pointsPerSol = card.program.pointsPerSol || 1;
+  const pointsFor = amount => Math.floor(amount * pointsPerSol);
+
+  return (
+    <Section title="Sumar puntos">
+      {currentLevel?.benefit ? (
+        <Notice icon="star-outline" tone="success">
+          Beneficio de {currentLevel.name}: {currentLevel.benefit}
+        </Notice>
+      ) : null}
+      <Text style={styles.caption}>
+        {nextLevel ? `Le faltan ${Math.max(0, nextLevel.minPoints - card.points)} puntos para ${nextLevel.name}.` : "Ya está en el nivel más alto del programa."}
+      </Text>
+      <AmountAction
+        label="Monto de la compra"
+        buttonLabel="Registrar compra"
+        buttonIcon="trending-up-outline"
+        describe={amount => {
+          const earned = pointsFor(amount);
+          const reachesNext = nextLevel && card.points + earned >= nextLevel.minPoints;
+          return `Sumará ${earned} puntos${reachesNext ? ` y subirá a ${nextLevel.name}` : ""}.`;
+        }}
+        confirmTitle="¿Registrar la compra?"
+        confirmMessage={amount => `Compra de ${formatSoles(amount)}: ${card.customer.fullName} sumará ${pointsFor(amount)} puntos.`}
+        loading={actions.pendingAction === "purchase"}
+        disabled={!actions.hasBranch}
+        onSubmit={amount =>
+          actions.registerPurchase(amount, updated => (updated.level > card.level ? `¡Subió a Nivel ${updated.level}!` : `Puntos sumados. Ahora tiene ${updated.points}.`))
+        }
+      />
+    </Section>
+  );
+}
+
+function GiftCardActions({ card, actions }) {
+  const balance = card.giftBalance;
+  if (balance <= 0) {
+    return (
+      <Section title="Cobrar con gift card">
+        <Notice icon="alert-circle-outline" tone="warning">
+          Esta gift card ya no tiene saldo.
+        </Notice>
+      </Section>
+    );
+  }
+
+  const quickAmounts = [20, 50]
+    .filter(value => value < balance)
+    .map(value => ({ label: formatSoles(value), value }))
+    .concat([{ label: `Todo (${formatSoles(balance)})`, value: balance }]);
+
+  return (
+    <Section title="Cobrar con gift card">
+      <AmountAction
+        label="Monto a cobrar"
+        buttonLabel="Cobrar"
+        buttonIcon="card-outline"
+        max={balance}
+        maxLabel={`La gift card solo tiene ${formatSoles(balance)}.`}
+        quickAmounts={quickAmounts}
+        describe={amount => `Quedarán ${formatSoles(Math.max(0, roundToCents(balance - amount)))} en la gift card.`}
+        confirmTitle="¿Cobrar con la gift card?"
+        confirmMessage={amount => `Se descontarán ${formatSoles(amount)} de la gift card de ${card.customer.fullName}.`}
+        loading={actions.pendingAction === "charge"}
+        disabled={!actions.hasBranch}
+        onSubmit={amount => actions.chargeBalance(amount, updated => `Cobro registrado. Quedan ${formatSoles(updated.giftBalance)}.`)}
+      />
+    </Section>
+  );
+}
+
+function Section({ title, children }) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
+function Segmented({ value, onChange, options }) {
+  return (
+    <View style={styles.segmented} accessibilityRole="tablist">
+      {options.map(option => {
+        const selected = option.value === value;
+        return (
+          <Pressable key={option.value} accessibilityRole="tab" accessibilityState={{ selected }} onPress={() => onChange(option.value)} style={[styles.segment, selected && styles.segmentSelected]}>
+            <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{option.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function StepperButton({ icon, label, onPress, disabled }) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} disabled={disabled} style={[styles.stepperButton, disabled && styles.stepperDisabled]} hitSlop={6}>
+      <Ionicons name={icon} size={22} color={colors.espresso} />
+    </Pressable>
+  );
+}
+
+const NOTICE_TONES = {
+  success: { background: colors.successSoft, color: colors.success },
+  warning: { background: colors.warningSoft, color: colors.warning },
+  danger: { background: colors.dangerSoft, color: colors.danger }
+};
+
+function Notice({ icon, tone = "warning", children }) {
+  const palette = NOTICE_TONES[tone];
+  return (
+    <View style={[styles.notice, { backgroundColor: palette.background }]}>
+      <Ionicons name={icon} size={20} color={palette.color} />
+      <Text style={[styles.noticeText, { color: palette.color }]}>{children}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrapper: { gap: spacing.lg },
+  section: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, padding: spacing.lg, gap: spacing.md },
+  sectionTitle: typography.subtitle,
+  caption: { ...typography.body, color: colors.muted },
+  notice: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.md, borderRadius: radius.md },
+  noticeText: { flex: 1, fontSize: 14, fontWeight: "600", lineHeight: 19 },
+  stepperRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  stepperLabel: { ...typography.body, fontWeight: "600" },
+  stepper: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  stepperButton: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
+  stepperDisabled: { opacity: 0.4 },
+  stepperValue: { fontSize: 22, fontWeight: "800", minWidth: 28, textAlign: "center", color: colors.ink },
+  segmented: { flexDirection: "row", backgroundColor: colors.cream, borderRadius: radius.md, padding: 4 },
+  segment: { flex: 1, minHeight: 42, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" },
+  segmentSelected: { backgroundColor: colors.white, elevation: 1, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } },
+  segmentText: { fontSize: 14, fontWeight: "600", color: colors.muted },
+  segmentTextSelected: { color: colors.espresso, fontWeight: "800" },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  chip: { paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white },
+  chipSelected: { backgroundColor: colors.espresso, borderColor: colors.espresso },
+  chipText: { fontSize: 14, fontWeight: "700", color: colors.coffee },
+  chipTextSelected: { color: colors.cream }
+});

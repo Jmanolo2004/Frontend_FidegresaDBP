@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Fidegresa Caja",
+    "slug": "fidegresa-caja",
+    "scheme": "fidegresa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2a1a12"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "pe.fidegresa.caja"
+    },
+    "android": {
+      "package": "pe.fidegresa.caja",
+      "adaptiveIcon": {
+        "backgroundColor": "#2a1a12",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.VIBRATE"
+      ],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Fidegresa usa la cámara para leer el código QR de las tarjetas de tus clientes.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Fidegresa usa tu ubicación para saber en qué local estás registrando las visitas."
+        }
+      ]
+    ]
+  }
+}
