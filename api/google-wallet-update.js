@@ -37,7 +37,7 @@ async function googleAccessToken(account) {
     body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion })
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.access_token) throw new Error("No se pudo autenticar con Google Wallet.");
+  if (!response.ok || !data.access_token) throw new Error(`No se pudo autenticar con Google Wallet (${data.error || response.status}: ${data.error_description || ""})`);
   return data.access_token;
 }
 
@@ -91,20 +91,28 @@ export default async function handler(req, res) {
     }
   }
   const qrToken = String(body?.qrToken || "").trim().toUpperCase();
+  console.log(`[wallet-update] llamada recibida para ${qrToken || "(sin código)"}`);
   if (!auth.startsWith("Bearer ") || !CARD_TOKEN.test(qrToken)) return res.status(400).json({ message: "Faltan la sesión o el código de la tarjeta." });
 
   try {
     // 1) La tarjeta real, leída del backend con la sesión del cajero (si la sesión no vale, no se actualiza nada).
     const cardResponse = await fetch(`${API_URL}/cards/qr/${encodeURIComponent(qrToken)}`, { headers: { Authorization: auth } });
-    if (!cardResponse.ok) return res.status(cardResponse.status === 404 ? 404 : 401).json({ message: "No se pudo leer la tarjeta en el backend." });
+    if (!cardResponse.ok) {
+      console.error(`[wallet-update] ${qrToken}: el backend respondió ${cardResponse.status}`);
+      return res.status(cardResponse.status === 404 ? 404 : 401).json({ message: "No se pudo leer la tarjeta en el backend." });
+    }
     const card = await cardResponse.json();
+    console.log(`[wallet-update] ${qrToken}: tarjeta leída del backend`);
 
     // 2) El pase en Google Wallet (si el cliente nunca lo guardó, no hay nada que actualizar).
     const token = await googleAccessToken(account);
     const objectUrl = `${WALLET_API}/${encodeURIComponent(`${issuerId}.${qrToken.replace(/[^A-Z0-9_-]/g, "")}`)}`;
     const current = await fetch(objectUrl, { headers: { Authorization: `Bearer ${token}` } });
-    if (current.status === 404) return res.status(200).json({ updated: false, reason: "El pase todavía no existe en Google Wallet." });
-    if (!current.ok) throw new Error("No se pudo leer el pase.");
+    if (current.status === 404) {
+      console.log(`[wallet-update] ${qrToken}: el pase no existe en Google Wallet`);
+      return res.status(200).json({ updated: false, reason: "El pase todavía no existe en Google Wallet." });
+    }
+    if (!current.ok) throw new Error(`No se pudo leer el pase (Google respondió ${current.status}: ${(await current.text()).slice(0, 300)})`);
     const object = await current.json();
 
     // 3) Reemplaza solo los dos datos del frente y conserva el resto (cómo funciona, aviso).
@@ -116,9 +124,11 @@ export default async function handler(req, res) {
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ textModulesData, state: card.status === "BLOCKED" ? "INACTIVE" : "ACTIVE" })
     });
-    if (!patch.ok) throw new Error("Google Wallet rechazó la actualización.");
+    if (!patch.ok) throw new Error(`Google Wallet rechazó la actualización (${patch.status}: ${(await patch.text()).slice(0, 300)})`);
+    console.log(`[wallet-update] ${qrToken}: pase actualizado ${JSON.stringify(textModulesData.slice(0, 2))}`);
     return res.status(200).json({ updated: true, fields: textModulesData.slice(0, 2) });
   } catch (error) {
+    console.error(`[wallet-update] ${qrToken}: ${error.message}`);
     return res.status(502).json({ message: error.message || "No se pudo actualizar el pase." });
   }
 }
