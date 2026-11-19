@@ -62,6 +62,11 @@ function buildClass(issuerId) {
   };
 }
 
+/** Id fijo del pase de una tarjeta real: el mismo que usa api/google-wallet-update.js. */
+export function walletObjectId(issuerId, qrToken) {
+  return `${issuerId}.${String(qrToken).toUpperCase().replace(/[^A-Z0-9_-]/g, "")}`;
+}
+
 function buildObject(issuerId, body, siteOrigin) {
   const type = text(body.tipo, 20, "Estampillas");
   const business = text(body.negocio, 60, "Fidegresa");
@@ -83,7 +88,9 @@ function buildObject(issuerId, body, siteOrigin) {
   textModulesData.push({ id: "aviso", header: "Tarjeta de prueba", body: "Emitida por Fidegresa solo para pruebas." });
 
   return {
-    id: `${issuerId}.${serial.replace(/[^A-Za-z0-9_-]/g, "")}_${Date.now()}`,
+    // Con una tarjeta real, el id del pase es fijo (emisor.CÓDIGO): así la app de caja puede actualizarlo
+    // después de cada escaneo (api/google-wallet-update.js).
+    id: realToken ? walletObjectId(issuerId, realToken) : `${issuerId}.${serial.replace(/[^A-Za-z0-9_-]/g, "")}_${Date.now()}`,
     classId: `${issuerId}.${CLASS_SUFFIX}`,
     state: "ACTIVE",
     cardTitle: localized(business),
