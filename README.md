@@ -4,6 +4,27 @@
 
 Este repositorio contiene la **aplicación web** (React) del proyecto CS2031 · Desarrollo Basado en Plataformas.
 
+## Entrega · Proyecto 2
+
+| Qué | Enlace |
+|---|---|
+| Web publicada (Vercel) | https://frontendfidegresa.vercel.app |
+| API publicada (Render + Neon, HTTPS) | https://fidegresa-api.onrender.com/api/v1 |
+| Repositorio del backend | https://github.com/Jmanolo2004/DBP-repo-finalroad |
+| Presentación | [FIDEGRESA_DECK1.pdf](FIDEGRESA_DECK1.pdf) |
+| App de caja (Expo Go) | *Enlace de Expo pendiente* |
+| Coevaluación | [COEVALUACION.md](COEVALUACION.md) |
+
+Cuenta de prueba: `maria@fidegresa.com` · `Fidegresa2026` (también con el botón **Usar cuenta demo**).
+
+## Equipo y participación
+
+| Integrante | Principales aportes | Participación |
+|---|---|---|
+| **José Manuel Aguirre Jiménez** | Arquitectura del frontend (React, Vite, React Router), cliente axios con interceptores JWT, hooks y contextos, pantallas de métricas, clientes, tarjetas, ubicaciones y configuración, mapa y audiencias con MapLibre, Google Wallet, app móvil de caja (React Native + Expo), backend y deployment del Proyecto 1 en AWS. | 100 % |
+| **Geannyra Cortez** | Rediseño de login y registro, portada con foto, mejoras de las pantallas de métricas, tarjetas y geolocalización, sellos reales en la tarjeta del cliente y correcciones de contraste y errores del panel. | 100 % |
+| **Jennifer Patiño** | Diseño de las tarjetas tipo Wallet (estampillas, cashback, niveles y gift card) y de la landing, rediseño visual del panel (tipografía, colores y botones), backend con datos reales (locales, clientes, programas, caja, métricas, reseñas, equipo y geolocalización sobre PostgreSQL, 31 pruebas automáticas), conexión de la web al backend y deployment del Proyecto 2 (Render, Neon y UptimeRobot). | 100 % |
+
 ## Stack
 
 | Capa | Tecnología |
