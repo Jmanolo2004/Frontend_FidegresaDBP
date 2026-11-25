@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, RefreshControl, SectionList, StyleSheet, 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { AppButton } from "../components/AppButton";
+import { BranchBar } from "../components/BranchBar";
 import { EmptyView, ErrorView, SkeletonBlock } from "../components/StateViews";
 import { TransactionRow } from "../components/TransactionRow";
 import { useBranch } from "../hooks/useBranch";
@@ -39,9 +40,10 @@ export function HistoryScreen() {
       <View style={styles.header}>
         <Text style={styles.eyebrow}>Movimientos</Text>
         <Text style={styles.title}>Historial</Text>
+        <BranchBar autoLocate={false} />
         {selectedBranch ? (
           <View style={styles.filters} accessibilityRole="tablist">
-            <FilterChip label={selectedBranch.name} selected={onlyThisBranch} onPress={() => setOnlyThisBranch(true)} />
+            <FilterChip label="Solo este local" selected={onlyThisBranch} onPress={() => setOnlyThisBranch(true)} />
             <FilterChip label="Todos los locales" selected={!onlyThisBranch} onPress={() => setOnlyThisBranch(false)} />
           </View>
         ) : null}
@@ -129,9 +131,9 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.espresso },
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.lg, gap: spacing.xs },
   eyebrow: { ...typography.label, color: colors.caramel },
-  title: { ...typography.hero, marginBottom: spacing.sm },
-  filters: { flexDirection: "row", gap: spacing.sm, backgroundColor: colors.toasted, borderRadius: radius.md, padding: 4, alignSelf: "flex-start", maxWidth: "100%" },
-  chip: { flexShrink: 1, paddingHorizontal: spacing.lg, minHeight: 40, justifyContent: "center", borderRadius: 11 },
+  title: { ...typography.hero, marginBottom: spacing.md },
+  filters: { flexDirection: "row", gap: spacing.sm, backgroundColor: colors.toasted, borderRadius: radius.md, padding: 4, marginTop: spacing.sm },
+  chip: { flex: 1, alignItems: "center", paddingHorizontal: spacing.md, minHeight: 40, justifyContent: "center", borderRadius: 11 },
   chipSelected: { backgroundColor: colors.caramel },
   chipText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.onDarkSoft },
   chipTextSelected: { color: colors.espresso, fontFamily: fonts.bold },

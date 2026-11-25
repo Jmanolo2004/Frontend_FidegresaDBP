@@ -14,8 +14,9 @@ const AUTO_SELECT_RADIUS_METERS = 400;
 /**
  * Barra superior del escáner: detecta el local por GPS y deja cambiarlo a mano.
  * Muestra la dirección (API externa) para que el cajero confirme dónde está.
+ * autoLocate=false (Historial): no vuelve a pedir el GPS, solo muestra el local y deja cambiarlo.
  */
-export function BranchBar() {
+export function BranchBar({ autoLocate = true }) {
   const { branches, selectedBranch, selectionSource, selectBranch } = useBranch();
   const location = useCurrentLocation();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -24,10 +25,10 @@ export function BranchBar() {
 
   // Pide la ubicación una vez, cuando ya se conocen los locales.
   useEffect(() => {
-    if (askedRef.current || branches.length === 0) return;
+    if (!autoLocate || askedRef.current || branches.length === 0) return;
     askedRef.current = true;
     locate();
-  }, [branches.length, locate]);
+  }, [autoLocate, branches.length, locate]);
 
   const nearest = useMemo(() => (location.position ? findNearestBranch(location.position, branches) : null), [location.position, branches]);
 
