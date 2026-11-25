@@ -55,6 +55,7 @@ function RootNavigator() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="card/[qrToken]" options={{ title: "Tarjeta", headerBackTitle: "Escanear" }} />
             <Stack.Screen name="manual" options={{ title: "Manual de uso", headerBackTitle: "Mi cuenta" }} />
+            <Stack.Screen name="register" options={{ title: "Nuevo cliente", headerBackTitle: "Escanear" }} />
           </Stack.Protected>
           <Stack.Protected guard={!signedIn}>
             <Stack.Screen name="login" options={{ headerShown: false }} />

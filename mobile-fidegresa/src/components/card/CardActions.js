@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppButton } from "../AppButton";
 import { ConfirmSheet } from "../ConfirmSheet";
 import { AmountAction } from "./AmountAction";
-import { PROGRAM_TYPES } from "../../services/cardService";
+import { PROGRAM_TYPES, previewDiscount } from "../../services/cardService";
 import { formatSoles, roundToCents } from "../../utils/formatters";
 import { colors, radius, spacing, typography } from "../../utils/theme";
 
@@ -25,6 +25,7 @@ export function CardActions({ card, actions, mode = "card" }) {
           Elige tu local en la pestaña Escanear para poder registrar movimientos.
         </Notice>
       ) : null}
+      {card.promotions?.length ? <PromotionsActions card={card} actions={actions} /> : null}
       {card.type === PROGRAM_TYPES.CASHBACK ? <CashbackActions card={card} actions={actions} initialMode={mode === "reward" ? "use" : "earn"} /> : null}
       {card.type === PROGRAM_TYPES.LEVELS ? <LevelsActions card={card} actions={actions} /> : null}
       {card.type === PROGRAM_TYPES.GIFT_CARD ? <GiftCardActions card={card} actions={actions} /> : null}
@@ -104,6 +105,55 @@ function StampsActions({ card, actions }) {
         loading={actions.pendingAction === "stamps" || actions.pendingAction === "redeem"}
         onConfirm={runConfirmed}
         onCancel={() => setConfirm(null)}
+      />
+    </Section>
+  );
+}
+
+/** Promociones vigentes del cliente: el cajero elige una, escribe el monto de la compra y el backend calcula el descuento. */
+function PromotionsActions({ card, actions }) {
+  const [promotionId, setPromotionId] = useState(null);
+  const selected = card.promotions.find(promotion => promotion.id === promotionId) ?? card.promotions[0];
+
+  return (
+    <Section title={card.promotions.length === 1 ? "Promoción para este cliente" : "Promociones para este cliente"}>
+      {card.promotions.length > 1 ? (
+        <View style={styles.chips}>
+          {card.promotions.map(promotion => (
+            <Pressable
+              key={promotion.id}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: promotion.id === selected.id }}
+              onPress={() => setPromotionId(promotion.id)}
+              style={[styles.chip, promotion.id === selected.id && styles.chipSelected]}
+            >
+              <Text style={[styles.chipText, promotion.id === selected.id && styles.chipTextSelected]}>
+                {promotion.discountLabel} · {promotion.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      <Notice icon="pricetag-outline" tone="success">
+        {selected.name}: {selected.discountLabel} de descuento{selected.description ? `. ${selected.description}` : ""}
+      </Notice>
+      <AmountAction
+        key={selected.id}
+        label="Monto de la compra"
+        buttonLabel="Aplicar descuento"
+        buttonIcon="pricetag-outline"
+        describe={amount => {
+          const discount = previewDiscount(selected, amount);
+          return `Descuento ${formatSoles(discount)} · Cobrar ${formatSoles(roundToCents(amount - discount))}.`;
+        }}
+        confirmTitle="¿Aplicar la promoción?"
+        confirmMessage={amount => {
+          const discount = previewDiscount(selected, amount);
+          return `${selected.name} para ${card.customer.fullName}: compra de ${formatSoles(amount)}, descuento de ${formatSoles(discount)}. Cobra ${formatSoles(roundToCents(amount - discount))}.`;
+        }}
+        loading={actions.pendingAction === "discount"}
+        disabled={!actions.hasBranch}
+        onSubmit={amount => actions.applyDiscount(selected, amount)}
       />
     </Section>
   );

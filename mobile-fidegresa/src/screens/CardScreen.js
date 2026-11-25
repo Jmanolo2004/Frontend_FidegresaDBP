@@ -12,10 +12,10 @@ import { useAsync } from "../hooks/useAsync";
 import { useCardActions } from "../hooks/useCardActions";
 import { useToast } from "../hooks/useToast";
 import { useBranch } from "../hooks/useBranch";
-import { getCardByQr, getCardTransactions } from "../services/cardService";
-import { cardTypeFromToken, resolveLinkedToken } from "../services/walletLinks";
+import { getCardByQr, getCardTransactions, walletSaveUrl } from "../services/cardService";
+import { resolveLinkedToken } from "../services/walletLinks";
 import { getProgramStyle } from "../services/programService";
-import { LinkWalletCard } from "../components/card/LinkWalletCard";
+import { WalletQrSheet } from "../components/card/WalletQrSheet";
 import { normalizeTransactions, voidTransaction } from "../services/transactionService";
 import { formatSoles } from "../utils/formatters";
 import { colors, programColors, radius, spacing, typography } from "../utils/theme";
@@ -38,6 +38,7 @@ export function CardScreen({ qrToken, mode = "card" }) {
   const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
   const [voidTarget, setVoidTarget] = useState(null);
   const [voiding, setVoiding] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
 
   const { setData: setCard, reload: reloadCard } = cardRequest;
   const { reload: reloadMovements } = movements;
@@ -81,27 +82,20 @@ export function CardScreen({ qrToken, mode = "card" }) {
 
   if (cardRequest.error && !card) {
     const notFound = cardRequest.error.status === 404;
-    if (notFound && cardTypeFromToken(qrToken)) {
-      return (
-        <ScrollView style={styles.flex} keyboardShouldPersistTaps="handled">
-          <Stack.Screen options={{ title: "Registrar tarjeta" }} />
-          <LinkWalletCard
-            walletToken={qrToken}
-            onLinked={() => cardRequest.reload()}
-            onCancel={() => router.back()}
-          />
-        </ScrollView>
-      );
-    }
     return (
       <>
         <Stack.Screen options={{ title: "Tarjeta" }} />
         <ErrorView
           title={notFound ? "No encontramos esta tarjeta" : "No pudimos cargar la tarjeta"}
-          error={notFound ? { message: "El código no corresponde a ninguna tarjeta de tu negocio. Pide al cliente que abra su tarjeta otra vez." } : cardRequest.error}
+          error={
+            notFound
+              ? { message: "El código no corresponde a ninguna tarjeta de tu negocio. Si el cliente todavía no es parte del club, regístralo ahora." }
+              : cardRequest.error
+          }
           icon={notFound ? "search-outline" : "cloud-offline-outline"}
           onRetry={notFound ? undefined : cardRequest.reload}
         >
+          {notFound ? <AppButton label="Registrar cliente nuevo" icon="person-add-outline" onPress={() => router.replace("/register")} /> : null}
           <AppButton label="Escanear otra tarjeta" icon="scan-outline" variant="ghost" onPress={() => router.back()} />
         </ErrorView>
       </>
@@ -130,6 +124,12 @@ export function CardScreen({ qrToken, mode = "card" }) {
         refreshControl={<RefreshControl refreshing={cardRequest.loading && Boolean(card)} onRefresh={refresh} tintColor={colors.caramel} colors={[colors.caramel]} />}
       >
         <LoyaltyCardView card={card} color={style.data?.color ?? null} branchName={style.data?.branchName ?? ""} />
+        {card.display?.progressText ? (
+          <View style={styles.progress}>
+            <Ionicons name={card.display.completed ? "checkmark-circle" : "trending-up"} size={20} color={card.display.completed ? colors.success : colors.coffee} />
+            <Text style={styles.progressText}>{card.display.progressText}</Text>
+          </View>
+        ) : null}
         {mode === "reward" ? <RewardBanner card={card} /> : null}
         <CardActions card={card} actions={actions} mode={mode} />
 
@@ -153,8 +153,17 @@ export function CardScreen({ qrToken, mode = "card" }) {
           )}
         </View>
 
+        <AppButton label="Guardar en Google Wallet" icon="wallet-outline" variant="secondary" onPress={() => setWalletOpen(true)} />
         <AppButton label="Escanear otra tarjeta" icon="scan-outline" variant="secondary" onPress={() => router.back()} />
       </ScrollView>
+
+      <WalletQrSheet
+        visible={walletOpen}
+        url={walletSaveUrl(card.qrToken)}
+        customerName={card.customer.fullName}
+        businessName={style.data?.branchName || card.program.businessName}
+        onClose={() => setWalletOpen(false)}
+      />
 
       <ConfirmSheet
         visible={statusConfirmOpen}
@@ -227,6 +236,8 @@ const styles = StyleSheet.create({
   rewardTitle: { ...typography.subtitle },
   rewardText: { ...typography.body, color: colors.muted },
   flex: { flex: 1, backgroundColor: colors.cream },
+  progress: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, padding: spacing.md },
+  progressText: { ...typography.body, flex: 1, fontWeight: "600" },
   content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
   section: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
   sectionTitle: { ...typography.subtitle, paddingVertical: spacing.sm },

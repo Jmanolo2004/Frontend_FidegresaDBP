@@ -173,6 +173,14 @@ export function ScannerScreen() {
           onPress={() => openCamera("reward")}
         />
 
+        <ActionTile
+          icon="person-add-outline"
+          title="Registrar cliente nuevo"
+          text="Únelo al club y entrégale su tarjeta al momento."
+          color={colors.success}
+          onPress={() => router.push("/register")}
+        />
+
         <View style={styles.typesRow}>
           {TYPE_CHIPS.map(chip => (
             <View key={chip.label} style={[styles.typeChip, { backgroundColor: chip.color }]}>
