@@ -1,5 +1,5 @@
 import { getDatabase, hashPassword, saveDatabase } from "../database";
-import { badRequest, conflict, HttpError, nextId, requireText, respond, unauthorized } from "../http";
+import { badRequest, conflict, HttpError, nextId, notFound, requireText, respond, unauthorized } from "../http";
 import { DISTRICT_NAMES } from "../../utils/constants";
 import { mapPositionFor } from "../../utils/geo";
 import { findSubscriptionPlan } from "../../utils/subscriptionPlans";
@@ -210,5 +210,15 @@ export const authHandlers = [
     path: "/auth/me",
     auth: true,
     handler: ({ user }) => respond(profileOf(user))
+  },
+  {
+    // Invitación entre negocios (/unete/:code): en la demostración cualquier código válido es de Café de la Plaza.
+    method: "get",
+    path: "/public/business-referrals/:code",
+    handler: ({ params }) => {
+      const code = String(params.code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (code.length < 4) throw notFound("Este enlace de invitación no existe.");
+      return respond({ code, businessName: "Café de la Plaza" });
+    }
   }
 ];

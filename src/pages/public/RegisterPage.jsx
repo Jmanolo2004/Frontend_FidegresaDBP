@@ -10,6 +10,7 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { BUSINESS_CATEGORIES, DISTRICT_NAMES } from "../../utils/constants";
 import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
 import { email, maxLength, minLength, required, strongPassword } from "../../utils/validators";
+import { cleanReferralCode, referralService } from "../../services/referralService";
 
 const rules = {
   businessName: [required("Escribe el nombre de tu negocio."), maxLength(60, "Usa hasta 60 caracteres.")],
@@ -43,7 +44,10 @@ export default function RegisterPage() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedPlan = findSubscriptionPlan(new URLSearchParams(location.search).get("plan"));
+  const query = new URLSearchParams(location.search);
+  const selectedPlan = findSubscriptionPlan(query.get("plan"));
+  // Invitación de otro negocio (/unete/CÓDIGO): el código va en el registro para que cuente en sus referidos.
+  const referralCode = cleanReferralCode(query.get("ref")) || referralService.remembered();
 
   const form = useForm({
     initialValues: { ...initialValues, planId: selectedPlan?.id || "", simulatedPaymentConfirmed: false },
@@ -64,8 +68,10 @@ export default function RegisterPage() {
           email: values.email.trim(),
           password: values.password,
           planId: values.planId,
-          simulatedPaymentConfirmed: values.simulatedPaymentConfirmed
+          simulatedPaymentConfirmed: values.simulatedPaymentConfirmed,
+          ...(referralCode ? { referralCode } : {})
         });
+        referralService.forget();
         if (result.locationNotCreated) {
           navigate("/panel/ubicaciones", { replace: true, state: { registrationLimit: true } });
         } else {
@@ -85,6 +91,11 @@ export default function RegisterPage() {
     <AuthLayout variant="register">
       <h1>Crea tu cuenta</h1>
       <p className="auth-intro">Cuéntanos de tu negocio y prepara tu programa de fidelización.</p>
+      {referralCode ? (
+        <p className="auth-referral">
+          Te registras con la invitación <strong>{referralCode}</strong>.
+        </p>
+      ) : null}
       {form.errors.form && (
         <p className="form-alert" role="alert">
           {form.errors.form}

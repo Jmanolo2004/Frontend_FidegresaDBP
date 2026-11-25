@@ -1,0 +1,23 @@
+/* Página /unete/:code (invitación entre negocios): mismo lenguaje visual que la landing. */
+.invite-page { min-height: 100svh; display: flex; flex-direction: column; }
+.invite-hero { flex: 1; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); align-items: center; gap: clamp(28px, 5vw, 72px); width: min(100%, 1320px); margin-inline: auto; padding: clamp(32px, 6vw, 88px) var(--gutter); color: var(--cream); }
+.invite-eyebrow { color: var(--caramel); font-size: 14px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.lp .invite-title { margin-top: 14px; font-size: clamp(44px, 7.4vw, 104px); font-stretch: 80%; font-weight: 800; letter-spacing: -.03em; line-height: .95; }
+.lp .invite-title.is-loading { color: var(--on-dark-soft); font-size: clamp(32px, 4vw, 56px); }
+.invite-business { color: var(--caramel); }
+.invite-lead { max-width: 46ch; margin-top: clamp(18px, 2.4vw, 28px) !important; color: var(--on-dark-soft); font-size: clamp(17px, 1.5vw, 20px); }
+.invite-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.invite-code { margin-top: 22px !important; color: var(--on-dark-soft); font-size: 15px; }
+.invite-code strong { display: inline-block; margin-left: 8px; padding: 4px 12px; border: 1.5px dashed #8c7362; border-radius: 999px; color: var(--cream); font-family: var(--display); letter-spacing: .06em; }
+.invite-benefits { position: relative; display: grid; gap: 0; margin: 0; padding: 8px 28px; border-radius: 28px; background: var(--kraft); color: var(--ink); list-style: none; overflow: hidden; }
+.invite-benefit { position: relative; z-index: 1; display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 16px; padding: 22px 0; border-bottom: 2px solid var(--ink); }
+.invite-benefit:last-of-type { border-bottom: 0; }
+.invite-benefit-number { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; background: var(--caramel); color: var(--espresso); font-family: var(--display); font-size: 18px; font-weight: 700; }
+.lp .invite-benefit h2 { font-size: clamp(21px, 2vw, 26px); font-stretch: 88%; letter-spacing: -.01em; line-height: 1.1; }
+.invite-benefit p { margin-top: 6px !important; color: var(--ink-soft); font-size: 16px; line-height: 1.45; }
+.invite-stamp { position: absolute; right: -26px; bottom: -26px; width: 150px; height: 150px; color: rgb(107 47 20 / 8%); }
+
+@media (max-width: 860px) {
+  .invite-hero { grid-template-columns: minmax(0, 1fr); align-content: start; }
+  .invite-actions .lp-button { flex: 1 1 200px; }
+}
