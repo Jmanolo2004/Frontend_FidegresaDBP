@@ -186,12 +186,12 @@ export function ScannerScreen() {
             onPress={() => openCamera("reward")}
           />
           <SmallTile
-            icon="person-add-outline"
-            title="Cliente nuevo"
-            text="Únelo al club al momento"
+            icon="people-outline"
+            title="Programa de referidos"
+            text="Invita a otros negocios a Fidegresa"
             background={colors.success}
             ink={colors.onDark}
-            onPress={() => router.push("/register")}
+            onPress={() => router.push("/referrals")}
           />
         </View>
 

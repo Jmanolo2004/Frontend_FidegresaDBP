@@ -26,10 +26,10 @@ const SECTIONS = [
   },
   {
     icon: "gift-outline",
-    title: "3. Escanear recompensa (canjear)",
+    title: "3. Canjear recompensa",
     steps: [
       "Úsalo cuando el cliente quiere usar su premio o su saldo.",
-      "Toca «Escanear recompensa» y escanea su QR. Arriba verás un aviso con lo que puede canjear.",
+      "Toca «Canjear recompensa» y escanea su QR. Arriba verás un aviso con lo que puede canjear.",
       "Si todavía no le alcanza (por ejemplo, le faltan sellos), el aviso te lo dice y no se registra nada."
     ]
   },
@@ -47,7 +47,7 @@ const SECTIONS = [
     icon: "person-add-outline",
     title: "5. Registrar cliente nuevo",
     steps: [
-      "En Escanear toca «Registrar cliente nuevo». También aparece si escaneas un código que no es de tu negocio.",
+      "Escanea su código: si todavía no es cliente, la app te dice «No encontramos esta tarjeta» y te ofrece «Registrar cliente nuevo».",
       "Escribe su nombre, celular y correo. El cumpleaños y el código de un amigo que lo invitó son opcionales.",
       "Elige el programa del local al que se une, léele el texto de uso de datos y marca la casilla solo si acepta.",
       "Al registrar, muéstrale el QR para que guarde su tarjeta en Google Wallet o envíaselo por WhatsApp. Si ya era cliente, la app te muestra su tarjeta.",
@@ -92,12 +92,21 @@ const SECTIONS = [
     title: "10. Historial",
     steps: [
       "Muestra todo lo que se registró, del más reciente al más antiguo, con el ícono del tipo de tarjeta.",
-      "Filtra por tu local o por «Todos los locales». Toca un movimiento para abrir la tarjeta del cliente."
+      "Arriba eliges el local. En «Locales» ves solo ese local o todos; en «Tarjetas», todas, un tipo (por ejemplo, solo cashback) o una tarjeta.",
+      "Toca un movimiento para abrir la tarjeta del cliente."
+    ]
+  },
+  {
+    icon: "people-outline",
+    title: "11. Programa de referidos",
+    steps: [
+      "En Escanear toca «Programa de referidos». Ahí está el enlace y el QR de tu negocio para invitar a otros dueños a Fidegresa.",
+      "Envíalo por WhatsApp o compártelo. Cuando el otro negocio se registra con él, aparece en la lista; al crear su primera tarjeta, figura «Con tarjeta»."
     ]
   },
   {
     icon: "help-circle-outline",
-    title: "11. Problemas frecuentes",
+    title: "12. Problemas frecuentes",
     steps: [
       "«No encontramos esta tarjeta»: el QR no es de tu negocio o el cliente todavía no es parte del club. Regístralo con «Registrar cliente nuevo».",
       "«Sin conexión con el servidor»: revisa el internet. Si el servidor estuvo inactivo, el primer intento puede tardar hasta un minuto.",

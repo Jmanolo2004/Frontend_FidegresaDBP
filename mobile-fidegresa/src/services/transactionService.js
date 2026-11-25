@@ -36,10 +36,12 @@ function normalizeTransaction(transaction) {
   };
 }
 
-/** GET /transactions?branchId&page&size → movimientos registrados por el equipo. */
-export async function getTransactions({ branchId, page = 0, size = 15, signal } = {}) {
+/** GET /transactions?branchId&programType&programId&page&size → movimientos del equipo, por local y por tarjeta. */
+export async function getTransactions({ branchId, programType, programId, page = 0, size = 15, signal } = {}) {
   const params = { page, size, sort: "createdAt,desc" };
   if (branchId) params.branchId = branchId;
+  if (programId) params.programId = programId;
+  else if (programType) params.programType = programType;
   const { data } = await apiClient.get("/transactions", { params, signal });
   const result = toPage(data);
   return { ...result, items: result.items.map(normalizeTransaction) };
