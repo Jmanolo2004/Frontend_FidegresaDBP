@@ -299,11 +299,15 @@ function makeActivity(db, query) {
       if (!customer || (program && customer.tipoTarjeta !== program.type)) return [];
       const type = customer.tipoTarjeta;
       const isRedemption = visit.premioCanjeado;
+      // Los datos de demostración indican el movimiento; sin él, se deduce por el tipo de tarjeta del cliente.
+      const movementProgram = db.tarjetas.find(item => item.id === visit.programaId)?.tipo;
+      const addsStamp = visit.tipo ? visit.tipo === "STAMP" : type === "Estampillas";
+      const usesCashback = visit.tipo ? visit.tipo === "BALANCE_CHARGE" && movementProgram === "Cashback" : type === "Cashback";
       const scanOnly = !isRedemption && !(Number(visit.monto) > 0);
       const event = isRedemption ? "Canjeó premio" :
         scanOnly ? "Consultó su tarjeta" :
-        type === "Estampillas" ? "+1 sello" :
-          type === "Cashback" ? "Usó cashback" :
+        addsStamp ? "+1 sello" :
+          usesCashback ? "Usó cashback" :
             type === "Niveles" && visit.id.endsWith("1") ? "Subió de nivel" :
               type === "Giftcard" && visit.id.endsWith("1") ? "Compró gift card" : "Registró una visita";
       const card = db.tarjetas.find(item => item.tipo === type && item.negocio === branch?.nombre);

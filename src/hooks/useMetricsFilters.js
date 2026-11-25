@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { customRangeDates, inclusiveDayCount, rangeDates } from "../utils/metricsDates";
 
 const RANGES = ["all", "today", "7days", "14days", "30days", "90days", "month", "quarter", "year", "custom"];
+const DEFAULT_RANGE = "month";
 const PROGRAMS = ["all", "stamps", "cashback", "giftcard", "tiers"];
 
 function intervalForRange(range, from, to) {
@@ -16,10 +17,10 @@ function intervalForRange(range, from, to) {
 
 export function useMetricsFilters() {
   const [params, setParams] = useSearchParams();
-  const requestedRange = RANGES.includes(params.get("range")) ? params.get("range") : "year";
+  const requestedRange = RANGES.includes(params.get("range")) ? params.get("range") : DEFAULT_RANGE;
   const customDates = requestedRange === "custom" ? customRangeDates(params.get("from"), params.get("to")) : null;
   const invalidCustomRange = requestedRange === "custom" && !customDates;
-  const range = invalidCustomRange ? "year" : requestedRange;
+  const range = invalidCustomRange ? DEFAULT_RANGE : requestedRange;
   const dates = useMemo(() => range === "custom"
     ? customRangeDates(params.get("from"), params.get("to"))
     : rangeDates(range), [range, params]);
@@ -35,7 +36,7 @@ export function useMetricsFilters() {
     setParams(previous => {
       const next = new URLSearchParams(previous);
       Object.entries(changes).forEach(([key, value]) => {
-        if (value === "" || value === null || value === undefined || (key === "range" && value === "year") || (key === "program" && value === "all")) next.delete(key);
+        if (value === "" || value === null || value === undefined || (key === "range" && value === DEFAULT_RANGE) || (key === "program" && value === "all")) next.delete(key);
         else next.set(key, String(value));
       });
       if (changes.range && changes.range !== "custom") {

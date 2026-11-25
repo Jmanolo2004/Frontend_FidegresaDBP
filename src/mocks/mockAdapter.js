@@ -3,6 +3,7 @@ import { HttpError } from "./http";
 import { authHandlers, userFromAuthorization } from "./handlers/authHandlers";
 import { metricsHandlers } from "./handlers/metricsHandlers";
 import { metricsOverviewHandlers } from "./handlers/metricsOverviewHandlers";
+import { profitabilityHandlers } from "./handlers/profitabilityHandlers";
 import { customerHandlers } from "./handlers/customerHandlers";
 import { reviewHandlers } from "./handlers/reviewHandlers";
 import { programHandlers } from "./handlers/programHandlers";
@@ -21,6 +22,7 @@ const routes = [
   ...authHandlers,
   ...metricsHandlers,
   ...metricsOverviewHandlers,
+  ...profitabilityHandlers,
   ...customerHandlers,
   ...reviewHandlers,
   ...programHandlers,

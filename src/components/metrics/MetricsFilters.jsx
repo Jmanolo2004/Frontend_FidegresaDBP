@@ -3,6 +3,8 @@ import PropTypes from "prop-types";
 import { calendarDays, inclusiveDayCount, parseLocalDate, shiftMonth } from "../../utils/metricsDates";
 
 const QUICK_RANGES = [
+  ["month", "Este mes"],
+  ["year", "Este año"],
   ["all", "Todo el tiempo"],
   ["7days", "Últimos 7 días"],
   ["14days", "Últimos 14 días"],
@@ -148,7 +150,7 @@ export function MetricsFilters({ filters, update }) {
             <span aria-live="polite">{pendingStart ? "Elige la fecha final" : `${count} ${count === 1 ? "día seleccionado" : "días seleccionados"}`}</span>
             <button type="button" onClick={() => {
               setPendingStart(null);
-              update({ range: "year" });
+              update({ range: "month" });
               setOpen(false);
             }}>Restaurar</button>
           </div>

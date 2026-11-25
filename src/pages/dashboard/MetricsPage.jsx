@@ -98,7 +98,7 @@ export default function MetricsPage() {
       </div>
       <MetricsFilters filters={filters} update={update} />
     </div>
-    {invalidCustomRange && <p role="alert">El rango de fechas del enlace no es válido. Se muestran las métricas de este año; selecciona otro rango para corregirlo.</p>}
+    {invalidCustomRange && <p role="alert">El rango de fechas del enlace no es válido. Se muestran las métricas de este mes; selecciona otro rango para corregirlo.</p>}
     {error && <ErrorState error={error} onRetry={reload} />}
     {loading && data && <p className="metrics-loading-note" role="status">Actualizando indicadores…</p>}
     {!error && (data

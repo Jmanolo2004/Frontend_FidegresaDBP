@@ -1,4 +1,4 @@
-import { numberBetween, required } from "../../utils/validators";
+import { moneyAmount, numberBetween, required } from "../../utils/validators";
 
 export const CARD_TYPE_CONFIG = {
   Estampillas: {
@@ -20,7 +20,9 @@ export const CARD_TYPE_CONFIG = {
       sellosMeta: [numberBetween(4, 12, "La meta debe tener entre 4 y 12 sellos.")],
       premio: [required("Escribe el premio de la tarjeta.")],
       montoMinimo: [numberBetween(0, 100000, "El monto mínimo debe ser igual o mayor que cero.")],
-      limitePorDia: [numberBetween(1, 20, "El límite diario debe estar entre 1 y 20.")]
+      limitePorDia: [numberBetween(1, 20, "El límite diario debe estar entre 1 y 20.")],
+      rewardCost: [moneyAmount("Escribe un monto desde S/ 0.00, con hasta 2 decimales.")],
+      averageTicket: [moneyAmount("Escribe un monto desde S/ 0.00, con hasta 2 decimales.")]
     }
   },
   Cashback: {
