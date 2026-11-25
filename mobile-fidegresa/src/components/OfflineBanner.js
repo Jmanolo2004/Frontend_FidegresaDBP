@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNetworkStatus } from "../hooks/useNetworkStatus";
-import { colors, spacing } from "../utils/theme";
+import { colors, fonts, spacing } from "../utils/theme";
 
 /** Franja visible cuando el celular pierde conexión. */
 export function OfflineBanner() {
@@ -17,5 +17,5 @@ export function OfflineBanner() {
 
 const styles = StyleSheet.create({
   banner: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.danger, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  text: { flex: 1, color: colors.white, fontSize: 13, fontWeight: "600" }
+  text: { fontFamily: fonts.semibold, flex: 1, color: colors.white, fontSize: 13 }
 });

@@ -2,7 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useRef, useState } from
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "../utils/theme";
+import { colors, fonts, radius, spacing } from "../utils/theme";
 
 export const ToastContext = createContext(null);
 
@@ -85,5 +85,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 }
   },
   textWrap: { flex: 1 },
-  text: { color: colors.white, fontSize: 14, fontWeight: "600", lineHeight: 19 }
+  text: { fontFamily: fonts.semibold, color: colors.white, fontSize: 14, lineHeight: 19 }
 });

@@ -6,7 +6,7 @@ import { AppButton } from "../components/AppButton";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../hooks/useAuth";
 import { validateLogin } from "../utils/validation";
-import { colors, radius, spacing, typography } from "../utils/theme";
+import { colors, fonts, radius, spacing, typography } from "../utils/theme";
 
 export function LoginScreen() {
   const { signIn, sessionExpired } = useAuth();
@@ -42,7 +42,7 @@ export function LoginScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.brand}>
             <View style={styles.logo}>
-              <Ionicons name="cafe" size={30} color={colors.caramel} />
+              <Ionicons name="cafe" size={30} color={colors.espresso} />
             </View>
             <Text style={styles.brandName}>Fidegresa</Text>
             <Text style={styles.brandTag}>Caja · Escanea y registra visitas</Text>
@@ -108,14 +108,14 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.espresso },
   flex: { flex: 1 },
   content: { flexGrow: 1, justifyContent: "center", padding: spacing.xl, gap: spacing.xxl },
-  brand: { alignItems: "center", gap: spacing.sm },
-  logo: { width: 64, height: 64, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },
-  brandName: { ...typography.display, color: colors.cream },
-  brandTag: { fontSize: 14, color: colors.kraft },
-  card: { backgroundColor: colors.cream, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.lg },
+  brand: { alignItems: "flex-start", gap: spacing.sm },
+  logo: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.caramel, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm },
+  brandName: { ...typography.hero, fontSize: 52, lineHeight: 54 },
+  brandTag: { fontSize: 16, fontFamily: fonts.medium, color: colors.onDarkSoft },
+  card: { backgroundColor: colors.cream, borderRadius: 28, padding: spacing.xl, gap: spacing.lg },
   title: typography.title,
   subtitle: { ...typography.body, color: colors.muted, marginTop: -spacing.sm },
   notice: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.warningSoft, padding: spacing.md, borderRadius: radius.md },
   noticeError: { backgroundColor: colors.dangerSoft },
-  noticeText: { flex: 1, fontSize: 14, fontWeight: "600", color: colors.warning }
+  noticeText: { flex: 1, fontSize: 14, fontFamily: fonts.semibold, color: colors.warning }
 });

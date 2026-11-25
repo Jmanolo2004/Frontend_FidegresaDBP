@@ -46,3 +46,30 @@ export function formatDistance(meters) {
   if (!Number.isFinite(meters)) return "";
   return meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${Math.round(meters)} m`;
 }
+
+/** "2026-11-15T10:20:00Z" → "10:20". */
+export function formatTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+}
+
+/** Clave del día (para agrupar) y su título: "Hoy", "Ayer" o "lunes 23 nov.". */
+export function dayKey(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "sin-fecha";
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
+export function formatDayHeading(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Sin fecha";
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (dayKey(date) === dayKey(today)) return "Hoy";
+  if (dayKey(date) === dayKey(yesterday)) return "Ayer";
+  const text = date.toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "short" });
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

@@ -6,7 +6,7 @@ import { EmptyView, ErrorView, LoadingView } from "./StateViews";
 import { useBranch } from "../hooks/useBranch";
 import { distanceInMeters } from "../utils/geo";
 import { formatDistance } from "../utils/formatters";
-import { colors, spacing, typography } from "../utils/theme";
+import { colors, fonts, spacing, typography } from "../utils/theme";
 
 /** Lista de locales para elegir a mano (respaldo cuando no hay GPS). */
 export function BranchPicker({ visible, onClose, position }) {
@@ -76,8 +76,8 @@ const styles = StyleSheet.create({
   title: typography.title,
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, minHeight: 56 },
   rowText: { flex: 1 },
-  name: { fontSize: 16, fontWeight: "700", color: colors.ink },
-  address: { fontSize: 13, color: colors.muted, marginTop: 2 },
-  distance: { fontSize: 13, fontWeight: "700", color: colors.coffee },
+  name: { fontFamily: fonts.bold, fontSize: 16, color: colors.ink },
+  address: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginTop: 2 },
+  distance: { fontFamily: fonts.bold, fontSize: 13, color: colors.coffee },
   separator: { height: 1, backgroundColor: colors.line }
 });

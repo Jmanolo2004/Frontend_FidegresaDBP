@@ -6,7 +6,7 @@ import { useBranch } from "../hooks/useBranch";
 import { useCurrentLocation } from "../hooks/useCurrentLocation";
 import { findNearestBranch } from "../utils/geo";
 import { formatDistance } from "../utils/formatters";
-import { colors, radius, spacing } from "../utils/theme";
+import { colors, fonts, radius, spacing } from "../utils/theme";
 
 /** Si el local más cercano está a menos de esta distancia, se elige solo. */
 const AUTO_SELECT_RADIUS_METERS = 400;
@@ -51,7 +51,7 @@ export function BranchBar() {
     <>
       <Pressable accessibilityRole="button" accessibilityLabel={`Local: ${selectedBranch?.name ?? "sin elegir"}. Cambiar local`} onPress={() => setPickerOpen(true)} style={styles.bar}>
         <View style={[styles.icon, !selectedBranch && styles.iconWarning]}>
-          {location.status === "locating" ? <ActivityIndicator size="small" color={colors.cream} /> : <Ionicons name={selectionSource === "gps" ? "navigate" : "storefront"} size={18} color={colors.cream} />}
+          {location.status === "locating" ? <ActivityIndicator size="small" color={colors.espresso} /> : <Ionicons name={selectionSource === "gps" ? "navigate" : "storefront"} size={18} color={selectedBranch ? colors.espresso : colors.white} />}
         </View>
         <View style={styles.text}>
           <Text style={styles.name} numberOfLines={1}>
@@ -61,7 +61,7 @@ export function BranchBar() {
             {detail}
           </Text>
         </View>
-        <Ionicons name="chevron-down" size={18} color={colors.cream} />
+        <Ionicons name="chevron-down" size={18} color={colors.onDarkSoft} />
       </Pressable>
       {location.status === "denied" && !location.canAskAgain ? (
         <Pressable accessibilityRole="button" onPress={location.openSettings} style={styles.settingsLink}>
@@ -74,12 +74,12 @@ export function BranchBar() {
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: "rgba(20,12,8,0.78)", borderRadius: radius.md, padding: spacing.md },
-  icon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.coffee, alignItems: "center", justifyContent: "center" },
+  bar: { flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.toasted, borderWidth: 1, borderColor: colors.onDarkLine, borderRadius: radius.lg, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
+  icon: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.caramel, alignItems: "center", justifyContent: "center" },
   iconWarning: { backgroundColor: colors.danger },
   text: { flex: 1, minWidth: 0 },
-  name: { color: colors.cream, fontSize: 16, fontWeight: "800" },
-  detail: { color: colors.kraft, fontSize: 12.5, marginTop: 2 },
+  name: { color: colors.onDark, fontSize: 16, fontFamily: fonts.bold },
+  detail: { color: colors.onDarkSoft, fontSize: 13, fontFamily: fonts.regular, marginTop: 2 },
   settingsLink: { alignSelf: "flex-start", marginTop: spacing.sm, paddingVertical: 4 },
-  settingsText: { color: colors.kraft, fontSize: 13, fontWeight: "700", textDecorationLine: "underline" }
+  settingsText: { color: colors.kraft, fontSize: 13, fontFamily: fonts.semibold, textDecorationLine: "underline" }
 });

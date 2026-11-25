@@ -18,7 +18,7 @@ import { getProgramStyle } from "../services/programService";
 import { WalletQrSheet } from "../components/card/WalletQrSheet";
 import { normalizeTransactions, voidTransaction } from "../services/transactionService";
 import { formatSoles } from "../utils/formatters";
-import { colors, programColors, radius, spacing, typography } from "../utils/theme";
+import { colors, fonts, programColors, radius, spacing, typography } from "../utils/theme";
 
 /** Detalle de la tarjeta escaneada con las acciones de su programa y sus últimos movimientos. */
 export function CardScreen({ qrToken, mode = "card" }) {
@@ -113,7 +113,7 @@ export function CardScreen({ qrToken, mode = "card" }) {
           title: card.customer.fullName,
           headerRight: () => (
             <Pressable accessibilityRole="button" accessibilityLabel={blocked ? "Reactivar tarjeta" : "Bloquear tarjeta"} onPress={() => setStatusConfirmOpen(true)} hitSlop={10}>
-              <Ionicons name={blocked ? "lock-open-outline" : "lock-closed-outline"} size={22} color={colors.cream} />
+              <Ionicons name={blocked ? "lock-open-outline" : "lock-closed-outline"} size={22} color={colors.onDark} />
             </Pressable>
           )
         }}
@@ -124,17 +124,15 @@ export function CardScreen({ qrToken, mode = "card" }) {
         refreshControl={<RefreshControl refreshing={cardRequest.loading && Boolean(card)} onRefresh={refresh} tintColor={colors.caramel} colors={[colors.caramel]} />}
       >
         <LoyaltyCardView card={card} color={style.data?.color ?? null} branchName={style.data?.branchName ?? ""} />
-        {card.display?.progressText ? (
-          <View style={styles.progress}>
-            <Ionicons name={card.display.completed ? "checkmark-circle" : "trending-up"} size={20} color={card.display.completed ? colors.success : colors.coffee} />
-            <Text style={styles.progressText}>{card.display.progressText}</Text>
-          </View>
-        ) : null}
+        {card.display?.progressText ? <ProgressBand display={card.display} /> : null}
         {mode === "reward" ? <RewardBanner card={card} /> : null}
         <CardActions card={card} actions={actions} mode={mode} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Últimos movimientos</Text>
+          <View style={styles.sectionHead}>
+            <Text style={styles.sectionTitle}>Últimos movimientos</Text>
+            {movementItems.length ? <Text style={styles.sectionCount}>{movementItems.length}</Text> : null}
+          </View>
           {movements.loading && !movements.data ? (
             <Text style={styles.muted}>Cargando movimientos…</Text>
           ) : movements.error ? (
@@ -153,8 +151,10 @@ export function CardScreen({ qrToken, mode = "card" }) {
           )}
         </View>
 
-        <AppButton label="Guardar en Google Wallet" icon="wallet-outline" variant="secondary" onPress={() => setWalletOpen(true)} />
-        <AppButton label="Escanear otra tarjeta" icon="scan-outline" variant="secondary" onPress={() => router.back()} />
+        <View style={styles.footerActions}>
+          <AppButton label="Guardar en Google Wallet" icon="wallet" variant="wallet" onPress={() => setWalletOpen(true)} accessibilityHint="Muestra un QR para que el cliente guarde su tarjeta" />
+          <AppButton label="Escanear otra tarjeta" icon="scan-outline" variant="secondary" onPress={() => router.back()} />
+        </View>
       </ScrollView>
 
       <WalletQrSheet
@@ -215,9 +215,28 @@ function rewardMessage(card) {
   }
 }
 
+/** Avance de la tarjeta, como la franja de resumen de la landing: verde cuando ya completó. */
+function ProgressBand({ display }) {
+  const done = display.completed;
+  const percent = Math.max(0, Math.min(100, display.progressPercent ?? 0));
+  return (
+    <View style={[styles.progress, done && styles.progressDone]} accessibilityLabel={display.progressText}>
+      <View style={styles.progressRow}>
+        <Ionicons name={done ? "checkmark-circle" : "trending-up"} size={20} color={done ? colors.white : colors.espresso} />
+        <Text style={[styles.progressText, done && { color: colors.white }]}>{display.progressText}</Text>
+      </View>
+      {!done ? (
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${percent}%` }]} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function RewardBanner({ card }) {
   return (
-    <View style={[styles.reward, { borderColor: programColors[card.type] ?? colors.caramel }]}>
+    <View style={styles.reward}>
       <View style={[styles.rewardIcon, { backgroundColor: programColors[card.type] ?? colors.caramel }]}>
         <Ionicons name="gift" size={20} color={colors.white} />
       </View>
@@ -230,18 +249,25 @@ function RewardBanner({ card }) {
 }
 
 const styles = StyleSheet.create({
-  reward: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.paper, borderWidth: 2, borderRadius: radius.lg, padding: spacing.lg },
+  reward: { flexDirection: "row", gap: spacing.md, alignItems: "flex-start", backgroundColor: colors.espresso, borderRadius: radius.lg, padding: spacing.lg },
   rewardIcon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   rewardBody: { flex: 1, gap: 4 },
-  rewardTitle: { ...typography.subtitle },
-  rewardText: { ...typography.body, color: colors.muted },
+  rewardTitle: { ...typography.subtitle, color: colors.caramel },
+  rewardText: { ...typography.body, color: colors.onDark },
   flex: { flex: 1, backgroundColor: colors.cream },
-  progress: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.paper, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, padding: spacing.md },
-  progressText: { ...typography.body, flex: 1, fontWeight: "600" },
+  progress: { backgroundColor: colors.kraft, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md },
+  progressDone: { backgroundColor: colors.success },
+  progressRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  progressText: { flex: 1, fontFamily: fonts.display, fontSize: 17, lineHeight: 22, color: colors.espresso },
+  progressTrack: { height: 8, borderRadius: 4, backgroundColor: "rgba(36,21,16,0.15)", overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 4, backgroundColor: colors.espresso },
   content: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxl },
   section: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  sectionTitle: { ...typography.subtitle, paddingVertical: spacing.sm },
+  sectionHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: spacing.sm },
+  sectionTitle: typography.title,
+  sectionCount: { fontFamily: fonts.bold, fontSize: 13, color: colors.muted, backgroundColor: colors.kraftSoft, paddingHorizontal: 10, paddingVertical: 2, borderRadius: radius.pill, overflow: "hidden" },
   muted: { ...typography.body, color: colors.muted, paddingVertical: spacing.sm },
   inlineError: { gap: spacing.sm, paddingBottom: spacing.sm },
-  divider: { borderTopWidth: 1, borderTopColor: colors.line }
+  divider: { borderTopWidth: 1, borderTopColor: colors.line },
+  footerActions: { gap: spacing.md }
 });

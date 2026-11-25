@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router/tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../../utils/theme";
+import { colors, fonts } from "../../utils/theme";
 
 const TAB_ICONS = {
   index: ["scan", "scan-outline"],
@@ -13,10 +13,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.espresso,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.paper, borderTopColor: colors.line },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: "700" },
+        // Barra oscura como el menú de la landing; la pestaña activa en caramelo.
+        tabBarActiveTintColor: colors.caramel,
+        tabBarInactiveTintColor: colors.onDarkSoft,
+        tabBarStyle: { backgroundColor: colors.espresso, borderTopColor: colors.onDarkLine },
+        tabBarLabelStyle: { fontSize: 12, lineHeight: 15, fontFamily: fonts.semibold },
         tabBarIcon: ({ focused, color, size }) => {
           const [active, inactive] = TAB_ICONS[route.name] ?? ["ellipse", "ellipse-outline"];
           return <Ionicons name={focused ? active : inactive} size={size} color={color} />;
