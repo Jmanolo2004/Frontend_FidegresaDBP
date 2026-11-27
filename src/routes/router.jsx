@@ -27,6 +27,7 @@ const CardsPage = lazy(() => import("../pages/dashboard/CardsPage"));
 const CardWizardPage = lazy(() => import("../pages/dashboard/CardWizardPage"));
 const CardDetailPage = lazy(() => import("../pages/dashboard/CardDetailPage"));
 const LocationsPage = lazy(() => import("../pages/dashboard/LocationsPage"));
+const MenuPage = lazy(() => import("../pages/dashboard/MenuPage"));
 const GeolocationPage = lazy(() => import("../pages/dashboard/GeolocationPage"));
 const AudienceWizardPage = lazy(() => import("../pages/dashboard/AudienceWizardPage"));
 const AudienceDetailPage = lazy(() => import("../pages/dashboard/AudienceDetailPage"));
@@ -109,6 +110,7 @@ export const router = createBrowserRouter([
                 ]
               },
               { path: "ubicaciones", element: <LocationsPage />, handle: { crumb: "Ubicaciones" } },
+              { path: "menu", element: <MenuPage />, handle: { crumb: "Menú" } },
               {
                 path: "geolocalizacion",
                 handle: { crumb: "Geolocalización" },

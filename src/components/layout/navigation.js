@@ -4,6 +4,7 @@ export const NAVIGATION_GROUPS = [
     items: [
       { to: "/panel/metricas", label: "Métricas", icon: "chart" },
       { to: "/panel/tarjetas", label: "Tarjetas", icon: "card" },
+      { to: "/panel/menu", label: "Menú", icon: "book" },
       { to: "/panel/clientes", label: "Clientes", icon: "users" },
       { to: "/panel/equipo", label: "Equipo", icon: "users" }
     ]
