@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useOutletContext, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useSearchParams } from "react-router-dom";
 import { Icon } from "../../components/common/Icon";
 import { Modal } from "../../components/common/Modal";
 import { FormField } from "../../components/common/FormField";
@@ -21,6 +21,7 @@ export default function MenuPage() {
   useDocumentTitle("Menú");
   const { branches, branchesLoading, branchesError, reloadBranches } = useOutletContext();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { showToast, showError } = useToast();
 
   // El local sale del selector de la barra superior (?branchId=); si no hay, se usa el primero.
@@ -149,7 +150,7 @@ export default function MenuPage() {
 
   if (branchesError) return <ErrorState error={branchesError} onRetry={reloadBranches} />;
   if (!branchesLoading && branches.length === 0) {
-    return <EmptyState message="Primero agrega un local para armar su menú." actionLabel="Ir a Ubicaciones" onAction={() => window.location.assign("/panel/ubicaciones")} />;
+    return <EmptyState message="Primero agrega un local para armar su menú." actionLabel="Ir a Ubicaciones" onAction={() => navigate("/panel/ubicaciones")} />;
   }
 
   return (
