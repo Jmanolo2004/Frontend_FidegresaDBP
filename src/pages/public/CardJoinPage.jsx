@@ -12,7 +12,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { useLiveRefresh } from "../../hooks/useLiveRefresh";
 import { publicCardService } from "../../services/publicCardService";
 import { toApiError } from "../../api/apiErrors";
-import { birthDateOf, brandColor, previewName, validateJoin } from "../../utils/cardJoin";
+import { birthDateOf, previewName, validateJoin } from "../../utils/cardJoin";
 import "../../styles/card-join.css";
 
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -175,12 +175,11 @@ export default function CardJoinPage() {
     );
   }
 
-  const brand = brandColor(program.colores);
   const typeLabel = CARD_TYPE_CONFIG[program.tipo]?.label || "Tarjeta";
   const currentYear = new Date().getFullYear();
 
   return (
-    <main className="cj-page" style={{ "--cj-brand": brand }}>
+    <main className="cj-page">
       <header className="cj-top">
         <span className="cj-logo">{program.imagen ? <img src={program.imagen} alt="" /> : (program.negocio || "F").trim()[0].toUpperCase()}</span>
         <div>
@@ -196,7 +195,7 @@ export default function CardJoinPage() {
       ) : (
         <div className="cj-shell">
           <section className="cj-intro" aria-labelledby="cj-title">
-            <h1 id="cj-title">Crea tu tarjeta de {program.nombre}</h1>
+            <h1 id="cj-title">Crea tu tarjeta de <span>{program.nombre}</span></h1>
             <p>{program.descripcion || `Únete al club de ${program.negocio} y empieza a ganar beneficios desde tu primera compra.`}</p>
             <div className="cj-preview" aria-hidden="true">
               <CardFront card={program} size="md" client={previewName(values.firstName, values.lastName)} compact />

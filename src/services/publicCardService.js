@@ -7,6 +7,7 @@ import { buildWalletPass } from "../components/wallet/walletPass";
 // Formulario público de cada tarjeta (el QR del detalle) y la tarjeta del cliente. Sin sesión del panel.
 const PUBLIC = { skipAuth: true, skipRefresh: true };
 const data = response => response.data;
+export const WALLET_UNAVAILABLE = "Google Wallet no está disponible en este momento. Tu tarjeta ya está creada: muestra este QR en caja.";
 
 /** Las imágenes del programa llegan como ruta del backend: se completan con su dominio. */
 function withFiles(form) {
@@ -30,9 +31,14 @@ export const publicCardService = {
       if (response.data?.saveUrl) return response.data.saveUrl;
     } catch (error) {
       const apiError = toApiError(error);
-      if (apiError.status !== 503) throw new Error(apiError.message);
+      if (apiError.status !== 503) throw new Error(apiError.status >= 500 || !apiError.status ? WALLET_UNAVAILABLE : apiError.message);
     }
     const issued = { qrToken, estampillas: card?.estampillas ?? 0, saldoCashback: card?.saldo ?? 0, saldoGiftcard: card?.saldo ?? 0, puntos: card?.puntos ?? 0 };
-    return walletService.createGoogleWalletLink(buildWalletPass(program, { client, detail: program.descripcion || "", issued }));
+    try {
+      return await walletService.createGoogleWalletLink(buildWalletPass(program, { client, detail: program.descripcion || "", issued }));
+    } catch {
+      // Para el cliente, un mensaje simple: nada de Vercel ni de configuración del servidor.
+      throw new Error(WALLET_UNAVAILABLE);
+    }
   }
 };

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { birthDateOf, brandColor, previewName, validateJoin } from "./cardJoin.js";
+import { birthDateOf, previewName, validateJoin } from "./cardJoin.js";
 
 const VALID = { firstName: "Valeria", lastName: "Ramírez", email: "valeria@gmail.com", day: "25", month: "7", year: "1998" };
 
@@ -24,11 +24,4 @@ test("previewName muestra el nombre con la inicial del apellido", () => {
   assert.equal(previewName("", ""), "Tu nombre");
   assert.equal(previewName("valeria sofía", ""), "valeria");
   assert.equal(previewName("Valeria", "ramírez"), "Valeria R.");
-});
-
-test("brandColor usa el color oscuro de la tarjeta y oscurece los claros", () => {
-  assert.equal(brandColor({ primario: "#f2b8c6", acento: "#b2365f" }), "#b2365f");
-  assert.equal(brandColor({ primario: "#241510", acento: "#f6e7a1" }), "#241510");
-  assert.match(brandColor({ primario: "#f2b8c6", acento: "#fde9ef" }), /^color-mix\(in srgb, #fde9ef 45%, #241510\)$/);
-  assert.equal(brandColor(null), "#241510");
 });
