@@ -1,0 +1,49 @@
+/* Clientes: avisos de clientes en riesgo, premiar a los fieles y promociones */
+.ci-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 15px; }
+.ci-card { position: relative; display: grid; align-content: start; gap: 10px; padding: 20px 20px 20px 70px; }
+.ci-card h2 { margin: 0; color: var(--brown-dark); font: 700 20px/1.2 var(--font-display); }
+.ci-card .primary-button { justify-self: start; margin-top: 4px; }
+.ci-card-icon { position: absolute; top: 20px; left: 20px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; }
+.ci-risk { border-color: #ecc58f; background: #fff8ec; }
+.ci-risk .ci-card-icon { background: #f8dcae; color: #8a4f12; }
+.ci-risk.is-calm { border-color: var(--line); background: var(--surface); }
+.ci-risk.is-calm .ci-card-icon { background: var(--green-soft); color: var(--green); }
+.ci-loyal .ci-card-icon { background: var(--green-soft); color: var(--green); }
+.ci-lead { margin: 0; max-width: 60ch; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.ci-names { margin: 0; color: var(--text); font-size: 14px; line-height: 1.55; }
+.ci-error { margin: 0; color: var(--danger); font-size: 13.5px; font-weight: 600; }
+
+.ci-promos { grid-column: 1 / -1; padding: 18px 20px; }
+.ci-promos h2 { margin: 0 0 6px; color: var(--brown-dark); font: 700 17px var(--font-display); }
+.ci-promos ul { margin: 0; padding: 0; list-style: none; }
+.ci-promos li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 11px 0; border-top: 1px solid var(--line); }
+.ci-promos li:first-child { border-top: 0; }
+.ci-promo-main { display: grid; gap: 2px; min-width: 0; }
+.ci-promo-main strong { color: var(--text); font-size: 14.5px; }
+.ci-promo-main span { color: var(--muted); font-size: 13px; }
+.ci-promo-side { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+.ci-promo-side small { color: var(--muted); font-size: 12.5px; }
+.ci-status { padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.ci-status.live { background: var(--green-soft); color: var(--green); }
+.ci-status.scheduled { background: #fbf0dc; color: #7a4a12; }
+.ci-status.paused, .ci-status.expired { background: #f0e8df; color: var(--muted); }
+
+.ci-audience { margin-bottom: 14px; padding: 11px 14px; border-radius: 10px; background: var(--cream); color: var(--text); font-size: 14px; line-height: 1.5; }
+.ci-audience p { margin: 0; }
+
+.dark-theme .ci-risk { border-color: #6b4a22; background: #3a2f22; }
+.dark-theme .ci-risk .ci-card-icon { background: #5a3f1d; color: #f0d2a8; }
+.dark-theme .ci-risk.is-calm { border-color: var(--line); background: var(--surface); }
+.dark-theme .ci-status.scheduled { background: #3a2f22; color: #f0d2a8; }
+.dark-theme .ci-status.paused, .dark-theme .ci-status.expired { background: #3b342e; }
+
+@media (max-width: 860px) {
+  .ci-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .ci-card { padding: 18px; }
+  .ci-card-icon { position: static; }
+  .ci-promos li { flex-direction: column; align-items: flex-start; }
+  .ci-promo-side { justify-content: flex-start; }
+}
