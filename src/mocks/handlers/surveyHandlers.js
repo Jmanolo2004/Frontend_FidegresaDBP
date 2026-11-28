@@ -1,11 +1,14 @@
 import { getDatabase, saveDatabase } from "../database";
 import { badRequest, conflict, HttpError, notFound, respond } from "../http";
+import { publicProducts } from "./menuHandlers";
 
 // Encuestas de satisfacción en modo demo (misma forma que SurveyDtos del backend).
 // En el demo cualquier código de 20 a 60 letras abre una encuesta, por ejemplo /encuesta/demo-encuesta-cafe-plaza.
 const TOKEN = /^[A-Za-z0-9_-]{20,60}$/;
 const DEFAULT_SETTINGS = { enabled: true, question: "¿Cómo fue tu visita de hoy?", cooldownDays: 14 };
 const DAY = 24 * 60 * 60 * 1000;
+const MAX_ORDERED = 5;
+const MAX_ORDER_NOTE = 120;
 
 function settingsOf(db) {
   db.encuestas = db.encuestas || { configuracion: { ...DEFAULT_SETTINGS, updatedAt: null }, respuestas: {} };
@@ -23,6 +26,23 @@ function inRange(date, from, to) {
 
 function round(value, digits = 1) {
   return Number(value.toFixed(digits));
+}
+
+/** Igual que topProducts del backend: lo más pedido en las encuestas respondidas del periodo y su nota promedio. */
+function topProducts(surveys, from, to, branchId) {
+  const byProduct = new Map();
+  Object.values(surveys.pedidos || {})
+    .filter(order => inRange(order.fecha, from, to) && (!branchId || Number(order.ubicacionId) === Number(branchId)))
+    .forEach(order => order.productos.forEach(product => {
+      const row = byProduct.get(product.id) || { productId: product.id, name: product.name, orders: 0, ratings: 0 };
+      row.orders += 1;
+      row.ratings += order.calificacion;
+      byProduct.set(product.id, row);
+    }));
+  return [...byProduct.values()]
+    .sort((a, b) => b.orders - a.orders || a.name.localeCompare(b.name, "es"))
+    .slice(0, 5)
+    .map(({ ratings, ...row }) => ({ ...row, averageRating: round(ratings / row.orders) }));
 }
 
 export const surveyHandlers = [
@@ -99,7 +119,8 @@ export const surveyHandlers = [
         to,
         totals: total(from, to),
         previous: { from: previousFrom, to: previousTo, ...total(previousFrom, previousTo) },
-        byBranch: branches.map(branch => ({ branchId: branch.id, branchName: branch.nombre, ...stats(branch, from, to) }))
+        byBranch: branches.map(branch => ({ branchId: branch.id, branchName: branch.nombre, ...stats(branch, from, to) })),
+        topProducts: topProducts(settingsOf(db), from, to, query.branchId)
       });
     }
   },
@@ -116,7 +137,8 @@ export const surveyHandlers = [
         question: settingsOf(db).configuracion.question,
         primaryColor: db.configuracion?.colorPrincipal || null,
         status: settingsOf(db).respuestas[params.token] ? "ANSWERED" : "OPEN",
-        expiresAt: new Date(Date.now() + 7 * DAY).toISOString()
+        expiresAt: new Date(Date.now() + 7 * DAY).toISOString(),
+        products: publicProducts(db, branch)
       });
     }
   },
@@ -133,6 +155,14 @@ export const surveyHandlers = [
       const comment = String(body.comment || "").trim();
       if (comment.length > 1000) throw badRequest("El comentario puede tener hasta 1000 caracteres.");
       const branch = db.ubicaciones[0];
+      // "¿Qué pediste?": hasta 5 productos distintos de la carta del local y una nota opcional (como el backend).
+      const orderNote = String(body.orderNote || "").replace(/\s+/g, " ").trim();
+      if (orderNote.length > MAX_ORDER_NOTE) throw badRequest(`Lo que pediste puede tener hasta ${MAX_ORDER_NOTE} caracteres.`);
+      const ids = [...new Set((Array.isArray(body.productIds) ? body.productIds : []).map(Number))];
+      if (ids.length > MAX_ORDERED) throw badRequest(`Elige hasta ${MAX_ORDERED} productos.`);
+      const menu = publicProducts(db, branch);
+      const ordered = ids.map(id => menu.find(product => product.id === id));
+      if (ordered.some(product => !product)) throw badRequest("Elige productos de la carta de este local.");
       const customer = db.clientes.find(item => Number(item.localId) === Number(branch.id)) || db.clientes[0];
       if (!customer) throw new HttpError(500, "No hay clientes en el demo.");
       db.resenas.unshift({
@@ -149,6 +179,14 @@ export const surveyHandlers = [
         respuesta: null
       });
       surveys.respuestas[params.token] = new Date().toISOString();
+      surveys.pedidos = surveys.pedidos || {};
+      surveys.pedidos[params.token] = {
+        fecha: new Date().toISOString(),
+        ubicacionId: branch.id,
+        calificacion: rating,
+        nota: orderNote || null,
+        productos: ordered.map(product => ({ id: product.id, name: product.name }))
+      };
       saveDatabase();
       return respond({ status: "ANSWERED", message: "¡Gracias por tu opinión!" });
     }

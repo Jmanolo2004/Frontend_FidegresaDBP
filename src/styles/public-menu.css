@@ -248,3 +248,35 @@
   resize: vertical;
 }
 .pm-field textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+
+/* "¿Qué pediste?" en la encuesta: la carta del local en tarjetas que se marcan (hasta 5) */
+.pm-order { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pm-order legend { margin-bottom: 2px; padding: 0; font-size: 14px; font-weight: 600; }
+.pm-order legend em { color: var(--muted); font-style: normal; font-weight: 400; }
+.pm-order-hint { margin: 0; color: var(--muted); font-size: 13px; }
+.pm-order-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.pm-order-list button {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 56px;
+  padding: 7px 10px 7px 7px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+  color: var(--text);
+  font: 600 14px/1.25 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+.pm-order-list button.is-on { border-color: var(--caramel); background: #fff3e6; }
+.pm-order-list button:disabled { cursor: not-allowed; opacity: 0.45; }
+.pm-order-list button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.pm-order-list img, .pm-order-placeholder { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; background: var(--green-soft); }
+.pm-order-placeholder { display: grid; place-items: center; color: var(--green); font: 700 16px/1 var(--font-display); }
+.pm-order-name { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.pm-order-check { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: var(--surface); color: var(--muted); font-size: 13px; }
+.pm-order-list button.is-on .pm-order-check { background: var(--caramel); color: #241510; }
