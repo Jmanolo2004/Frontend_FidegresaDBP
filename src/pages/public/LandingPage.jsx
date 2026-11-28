@@ -187,6 +187,9 @@ export default function LandingPage() {
               Fidegresa
             </Link>
             <p>Pequeños momentos, grandes lealtades.</p>
+            <Link className="lp-complaints" to={ROUTES.complaints} aria-label="Libro de Reclamaciones: registra un reclamo, una queja, una cancelación o un comentario">
+              <img src="/libro-reclamaciones.png" alt="Libro de Reclamaciones" width="160" height="112" loading="lazy" />
+            </Link>
           </div>
           <nav aria-label="Enlaces del sitio">
             <a href="#como-funciona">Cómo funciona</a>
@@ -199,7 +202,7 @@ export default function LandingPage() {
             <Link to={ROUTES.privacy}>Política de privacidad</Link>
           </nav>
           <p className="lp-legal">
-            De conformidad con la Ley N° 29571, Código de Protección y Defensa del Consumidor, este establecimiento pone a tu disposición el Libro de Reclamaciones para registrar cualquier consulta, queja o reclamo relacionado con sus productos y servicios.
+            De conformidad con la Ley N° 29571, Código de Protección y Defensa del Consumidor, este establecimiento pone a tu disposición el <Link to={ROUTES.complaints}>Libro de Reclamaciones</Link> para registrar cualquier consulta, queja o reclamo relacionado con sus productos y servicios.
           </p>
         </div>
         <p className="lp-copyright">© {new Date().getFullYear()} Fidegresa</p>

@@ -428,3 +428,9 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
   .hero-visual { justify-self: center; margin: 0; }
   .phone.hero-phone { width: min(100%, 260px); }
 }
+
+/* Libro de Reclamaciones en el pie: imagen en un recuadro blanco, debajo del nombre */
+.lp-complaints { display: inline-block; margin-top: 18px; padding: 8px 10px; border-radius: 12px; background: #fff; transition: transform .15s, box-shadow .15s; }
+.lp-complaints img { display: block; width: 150px; height: auto; }
+.lp-complaints:hover { box-shadow: 0 0 0 3px var(--caramel); transform: translateY(-1px); }
+.lp-legal a { color: var(--cream); text-decoration-color: var(--caramel); }

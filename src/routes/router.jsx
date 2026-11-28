@@ -22,6 +22,7 @@ const PublicMenuPage = lazy(() => import("../pages/public/PublicMenuPage"));
 const ReferralRedirectPage = lazy(() => import("../pages/public/ReferralRedirectPage"));
 const SurveyPage = lazy(() => import("../pages/public/SurveyPage"));
 const CardJoinPage = lazy(() => import("../pages/public/CardJoinPage"));
+const ComplaintsPage = lazy(() => import("../pages/public/ComplaintsPage"));
 
 const MetricsPage = lazy(() => import("../pages/dashboard/MetricsPage"));
 const CustomersPage = lazy(() => import("../pages/dashboard/CustomersPage"));
@@ -46,6 +47,7 @@ export const ROUTES = {
   invite: "/unete/:code",
   terms: "/terminos",
   privacy: "/privacidad",
+  complaints: "/libro-de-reclamaciones",
   connectionError: "/sin-conexion",
   dashboard: "/panel/metricas"
 };
@@ -79,6 +81,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.home, element: <LandingPage /> },
       { path: ROUTES.terms, element: <TermsPage /> },
       { path: ROUTES.privacy, element: <PrivacyPage /> },
+      { path: ROUTES.complaints, element: <ComplaintsPage /> },
       { path: ROUTES.invite, element: <InvitePage /> },
       { path: ROUTES.connectionError, element: <ConnectionErrorPage /> },
       // Páginas públicas que abre la clienta desde el QR del local o el enlace de una amiga.
