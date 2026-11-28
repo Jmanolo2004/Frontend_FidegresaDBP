@@ -61,6 +61,13 @@ export function liveInvitation(db, branch) {
   return { title: response.title, text: response.text, buttonLabel: response.buttonLabel, imageUrl: null, programId: response.program.id };
 }
 
+/** La carta del local en la forma del menú público y de la encuesta (en el demo no hay fotos). */
+export function publicProducts(db, branch) {
+  return [...menuOf(db, branch.id).products]
+    .sort((a, b) => a.position - b.position || a.id - b.id)
+    .map(product => ({ id: product.id, name: product.name, description: product.description || null, price: product.price, inStock: product.inStock !== false, imageUrl: null }));
+}
+
 /** El catálogo web activo del local, para el menú público. */
 export function liveWebUrl(db, branch) {
   const web = menuOf(db, branch.id).web;

@@ -117,6 +117,21 @@ export function SurveyPanel({ branchId }) {
               </tbody>
             </table>
           )}
+          {data.topProducts?.length > 0 && (
+            <div className="survey-top" aria-labelledby="survey-top-title">
+              <h3 id="survey-top-title">Lo más pedido</h3>
+              <p className="survey-top-hint">Lo que marcaron tus clientes en «¿Qué pediste?» y la nota que le dieron a su visita.</p>
+              <ol>
+                {data.topProducts.map(product => (
+                  <li key={product.productId}>
+                    <span className="survey-top-name">{product.name}</span>
+                    <span className="survey-top-count">{product.orders} {product.orders === 1 ? "pedido" : "pedidos"}</span>
+                    <span className="survey-top-rating">★ {stars(product.averageRating)}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </>
       )}
 

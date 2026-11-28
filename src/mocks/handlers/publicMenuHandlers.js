@@ -1,8 +1,8 @@
 import { getDatabase, saveDatabase } from "../database";
 import { badRequest, conflict, nextId, notFound, requireText, respond } from "../http";
-import { liveInvitation, liveWebUrl } from "./menuHandlers";
+import { liveInvitation, liveWebUrl, publicProducts } from "./menuHandlers";
 
-// Menú público del modo demo: misma forma que PublicMenuDtos del backend (sin productos, igual que la API).
+// Menú público del modo demo: misma forma que PublicMenuDtos del backend (con la carta del local).
 const PREFIX = { Estampillas: "EST", Cashback: "CAS", Niveles: "NIV" };
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CONSENT_VERSION = "2026-11";
@@ -99,7 +99,8 @@ export const publicMenuHandlers = [
           primaryColor: program.colores?.primario || null,
           accentColor: program.colores?.acento || null
         })),
-        consent: { version: CONSENT_VERSION, text: consentText(branch.nombre) }
+        consent: { version: CONSENT_VERSION, text: consentText(branch.nombre) },
+        products: publicProducts(db, branch)
       });
     }
   },

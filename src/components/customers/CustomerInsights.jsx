@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Icon } from "../common/Icon";
 import { Skeleton } from "../common/Skeleton";
+import { Spinner } from "../common/Spinner";
 import { useFetch } from "../../hooks/useFetch";
 import { useToast } from "../../hooks/useToast";
 import { segmentService } from "../../services/segmentService";
@@ -21,6 +22,7 @@ const STATUS = {
 };
 
 const AUDIENCE = { LOYAL: "tus clientes fieles", AT_RISK: "quienes dejaron de venir" };
+const MAX_GOAL = 200;
 const people = count => `${count} ${count === 1 ? "cliente" : "clientes"}`;
 
 /** Nombres de los primeros clientes del grupo, con enlace a su ficha. */
@@ -44,12 +46,83 @@ function NameList({ request, total }) {
 NameList.propTypes = { request: PropTypes.object.isRequired, total: PropTypes.number.isRequired };
 
 /**
+ * "Recomiéndame una promo": la IA mira tus números (segmentos, tarjetas y promociones anteriores) y propone una
+ * promoción. No se lanza nada: "Usar esta promoción" abre el formulario de siempre ya lleno para revisarlo.
+ */
+function AiPromotion({ onUse }) {
+  const [goal, setGoal] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [idea, setIdea] = useState(null);
+
+  const ask = async event => {
+    event.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      setIdea(await promotionService.recommend({ goal: goal.trim() }));
+    } catch (failure) {
+      setError(toApiError(failure).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <article className="panel ci-card ci-ai" aria-labelledby="ci-ai-title" aria-busy={loading}>
+      <div className="ci-card-icon" aria-hidden="true"><Icon name="star" size={18} /></div>
+      <h2 id="ci-ai-title">¿No sabes qué promoción lanzar?</h2>
+      <p className="ci-lead">La IA revisa a tus clientes, tus tarjetas y cómo te fue con las promociones anteriores, y te propone una. Tú decides si la lanzas.</p>
+      <form className="ci-ai-form" onSubmit={ask}>
+        <label className="ci-ai-goal">
+          <span>¿Qué quieres lograr? <em>(opcional)</em></span>
+          <input
+            className="form-control"
+            maxLength={MAX_GOAL}
+            value={goal}
+            onChange={event => setGoal(event.target.value)}
+            placeholder="Ej. llenar las tardes de lunes a miércoles"
+          />
+        </label>
+        <button type="submit" className="primary-button" disabled={loading}>
+          {loading ? <Spinner label="Pensando una promoción" /> : <Icon name="star" size={16} />}
+          {loading ? "Pensando…" : idea ? "Otra idea" : "Recomiéndame una promo"}
+        </button>
+      </form>
+      {error && <p className="ci-error" role="alert">{error}</p>}
+      {idea && !loading && (
+        <div className="ci-idea" aria-live="polite">
+          <div className="ci-idea-head">
+            <strong>{idea.name}</strong>
+            <span className="ci-status live">{idea.discountLabel} de descuento</span>
+          </div>
+          {idea.description && <p className="ci-idea-text">“{idea.description}”</p>}
+          <ul className="ci-idea-facts">
+            <li><span>Para</span>{idea.segmentLabel}{idea.programName ? ` · ${idea.programName}` : ""}</li>
+            <li><span>Llega a</span>{people(idea.audienceCustomers)}{idea.audienceWithWallet ? ` (${idea.audienceWithWallet} con aviso en Google Wallet)` : ""}</li>
+            <li><span>Vigencia</span>{formatDate(idea.startsOn)} al {formatDate(idea.endsOn)}</li>
+          </ul>
+          {idea.reason && <p className="ci-reason"><strong>Por qué:</strong> {idea.reason}</p>}
+          <button type="button" className="primary-button" onClick={() => onUse(idea)} disabled={!idea.audienceCustomers}>
+            Usar esta promoción
+          </button>
+        </div>
+      )}
+    </article>
+  );
+}
+
+AiPromotion.propTypes = { onUse: PropTypes.func.isRequired };
+
+/**
  * Avisos sobre clientes que dejaron de venir y acceso rápido para premiar a los más fieles.
  * Usa los segmentos del backend (AT_RISK y LOYAL) y crea promociones que llegan a Google Wallet.
  */
 export function CustomerInsights() {
   const { showToast } = useToast();
   const [dialog, setDialog] = useState(null);
+  const [draft, setDraft] = useState(null);
   const segments = useFetch(({ signal }) => segmentService.getAll({ signal }), []);
   const settings = useFetch(({ signal }) => segmentService.getSettings({ signal }), []);
   const atRiskNames = useFetch(({ signal }) => segmentService.getCustomers("AT_RISK", { size: SHOWN }, { signal }), []);
@@ -64,6 +137,7 @@ export function CustomerInsights() {
 
   const created = promotion => {
     setDialog(null);
+    setDraft(null);
     promotions.refresh();
     if (promotion.status === "SCHEDULED") showToast(`Promoción programada desde el ${formatDate(promotion.startsOn)}.`);
     else if (promotion.notified) showToast(`Promoción lanzada: avisamos a ${people(promotion.notified)} en Google Wallet.`);
@@ -143,6 +217,13 @@ export function CustomerInsights() {
         )}
       </article>
 
+      <AiPromotion
+        onUse={idea => {
+          setDraft(idea);
+          setDialog(idea.segment);
+        }}
+      />
+
       {list.length > 0 && (
         <article className="panel ci-promos" aria-labelledby="ci-promos-title">
           <h2 id="ci-promos-title">Tus promociones</h2>
@@ -173,7 +254,18 @@ export function CustomerInsights() {
         </article>
       )}
 
-      {dialog && <PromotionDialog open segment={dialog} onClose={() => setDialog(null)} onCreated={created} />}
+      {dialog && (
+        <PromotionDialog
+          open
+          segment={dialog}
+          draft={draft}
+          onClose={() => {
+            setDialog(null);
+            setDraft(null);
+          }}
+          onCreated={created}
+        />
+      )}
     </section>
   );
 }

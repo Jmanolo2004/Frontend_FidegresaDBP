@@ -107,6 +107,9 @@ a.link-button { display: inline; }
 button.sentiment-card { width: 100%; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, transform .15s; }
 button.sentiment-card:hover { transform: translateY(-1px); }
 .sentiment-card.selected { border-color: var(--caramel); box-shadow: 0 0 0 3px rgb(200 137 79 / 16%); }
+.reply-ai { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 14px; }
+.reply-ai .inline-spinner { width: 14px; height: 14px; }
+.reply-ai-note { color: var(--muted); font-size: 13px; }
 .reply-quote { margin: 0 0 16px; padding: 12px 14px; border-left: 3px solid var(--caramel); border-radius: 0 8px 8px 0; background: var(--cream); color: var(--text); font-size: 14px; line-height: 1.6; }
 
 /* ---------- Detalle de cliente ---------- */
