@@ -85,7 +85,8 @@ function buildObject(issuerId, body, siteOrigin) {
   }));
   const details = text(body.detalle, 400);
   if (details) textModulesData.push({ id: "reglas", header: "Cómo funciona", body: details });
-  textModulesData.push({ id: "aviso", header: "Tarjeta de prueba", body: "Emitida por Fidegresa solo para pruebas." });
+  // Solo las tarjetas de muestra (sin código real del backend) llevan el aviso de prueba.
+  if (!realToken) textModulesData.push({ id: "aviso", header: "Tarjeta de prueba", body: "Emitida por Fidegresa solo para pruebas." });
 
   return {
     // Con una tarjeta real, el id del pase es fijo (emisor.CÓDIGO): así la app de caja puede actualizarlo
