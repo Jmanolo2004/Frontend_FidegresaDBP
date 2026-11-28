@@ -14,7 +14,8 @@ export const NAVIGATION_GROUPS = [
     items: [
       { to: "/panel/geolocalizacion", label: "Geolocalización", icon: "target" },
       { to: "/panel/ubicaciones", label: "Ubicaciones", icon: "pin" },
-      { to: "/panel/resenas", label: "Reseñas", icon: "star" }
+      { to: "/panel/resenas", label: "Reseñas", icon: "star" },
+      { to: "/panel/referidos", label: "Referidos", icon: "link" }
     ]
   },
   {
