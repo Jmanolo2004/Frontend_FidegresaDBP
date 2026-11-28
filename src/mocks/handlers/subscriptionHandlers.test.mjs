@@ -44,7 +44,7 @@ test("conserva los cinco locales existentes con Emprende y permite editar y paus
 });
 
 test("aplica los límites exactos de cada plan contando locales pausados", () => {
-  for (const [plan, limit] of [["Emprende", 2], ["Crece", 5], ["Avanza", 15]]) {
+  for (const [plan, limit] of [["Emprende", 1], ["Crece", 2]]) {
     const db = resetDatabase();
     db.configuracion.plan = plan;
     db.ubicaciones = Array.from({ length: limit - 1 }, (_, index) => ({ id: index + 1, nombre: `Local ${index}`, activa: false }));
@@ -53,10 +53,17 @@ test("aplica los límites exactos de cada plan contando locales pausados", () =>
     assert.equal(JSON.parse(stored).ubicaciones.length, limit);
     assert.throws(() => createBranch({ body: { ...branch, nombre: "Otro local" } }), error => {
       assert.equal(error.status, 422);
-      assert.match(error.message, plan === "Avanza" ? /plan máximo/ : /Mejora tu plan/);
+      assert.match(error.message, /Mejora tu plan/);
+      if (plan === "Crece") assert.match(error.message, /ampliar tus sucursales/);
       return true;
     });
   }
+  // Avanza no tiene tope de locales.
+  const db = resetDatabase();
+  db.configuracion.plan = "Avanza";
+  db.ubicaciones = Array.from({ length: 40 }, (_, index) => ({ id: index + 1, nombre: `Local ${index}`, activa: true }));
+  assert.equal(createBranch({ body: branch }).status, 201);
+  assert.equal(db.ubicaciones.length, 41);
 });
 
 test("mejora secuencialmente solo con confirmación y revierte fallos de persistencia", () => {

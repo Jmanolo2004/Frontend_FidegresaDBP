@@ -1,6 +1,6 @@
 import { getDatabase, saveDatabase } from "../database";
 import { badRequest, HttpError, respond } from "../http";
-import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
+import { findSubscriptionPlan, locationsLimitText, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
 
 export function currentDemoPlan(db) {
   const plan = findSubscriptionPlan(db.configuracion.plan || "Emprende");
@@ -10,10 +10,7 @@ export function currentDemoPlan(db) {
 
 export function assertLocationCapacity(db, plan = currentDemoPlan(db)) {
   if (db.ubicaciones.length >= plan.maxLocations) {
-    const nextStep = plan === SUBSCRIPTION_PLANS[SUBSCRIPTION_PLANS.length - 1]
-      ? "Es el plan máximo disponible."
-      : "Mejora tu plan en Configuración.";
-    throw new HttpError(422, `Límite de locales alcanzado: ${plan.name} permite hasta ${plan.maxLocations}. ${nextStep}`);
+    throw new HttpError(422, `Límite de locales alcanzado: ${plan.name} incluye ${locationsLimitText(plan)}. Mejora tu plan en Configuración${plan.id === "crece" ? " o escríbenos para ampliar tus sucursales" : ""}.`);
   }
 }
 

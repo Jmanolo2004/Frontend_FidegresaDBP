@@ -229,10 +229,10 @@ export default function SettingsPage() {
               <p className="form-alert" role="alert">No se reconoce tu plan actual.</p>
             ) : (
               <>
-                <div className="settings-line"><div><strong>Plan actual: {currentPlan.name}</strong><small>S/ {currentPlan.price} al mes · máximo {currentPlan.maxLocations} locales</small></div></div>
+                <div className="settings-line"><div><strong>Plan actual: {currentPlan.name}</strong><small>S/ {currentPlan.price} al mes · {currentPlan.locationsLabel}</small></div></div>
                 {SUBSCRIPTION_PLANS.map(plan => (
                   <div className="settings-line" key={plan.id}>
-                    <div><strong>{plan.name}{plan.id === currentPlan.id ? " · Plan actual" : ""}</strong><small>Hasta {plan.maxLocations} locales · S/ {plan.price}/mes</small></div>
+                    <div><strong>{plan.name}{plan.id === currentPlan.id ? " · Plan actual" : ""}</strong><small>{plan.locationsLabel} · S/ {plan.price}/mes</small></div>
                     {plan.id === nextPlan?.id && <button type="button" className="secondary-button" onClick={() => setUpgradePlan(plan)}>Mejorar plan</button>}
                     {SUBSCRIPTION_PLANS.indexOf(plan) > currentIndex + 1 && <small>Disponible después de {nextPlan?.name}</small>}
                   </div>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
         </>
       )}
       <BrandNameDialog open={brandOpen} onClose={() => setBrandOpen(false)} />
-      <Modal open={Boolean(upgradePlan)} title="Confirmar mejora simulada" subtitle={upgradePlan ? `Cambiarás al plan ${upgradePlan.name}: hasta ${upgradePlan.maxLocations} locales por S/ ${upgradePlan.price} al mes.` : ""} onClose={() => setUpgradePlan(null)} onSubmit={confirmUpgrade} submitLabel="Confirmar pago simulado" submitting={upgrading}>
+      <Modal open={Boolean(upgradePlan)} title="Confirmar mejora simulada" subtitle={upgradePlan ? `Cambiarás al plan ${upgradePlan.name}: ${upgradePlan.locationsLabel.toLowerCase()} por S/ ${upgradePlan.price} al mes.` : ""} onClose={() => setUpgradePlan(null)} onSubmit={confirmUpgrade} submitLabel="Confirmar pago simulado" submitting={upgrading}>
         <p className="modal-message">El pago es simulado: no se solicitarán datos de pago ni se hará ningún cobro real.</p>
       </Modal>
       <Modal open={deleteOpen} title="Eliminar cuenta" subtitle="Se borrarán tu cuenta y todos los datos del negocio. No se puede deshacer." onClose={() => setDeleteOpen(false)} onSubmit={confirmDelete} submitLabel="Eliminar cuenta" submitting={deleting} submitDisabled={deleteText !== "ELIMINAR"} danger>

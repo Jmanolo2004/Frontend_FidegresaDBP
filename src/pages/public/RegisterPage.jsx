@@ -154,7 +154,7 @@ export default function RegisterPage() {
             <FormField label="Plan" error={form.errors.planId} variant="auth">
               <select {...field("planId")}>
                 <option value="">Selecciona un plan</option>
-                {SUBSCRIPTION_PLANS.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · hasta {plan.maxLocations} locales · S/ {plan.price}/mes</option>)}
+                {SUBSCRIPTION_PLANS.map(plan => <option key={plan.id} value={plan.id}>{plan.name} · {plan.locationsLabel} · S/ {plan.price}/mes</option>)}
               </select>
             </FormField>
             <p className="form-alert info">El pago es simulado: no se pedirán datos de tarjeta ni se realizará ningún cobro real.</p>

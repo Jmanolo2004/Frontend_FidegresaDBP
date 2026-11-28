@@ -39,7 +39,7 @@ export const CARD_TYPES = [
 export const PLANS = SUBSCRIPTION_PLANS.map(plan => ({
   ...plan,
   title: "Todas las funciones incluidas",
-  features: [`Hasta ${plan.maxLocations} locales`, "Todos los tipos de tarjeta", "Clientes, equipo y métricas", "Reseñas y geolocalización"],
+  features: [plan.locationsLabel, "Todos los tipos de tarjeta", "Clientes, equipo y métricas", "Reseñas y geolocalización"],
   cta: `Elegir ${plan.name}`,
   featured: plan.id === "crece"
 }));
