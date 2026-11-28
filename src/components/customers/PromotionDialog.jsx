@@ -33,7 +33,29 @@ export const PROMOTION_PRESETS = {
   }
 };
 
-function initialForm(segment) {
+/** Grupos que puede proponer la recomendación con IA, además de fieles y en riesgo. */
+const SEGMENT_TEXT = {
+  LOYAL: "tus clientes fieles",
+  AT_RISK: "quienes dejaron de venir",
+  NEW: "los clientes nuevos",
+  BIRTHDAY: "quienes cumplen años este mes",
+  ALL: "todos tus clientes"
+};
+
+/** Formulario inicial: el borrador de la IA (si lo hay) o los textos de partida del grupo. */
+function initialForm(segment, draft) {
+  if (draft) {
+    const today = localDay();
+    return {
+      name: String(draft.name || "").slice(0, 80),
+      description: String(draft.description || "").slice(0, 240),
+      discountType: draft.discountType === "AMOUNT" ? "AMOUNT" : "PERCENT",
+      discountValue: String(draft.discountValue ?? ""),
+      programId: draft.programId ? String(draft.programId) : "",
+      startsOn: draft.startsOn && draft.startsOn >= today ? draft.startsOn : today,
+      endsOn: draft.endsOn && draft.endsOn >= today ? draft.endsOn : localDay(6)
+    };
+  }
   const preset = PROMOTION_PRESETS[segment];
   return {
     name: preset.name,
@@ -66,23 +88,25 @@ function validate(form) {
 }
 
 /**
- * Crea una promoción para un grupo de clientes (fieles o en riesgo).
+ * Crea una promoción para un grupo de clientes (fieles o en riesgo, o el que propuso la IA con draft).
  * El backend la aplica en caja y, si ya empezó, avisa en la tarjeta de Google Wallet de cada cliente.
  */
-export function PromotionDialog({ open, segment, onClose, onCreated }) {
-  const [form, setForm] = useState(() => initialForm(segment));
+export function PromotionDialog({ open, segment, draft = null, onClose, onCreated }) {
+  const [form, setForm] = useState(() => initialForm(segment, draft));
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [saving, setSaving] = useState(false);
-  const preset = PROMOTION_PRESETS[segment];
+  const preset = draft
+    ? { title: "Promoción recomendada", subtitle: `Propuesta con IA para ${SEGMENT_TEXT[segment] || "tus clientes"}. Revísala y ajústala antes de lanzarla.` }
+    : PROMOTION_PRESETS[segment];
 
   useEffect(() => {
     if (open) {
-      setForm(initialForm(segment));
+      setForm(initialForm(segment, draft));
       setErrors({});
       setServerError("");
     }
-  }, [open, segment]);
+  }, [open, segment, draft]);
 
   const programsRequest = useFetch(({ signal }) => loyaltyProgramService.getAll({}, { signal }), [], { enabled: open });
   const programs = useMemo(
@@ -142,6 +166,11 @@ export function PromotionDialog({ open, segment, onClose, onCreated }) {
       submitDisabled={empty}
       wide
     >
+      {draft?.reason && (
+        <p className="ci-reason">
+          <strong>Por qué esta promoción:</strong> {draft.reason}
+        </p>
+      )}
       <div className="ci-audience" aria-live="polite">
         {audience.error ? (
           <p className="ci-error">{toApiError(audience.error).message}</p>
@@ -197,7 +226,17 @@ export function PromotionDialog({ open, segment, onClose, onCreated }) {
 
 PromotionDialog.propTypes = {
   open: PropTypes.bool.isRequired,
-  segment: PropTypes.oneOf(["LOYAL", "AT_RISK"]).isRequired,
+  segment: PropTypes.oneOf(["LOYAL", "AT_RISK", "NEW", "BIRTHDAY", "ALL"]).isRequired,
+  draft: PropTypes.shape({
+    name: PropTypes.string,
+    description: PropTypes.string,
+    discountType: PropTypes.string,
+    discountValue: PropTypes.number,
+    programId: PropTypes.number,
+    startsOn: PropTypes.string,
+    endsOn: PropTypes.string,
+    reason: PropTypes.string
+  }),
   onClose: PropTypes.func.isRequired,
   onCreated: PropTypes.func.isRequired
 };

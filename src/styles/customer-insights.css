@@ -28,12 +28,32 @@
 .ci-status.scheduled { background: #fbf0dc; color: #7a4a12; }
 .ci-status.paused, .ci-status.expired { background: #f0e8df; color: var(--muted); }
 
+/* Promoción recomendada con IA */
+.ci-ai { grid-column: 1 / -1; border-color: #e3c9a8; background: linear-gradient(135deg, #fffaf3, var(--surface)); }
+.ci-ai .ci-card-icon { background: #f4dcc0; color: #8a4f12; }
+.ci-ai-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.ci-ai-form .primary-button { margin-top: 0; }
+.ci-ai-goal { display: grid; flex: 1 1 280px; gap: 6px; color: var(--text); font-size: 13.5px; font-weight: 600; }
+.ci-ai-goal em { color: var(--muted); font-style: normal; font-weight: 400; }
+.ci-idea { display: grid; gap: 10px; margin-top: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.ci-idea-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.ci-idea-head strong { color: var(--brown-dark); font: 700 18px/1.2 var(--font-display); }
+.ci-idea-text { margin: 0; color: var(--text); font-size: 14px; font-style: italic; }
+.ci-idea-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; color: var(--text); font-size: 14px; }
+.ci-idea-facts span { display: block; color: var(--muted); font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.ci-reason { margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid var(--caramel); border-radius: 0 8px 8px 0; background: var(--cream); color: var(--text); font-size: 13.5px; line-height: 1.5; }
+.ci-idea .ci-reason { margin: 0; }
+.ci-idea .primary-button { justify-self: start; }
+
 .ci-audience { margin-bottom: 14px; padding: 11px 14px; border-radius: 10px; background: var(--cream); color: var(--text); font-size: 14px; line-height: 1.5; }
 .ci-audience p { margin: 0; }
 
 .dark-theme .ci-risk { border-color: #6b4a22; background: #3a2f22; }
 .dark-theme .ci-risk .ci-card-icon { background: #5a3f1d; color: #f0d2a8; }
 .dark-theme .ci-risk.is-calm { border-color: var(--line); background: var(--surface); }
+.dark-theme .ci-ai { border-color: #6b4a22; background: var(--surface); }
+.dark-theme .ci-ai .ci-card-icon { background: #5a3f1d; color: #f0d2a8; }
+.dark-theme .ci-idea-head strong { color: var(--text); }
 .dark-theme .ci-status.scheduled { background: #3a2f22; color: #f0d2a8; }
 .dark-theme .ci-status.paused, .dark-theme .ci-status.expired { background: #3b342e; }
 

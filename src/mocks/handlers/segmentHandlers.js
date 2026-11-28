@@ -1,5 +1,5 @@
 import { getDatabase, saveDatabase } from "../database";
-import { badRequest, conflict, notFound, respond, toPage } from "../http";
+import { badRequest, conflict, HttpError, notFound, respond, toPage } from "../http";
 
 // Segmentos y promociones en modo demo (misma forma que SegmentService y PromotionService del backend).
 const DAY = 24 * 60 * 60 * 1000;
@@ -136,7 +136,61 @@ function validate(body) {
   return { name, description: description || null, discountType: type, discountValue: Number(value.toFixed(2)) };
 }
 
+// Recomendación en modo demo: sin IA, reglas sobre los mismos segmentos (model "demo"), con la forma del backend.
+const DEMO_IDEAS = {
+  AT_RISK: { name: "Te extrañamos", description: "Hace tiempo no te vemos: vuelve esta semana y tu compra tiene descuento.", type: "PERCENT", value: 15, days: 14,
+    reason: n => `${n} clientes que venían seguido no vuelven hace más de ${SETTINGS.atRiskDays} días. Un descuento con fecha de fin cercana les da un motivo para regresar pronto.` },
+  BIRTHDAY: { name: "Celebra tu cumpleaños con nosotros", description: "Este mes es tu cumpleaños: te regalamos un descuento en tu próxima visita.", type: "AMOUNT", value: 5, days: 30,
+    reason: n => `${n} clientes cumplen años este mes. Un detalle por su cumpleaños refuerza el vínculo y suele traer acompañantes.` },
+  LOYAL: { name: "Gracias por ser de la casa", description: "Por venir tan seguido, tu próxima compra tiene descuento.", type: "PERCENT", value: 10, days: 21,
+    reason: n => `${n} clientes vienen ${SETTINGS.loyalVisits} veces o más cada ${SETTINGS.loyalDays} días. Premiarlos mantiene su frecuencia y los anima a recomendarte.` },
+  NEW: { name: "Bienvenida al club", description: "Gracias por unirte: tu segunda visita tiene descuento.", type: "PERCENT", value: 10, days: 14,
+    reason: n => `${n} clientes se unieron hace poco. Un beneficio en la segunda visita ayuda a que se vuelva costumbre.` },
+  ALL: { name: "Semana de beneficios", description: "Esta semana tu compra tiene un descuento especial.", type: "PERCENT", value: 10, days: 7,
+    reason: n => `Tienes ${n} clientes en total. Una promoción corta para todos reactiva las visitas de la semana.` }
+};
+const DEMO_ORDER = ["AT_RISK", "BIRTHDAY", "LOYAL", "NEW", "ALL"];
+let ideaTurn = -1;
+
 export const promotionHandlers = [
+  {
+    method: "post",
+    path: "/promotions/recommendation",
+    auth: true,
+    handler: ({ body }) => {
+      const db = getDatabase();
+      const goal = String(body?.goal || "").replace(/\s+/g, " ").trim();
+      if (goal.length > 200) throw badRequest("El objetivo puede tener hasta 200 caracteres.");
+      const programId = body?.programId ? Number(body.programId) : null;
+      const program = programId ? db.tarjetas.find(card => Number(card.id) === programId) : null;
+      if (programId && !program) throw notFound("Programa no encontrado.");
+      const withCustomers = DEMO_ORDER.filter(segment => customersIn(db, segment, programId).length > 0);
+      if (!withCustomers.length) throw new HttpError(422, "Todavía no tienes clientes. Cuando se unan, te recomendamos una promoción.");
+      ideaTurn += 1;
+      const segment = withCustomers[ideaTurn % withCustomers.length];
+      const idea = DEMO_IDEAS[segment];
+      const list = customersIn(db, segment, programId);
+      const today = new Date();
+      const day = offset => new Date(today.getTime() + offset * DAY).toLocaleDateString("en-CA");
+      return respond({
+        name: idea.name,
+        description: idea.description,
+        discountType: idea.type,
+        discountValue: idea.value,
+        discountLabel: discountLabel({ discountType: idea.type, discountValue: idea.value }),
+        programId: program ? program.id : null,
+        programName: program ? program.nombre : null,
+        segment,
+        segmentLabel: LABELS[segment],
+        startsOn: day(0),
+        endsOn: day(idea.days - 1),
+        audienceCustomers: list.length,
+        audienceWithWallet: withWallet(db, list),
+        reason: idea.reason(list.length),
+        model: "demo"
+      });
+    }
+  },
   {
     method: "get",
     path: "/promotions",
