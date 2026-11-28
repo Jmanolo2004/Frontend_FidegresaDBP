@@ -21,6 +21,7 @@ const NotFoundPage = lazy(() => import("../pages/public/NotFoundPage"));
 const PublicMenuPage = lazy(() => import("../pages/public/PublicMenuPage"));
 const ReferralRedirectPage = lazy(() => import("../pages/public/ReferralRedirectPage"));
 const SurveyPage = lazy(() => import("../pages/public/SurveyPage"));
+const CardJoinPage = lazy(() => import("../pages/public/CardJoinPage"));
 
 const MetricsPage = lazy(() => import("../pages/dashboard/MetricsPage"));
 const CustomersPage = lazy(() => import("../pages/dashboard/CustomersPage"));
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
       { path: "/m/:slug", element: <PublicMenuPage /> },
       { path: "/r/:code", element: <ReferralRedirectPage /> },
       { path: "/encuesta/:token", element: <SurveyPage /> },
+      { path: "/tarjeta/:code", element: <CardJoinPage /> },
       {
         element: <PublicOnlyRoute />,
         children: [

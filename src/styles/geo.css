@@ -197,7 +197,7 @@
   .audience-wizard-preview { position: static; grid-row: 1; }
   .audience-preview-toggle { display: inline-flex; }
   .audience-wizard-main { grid-row: 2; }
-  .audience-wizard-preview:not(.open) .map-view, .audience-wizard-preview:not(.open) .notification-phone, .audience-wizard-preview:not(.open) .audience-live-count, .audience-wizard-preview:not(.open) .audience-preview-people, .audience-wizard-preview:not(.open) > .geo-privacy-note { display: none; }
+  .audience-wizard-preview:not(.open) .map-view, .audience-wizard-preview:not(.open) .notification-phone, .audience-wizard-preview:not(.open) .gw-preview, .audience-wizard-preview:not(.open) .audience-live-count, .audience-wizard-preview:not(.open) .audience-preview-people, .audience-wizard-preview:not(.open) > .geo-privacy-note { display: none; }
   .audience-detail-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .audience-toolbar { align-items: stretch; flex-direction: column; }
   .audience-filters { flex-wrap: wrap; }
@@ -353,3 +353,35 @@
 .dark-theme .audience-empty h2 { color: #f0dfcf; }
 .dark-theme .audience-empty li::before { background: #423a34; color: #e0b382; }
 @media (max-width: 760px) { .audience-empty { padding: 20px; } .audience-empty ol { grid-template-columns: 1fr; } }
+
+/* Vista previa del aviso como llega a Google Wallet (Android): notificación y mensaje dentro de la tarjeta */
+.gw-preview { display: grid; gap: 14px; margin: 9px auto 6px; width: min(100%, 320px); }
+.gw-phone { width: min(100%, 262px); margin: 0 auto; padding: 7px; border-radius: 38px; background: #1f1b18; box-shadow: var(--shadow); }
+.gw-screen { position: relative; overflow: hidden; display: flex; aspect-ratio: 9 / 19.5; flex-direction: column; align-items: stretch; padding: 12px 10px 14px; border-radius: 31px; background: linear-gradient(170deg, #3b4a5c 0%, #6b6f7c 55%, #a7978a 100%); color: #fff; }
+.gw-status { display: flex; justify-content: space-between; padding: 0 6px; font-size: 12px; font-weight: 600; }
+.gw-status-icons { display: flex; gap: 4px; align-items: center; }
+.gw-status-icons i { display: block; width: 9px; height: 9px; border-radius: 2px; background: rgb(255 255 255 / 90%); }
+.gw-screen::before { content: ""; position: absolute; top: 10px; left: 50%; width: 11px; height: 11px; border-radius: 50%; background: #111; transform: translateX(-50%); }
+.gw-clock { margin: 46px 0 2px; font-size: 52px; font-weight: 300; letter-spacing: -.02em; text-align: center; }
+.gw-date { margin-bottom: 30px; color: rgb(255 255 255 / 85%); font-size: 13px; text-align: center; }
+.gw-notification { display: grid; gap: 3px; padding: 12px 14px 13px; border-radius: 22px; background: #f4f1ee; color: #1f1f1f; box-shadow: 0 8px 24px rgb(0 0 0 / 22%); animation: gw-arrive .35s ease-out; }
+.gw-notification-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: #4a4744; font-size: 12px; }
+.gw-notification-head i { font-style: normal; }
+.gw-notification > strong { overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.3; }
+.gw-notification > p { margin: 0; overflow-wrap: anywhere; color: #3d3a37; font-size: 13.5px; line-height: 1.4; }
+.gw-notification.is-placeholder > strong, .gw-notification.is-placeholder > p { color: #8d8781; font-style: italic; }
+.gw-notification-action { justify-self: start; margin-top: 8px; padding: 6px 12px; border-radius: 999px; background: #dfe7f7; color: #0b57d0; font-size: 12.5px; font-weight: 700; }
+.gw-hint { margin-top: auto; color: rgb(255 255 255 / 80%); font-size: 11.5px; text-align: center; }
+.gw-mark { display: inline-grid; gap: 1.5px; width: 14px; }
+.gw-mark i { display: block; height: 2.6px; border-radius: 2px; }
+.gw-mark i:nth-child(1) { background: #4285f4; }
+.gw-mark i:nth-child(2) { background: #34a853; }
+.gw-mark i:nth-child(3) { background: #fbbc04; }
+.gw-mark i:nth-child(4) { background: #ea4335; }
+.gw-pass-message { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.gw-pass-label { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 4px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.gw-pass-message strong { overflow-wrap: anywhere; color: var(--text); font-size: 15px; }
+.gw-pass-message p { margin: 0; overflow-wrap: anywhere; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.gw-note { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.45; text-align: center; }
+@keyframes gw-arrive { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .gw-notification { animation: none; } }

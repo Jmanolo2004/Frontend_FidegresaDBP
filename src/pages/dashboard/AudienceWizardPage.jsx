@@ -9,6 +9,7 @@ import { FormField } from "../../components/common/FormField";
 import { Icon } from "../../components/common/Icon";
 import { PageHeader } from "../../components/common/PageHeader";
 import { Skeleton } from "../../components/common/Skeleton";
+import { WalletNotificationPreview } from "../../components/geo/WalletNotificationPreview";
 import { audienceService } from "../../services/audienceService";
 import { branchService } from "../../services/branchService";
 import { geoService } from "../../services/geoService";
@@ -66,28 +67,6 @@ function initialValues(audience, params, branches) {
     frequencyDays: audience?.schedule?.frequencyDays || 7
   };
 }
-
-function NotificationPreview({ title, message, action }) {
-  const substitute = value => String(value || "").replaceAll("{nombre}", "María").replaceAll("{local}", "Café de la Plaza").replaceAll("{premio}", "un beneficio especial");
-  return (
-    <div className="notification-phone" aria-label="Vista previa de la notificación en el celular del cliente">
-      <div className="notification-phone-screen">
-        <div className="notification-phone-status"><span>9:41</span><span>◉ ◉ ◉</span></div>
-        <div className="notification-lock-time">9:41</div>
-        <div className="notification-card">
-          <div className="notification-card-heading"><span className="notification-brand-dot">F</span><b>FIDEGRESA</b><time>ahora</time></div>
-          <strong>{substitute(title) || "Tu próxima visita tiene premio"}</strong>
-          <p>{substitute(message) || "Acércate y descubre un beneficio preparado para ti."}</p>
-          {action && <span className="notification-action">{action}</span>}
-        </div>
-        <small>Desliza hacia arriba para abrir</small>
-      </div>
-      <span className="notification-platform">Vista ilustrativa · iOS / Android</span>
-    </div>
-  );
-}
-
-NotificationPreview.propTypes = { title: PropTypes.string, message: PropTypes.string, action: PropTypes.string };
 
 function AudienceWizardForm({ audience }) {
   const navigate = useNavigate();
@@ -297,8 +276,8 @@ function AudienceWizardForm({ audience }) {
               )}
               {step === 2 && (
                 <div className="form-grid">
-                  <FormField label="Título" error={form.errors.title} hint={`${form.values.title.length}/40 caracteres`}><input maxLength="40" placeholder="Ej. ¡Te esperamos por el local!" {...form.getFieldProps("title")} /></FormField>
-                  <FormField label="Mensaje" error={form.errors.text} hint={`${form.values.text.length}/140 caracteres`} full><textarea rows="4" maxLength="140" placeholder="Hola {nombre}, pasa por {local} y descubre {premio}." {...form.getFieldProps("text")} /></FormField>
+                  <FormField label="Título" error={form.errors.title} hint={`${form.values.title.length}/40 caracteres`} full><input className="form-control" maxLength="40" placeholder="Ej. ¡Te esperamos por el local!" {...form.getFieldProps("title")} /></FormField>
+                  <FormField label="Mensaje" error={form.errors.text} hint={`${form.values.text.length}/140 caracteres`} full><textarea className="form-control" rows="4" maxLength="140" placeholder="Hola {nombre}, pasa por {local} y descubre {premio}." {...form.getFieldProps("text")} /></FormField>
                   <FormField label="Botón de acción" optional><select className="form-control" value={form.values.action} onChange={event => setField("action", event.target.value)}><option value="">Sin botón</option><option>Ver mi tarjeta</option><option>Cómo llegar</option></select></FormField>
                   <div className="audience-variable-help"><strong>Variables disponibles</strong><span>{"{nombre}"} · {"{local}"} · {"{premio}"}</span></div>
                 </div>
@@ -347,8 +326,8 @@ function AudienceWizardForm({ audience }) {
           <p className="geo-privacy-note"><Icon name="target" size={15} /><span>Solo se notifica a clientes que aceptaron compartir su ubicación. Fidegresa no rastrea a las personas desde la web.</span></p>
         </div>
         <aside className={`panel audience-wizard-preview${mobileMapOpen ? " open" : ""}`}>
-          <div className="audience-preview-header"><div><h2>{step === 2 ? "Vista previa del aviso" : "Zona y alcance"}</h2><p>{step === 2 ? "Así verán el mensaje en su celular." : `${estimatedCount} personas elegibles`}</p></div><button className="secondary-button audience-preview-toggle" type="button" onClick={() => setMobileMapOpen(value => !value)} aria-expanded={mobileMapOpen}>{mobileMapOpen ? "Ocultar" : "Mostrar"} vista</button></div>
-          {mobileMapOpen && (step === 2 ? <NotificationPreview title={form.values.title} message={form.values.text} action={form.values.action} /> : currentBranch ? (
+          <div className="audience-preview-header"><div><h2>{step === 2 ? "Vista previa del aviso" : "Zona y alcance"}</h2><p>{step === 2 ? "Así llega a su Google Wallet, en tiempo real." : `${estimatedCount} personas elegibles`}</p></div><button className="secondary-button audience-preview-toggle" type="button" onClick={() => setMobileMapOpen(value => !value)} aria-expanded={mobileMapOpen}>{mobileMapOpen ? "Ocultar" : "Mostrar"} vista</button></div>
+          {mobileMapOpen && (step === 2 ? <WalletNotificationPreview title={form.values.title} message={form.values.text} action={form.values.action} branch={currentBranch?.nombre} /> : currentBranch ? (
             <GeoMap
               branch={selectedBranch}
               branches={branchList}

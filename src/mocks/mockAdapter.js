@@ -17,6 +17,7 @@ import { menuHandlers } from "./handlers/menuHandlers";
 import { aiSummaryHandlers, surveyHandlers } from "./handlers/surveyHandlers";
 import { promotionHandlers, segmentHandlers } from "./handlers/segmentHandlers";
 import { referralHandlers } from "./handlers/referralHandlers";
+import { cardFormHandlers } from "./handlers/cardFormHandlers";
 
 /*
  * Servidor de demostración: responde con la misma forma que el backend REST
@@ -42,13 +43,14 @@ const routes = [
   ...aiSummaryHandlers,
   ...segmentHandlers,
   ...promotionHandlers,
-  ...referralHandlers
+  ...referralHandlers,
+  ...cardFormHandlers
 ].map(route => ({
   ...route,
   matcher: new RegExp(`^${route.path.replace(/:(\w+)/g, "(?<$1>[^/]+)")}$`)
 }));
 
-const STATUS_TEXT = { 200: "OK", 201: "Created", 204: "No Content", 400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 409: "Conflict", 422: "Unprocessable Entity", 500: "Internal Server Error" };
+const STATUS_TEXT = { 200: "OK", 201: "Created", 204: "No Content", 400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 409: "Conflict", 422: "Unprocessable Entity", 500: "Internal Server Error", 503: "Service Unavailable" };
 
 function wait(milliseconds, signal) {
   return new Promise((resolve, reject) => {

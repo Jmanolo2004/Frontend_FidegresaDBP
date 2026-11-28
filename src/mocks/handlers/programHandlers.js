@@ -150,6 +150,8 @@ function findProgram(db, id) {
 }
 
 function clientsForProgram(db, program) {
+  // Una tarjeta creada desde el panel empieza en 0: solo cuenta a quienes se registraron en ella.
+  if (program.desdeCero) return db.clientes.filter(customer => customer.qrTokens?.[program.id]);
   const location = db.ubicaciones.find(item => item.nombre === program.negocio);
   return location ? db.clientes.filter(customer => Number(customer.localId) === Number(location.id)) : [];
 }
@@ -266,7 +268,7 @@ export const programHandlers = [
     auth: true,
     handler: ({ body }) => {
       const db = getDatabase();
-      const program = { id: nextId(db.tarjetas), ...sanitizeProgram(body, db) };
+      const program = { id: nextId(db.tarjetas), ...sanitizeProgram(body, db), desdeCero: true };
       db.tarjetas.unshift(program);
       saveDatabase();
       return respond(withMetrics(db, program), 201);
@@ -313,7 +315,9 @@ export const programHandlers = [
         nombre: `Copia de ${current.nombre}`.slice(0, 50),
         estado: "Borrador",
         creadaEn: now,
-        actualizadaEn: now
+        actualizadaEn: now,
+        codigoRegistro: undefined,
+        desdeCero: true
       };
       db.tarjetas.unshift(duplicate);
       saveDatabase();

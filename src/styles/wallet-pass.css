@@ -59,6 +59,8 @@
 /* QR en recuadro blanco, como en Apple Wallet y Google Wallet */
 .pass-qr { display: grid; width: 50cqw; justify-items: center; gap: 1.6cqw; margin: 7cqw auto 9cqw; padding: 4.4cqw 4.4cqw 3.4cqw; border-radius: 5cqw; background: #fff; }
 .pass-qr img { display: block; width: 100%; aspect-ratio: 1; image-rendering: pixelated; }
+.pass-qr .qr-code { display: block; width: 100%; height: auto; }
+.pass-qr span { letter-spacing: .04em; }
 .pass-qr span { color: color-mix(in srgb, var(--pass-bg), #111 65%); font-size: 3.8cqw; font-weight: 700; }
 .wallet-pass-cashback .pass-qr { margin-bottom: 0; }
 .wallet-pass.is-compact .pass-fields { padding-bottom: 5cqw; }

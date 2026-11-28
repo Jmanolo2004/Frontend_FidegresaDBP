@@ -9,5 +9,7 @@ export const loyaltyProgramService = {
   update: (id, program, options) => apiClient.put(`/loyalty-programs/${id}`, program, options).then(response => response.data),
   setStatus: (id, estado, options) => apiClient.patch(`/loyalty-programs/${id}/status`, { estado }, options).then(response => response.data),
   duplicate: (id, options) => apiClient.post(`/loyalty-programs/${id}/duplicate`, {}, options).then(response => response.data),
-  remove: (id, options) => apiClient.delete(`/loyalty-programs/${id}`, options)
+  remove: (id, options) => apiClient.delete(`/loyalty-programs/${id}`, options),
+  /** Enlace público del formulario de registro de la tarjeta: { code, path, url }. */
+  getJoinLink: (id, options) => apiClient.get(`/loyalty-programs/${id}/join-link`, options).then(response => response.data)
 };

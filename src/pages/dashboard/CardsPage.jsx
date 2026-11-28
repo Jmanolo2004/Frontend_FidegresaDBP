@@ -10,6 +10,7 @@ import { PageHeader } from "../../components/common/PageHeader";
 import { SearchInput } from "../../components/common/SearchInput";
 import { Skeleton } from "../../components/common/Skeleton";
 import { CardFront } from "../../components/cards/CardFront";
+import { CardTypeMenu } from "../../components/cards/CardTypeMenu";
 import { CARD_TYPE_CONFIG, CARD_TYPE_KEYS } from "../../components/cards/cardTypes";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
@@ -121,7 +122,9 @@ export default function CardsPage() {
     });
   }, [order, query.data, type]);
   const totals = allPrograms.data || [];
-  const countOf = cardType => totals.filter(card => card.tipo === cardType).length;
+  const typeCounts = allPrograms.data
+    ? Object.fromEntries([["total", totals.length], ...CARD_TYPE_KEYS.map(cardType => [cardType, totals.filter(card => card.tipo === cardType).length])])
+    : {};
   const groupedCards = CARD_TYPE_KEYS
     .filter(cardType => type === "Todas" || type === cardType)
     .map(cardType => ({
@@ -171,34 +174,15 @@ export default function CardsPage() {
       <PageHeader
         title="Tarjetas"
         summary="Diseña y administra los programas digitales de fidelización para tus clientes."
-        actions={<Link className="primary-button" to="/panel/tarjetas/nueva"><Icon name="plus" size={16} />Crear tarjeta</Link>}
+        actions={(
+          <div className="cards-heading-actions">
+            <Link className="primary-button" to="/panel/tarjetas/nueva"><Icon name="plus" size={16} />Crear tarjeta</Link>
+            <CardTypeMenu value={type} counts={typeCounts} onChange={value => updateQuery("tipo", value, "Todas")} />
+          </div>
+        )}
       />
 
       <article className="panel card-gallery-panel">
-        <div className="card-type-tabs" role="tablist" aria-label="Filtrar tarjetas por tipo">
-          {[{ value: "Todas", label: "Todas" }, ...CARD_TYPE_KEYS.map(cardType => ({ value: cardType, label: CARD_TYPE_CONFIG[cardType].label }))].map((tab, index, tabs) => (
-            <button
-              type="button"
-              role="tab"
-              key={tab.value}
-              tabIndex={type === tab.value ? 0 : -1}
-              aria-selected={type === tab.value}
-              className={type === tab.value ? "selected" : ""}
-              onClick={() => updateQuery("tipo", tab.value, "Todas")}
-              onKeyDown={event => {
-                const nextIndex = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index - 1 + tabs.length) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
-                if (nextIndex < 0) return;
-                event.preventDefault();
-                const nextTab = tabs[nextIndex];
-                updateQuery("tipo", nextTab.value, "Todas");
-                event.currentTarget.parentElement.children[nextIndex]?.focus();
-              }}
-            >
-              {tab.label} <span>{tab.value === "Todas" ? totals.length : allPrograms.data ? countOf(tab.value) : "…"}</span>
-            </button>
-          ))}
-        </div>
-
         <div className="card-gallery-toolbar">
           <SearchInput value={search} onSearch={value => updateQuery("q", value)} label="Buscar por nombre de tarjeta o local" placeholder="Buscar tarjeta o local" />
           <FilterSelect value={status} onChange={value => updateQuery("estado", value, "Todos")} options={STATUS_OPTIONS} label="Filtrar tarjetas por estado" />
