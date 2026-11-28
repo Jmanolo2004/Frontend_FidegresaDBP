@@ -17,6 +17,12 @@ export const numberBetween = (min, max, message) => value => {
   return Number.isFinite(number) && number >= min && number <= max ? "" : message;
 };
 
+/** Monto opcional en soles: vacío, o de 0 a 99999.99 con hasta 2 decimales. */
+export const moneyAmount = message => value => {
+  const text = String(value ?? "").trim();
+  return !text || /^\d{1,5}(\.\d{1,2})?$/.test(text) ? "" : message;
+};
+
 export const strongPassword = (message = "Usa al menos una letra y un número.") => value =>
   !value || (/[a-zA-Z]/.test(value) && /\d/.test(value)) ? "" : message;
 

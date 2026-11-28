@@ -1,4 +1,4 @@
-import { apiClient, toPage } from "./apiClient";
+import { API_URL, apiClient, toPage } from "./apiClient";
 import { roundToCents } from "../utils/formatters";
 
 export const PROGRAM_TYPES = {
@@ -49,7 +49,81 @@ export function normalizeCard(card) {
     points: toNumber(card.points),
     level: toNumber(card.level, 1),
     giftBalance: toNumber(card.giftBalance),
-    giftInitialAmount: toNumber(card.giftInitialAmount)
+    giftInitialAmount: toNumber(card.giftInitialAmount),
+    // Lo que calcula el backend con las reglas del programa: dato principal, avance ("Te faltan 2 sellos…") y si ya completó.
+    display: card.display ?? null,
+    // Promociones vigentes para este cliente que el cajero puede aplicar.
+    promotions: (card.promotions ?? []).map(promotion => ({
+      id: promotion.id,
+      name: promotion.name ?? "Promoción",
+      description: promotion.description ?? "",
+      discountType: promotion.discountType,
+      discountValue: toNumber(promotion.discountValue),
+      discountLabel: promotion.discountLabel ?? "",
+      endsOn: promotion.endsOn ?? null
+    }))
+  };
+}
+
+/** Descuento que dará una promoción sobre una compra (el backend lo vuelve a calcular al aplicarlo). */
+export function previewDiscount(promotion, amount) {
+  if (!promotion || !Number.isFinite(amount) || amount <= 0) return 0;
+  const raw = promotion.discountType === "PERCENT" ? (amount * promotion.discountValue) / 100 : Math.min(promotion.discountValue, amount);
+  return roundToCents(raw);
+}
+
+/** Enlace corto que crea el pase y abre "Guardar en Google Wallet"; se muestra como QR para el celular del cliente. */
+export function walletSaveUrl(qrToken) {
+  return qrToken ? `${API_URL}/public/cards/${encodeURIComponent(qrToken)}/google-wallet/save` : null;
+}
+
+/** GET /branches/{id}/registration-options → programas a los que se puede unir el cliente en el local y el texto de consentimiento. */
+export async function getRegistrationOptions(branchId, { signal } = {}) {
+  const { data } = await apiClient.get(`/branches/${branchId}/registration-options`, { signal });
+  return {
+    branchName: data.branchName ?? "",
+    consentText: data.consentText ?? "",
+    programs: (data.programs ?? []).map(program => ({
+      id: program.id,
+      name: program.name ?? "Programa",
+      type: program.type,
+      color: /^#[0-9a-f]{6}$/i.test(program.primaryColor ?? "") ? program.primaryColor : null
+    }))
+  };
+}
+
+/**
+ * POST /cards/register → registra al cliente (con su consentimiento) y le entrega su tarjeta.
+ * Devuelve { alreadyRegistered, card, walletSaveUrl, inviteLink }.
+ */
+export async function registerCustomer({ branchId, programId, fullName, email, phone, birthday, consent, referralCode }) {
+  const { data } = await apiClient.post("/cards/register", {
+    branchId,
+    programId,
+    fullName,
+    email,
+    phone,
+    birthday: birthday || null,
+    consent,
+    referralCode: referralCode || null
+  });
+  return {
+    alreadyRegistered: Boolean(data.alreadyRegistered),
+    card: normalizeCard(data.card),
+    walletSaveUrl: data.walletSaveUrl ?? null,
+    inviteLink: data.inviteLink ?? null
+  };
+}
+
+/** POST /cards/{id}/discounts { branchId, promotionId, amount } → descuento aplicado y la tarjeta actualizada. */
+export async function applyDiscount(cardId, { branchId, promotionId, amount }) {
+  const { data } = await apiClient.post(`/cards/${cardId}/discounts`, { branchId, promotionId, amount: roundToCents(amount) });
+  return {
+    promotionName: data.promotionName ?? "Promoción",
+    purchaseAmount: toNumber(data.purchaseAmount),
+    discount: toNumber(data.discount),
+    total: toNumber(data.total),
+    card: normalizeCard(data.card)
   };
 }
 

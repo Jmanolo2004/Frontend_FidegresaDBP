@@ -63,7 +63,7 @@ test("los cambios de otra pestaña invalidan la base simulada en memoria", () =>
   const changed = JSON.parse(stored);
   changed.usuarios = [];
   stored = JSON.stringify(changed);
-  storageListener({ key: "fidegresa-demo-db-v8" });
+  storageListener({ key: "fidegresa-demo-db-v9" });
   assert.notEqual(getDatabase(), previous);
   assert.deepEqual(getDatabase().usuarios, []);
 });

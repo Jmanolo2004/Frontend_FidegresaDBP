@@ -5,7 +5,7 @@ import { ConfirmSheet } from "../ConfirmSheet";
 import { TextField } from "../TextField";
 import { parseAmount, validateAmount } from "../../utils/validation";
 import { formatSoles } from "../../utils/formatters";
-import { colors, radius, spacing } from "../../utils/theme";
+import { colors, fonts, radius, spacing } from "../../utils/theme";
 
 /**
  * Bloque reutilizable: el cajero ingresa un monto en soles, ve qué pasará y confirma.
@@ -91,5 +91,5 @@ const styles = StyleSheet.create({
   wrapper: { gap: spacing.md },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: { paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white },
-  chipText: { fontSize: 14, fontWeight: "700", color: colors.coffee }
+  chipText: { fontFamily: fonts.bold, fontSize: 14, color: colors.coffee }
 });

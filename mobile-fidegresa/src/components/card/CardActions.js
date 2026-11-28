@@ -4,9 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppButton } from "../AppButton";
 import { ConfirmSheet } from "../ConfirmSheet";
 import { AmountAction } from "./AmountAction";
-import { PROGRAM_TYPES } from "../../services/cardService";
+import { PROGRAM_TYPES, previewDiscount } from "../../services/cardService";
 import { formatSoles, roundToCents } from "../../utils/formatters";
-import { colors, radius, spacing, typography } from "../../utils/theme";
+import { colors, fonts, radius, spacing, typography } from "../../utils/theme";
 
 /** Acciones del cajero según el tipo de programa de la tarjeta escaneada. */
 export function CardActions({ card, actions, mode = "card" }) {
@@ -25,6 +25,7 @@ export function CardActions({ card, actions, mode = "card" }) {
           Elige tu local en la pestaña Escanear para poder registrar movimientos.
         </Notice>
       ) : null}
+      {card.promotions?.length ? <PromotionsActions card={card} actions={actions} /> : null}
       {card.type === PROGRAM_TYPES.CASHBACK ? <CashbackActions card={card} actions={actions} initialMode={mode === "reward" ? "use" : "earn"} /> : null}
       {card.type === PROGRAM_TYPES.LEVELS ? <LevelsActions card={card} actions={actions} /> : null}
       {card.type === PROGRAM_TYPES.GIFT_CARD ? <GiftCardActions card={card} actions={actions} /> : null}
@@ -104,6 +105,55 @@ function StampsActions({ card, actions }) {
         loading={actions.pendingAction === "stamps" || actions.pendingAction === "redeem"}
         onConfirm={runConfirmed}
         onCancel={() => setConfirm(null)}
+      />
+    </Section>
+  );
+}
+
+/** Promociones vigentes del cliente: el cajero elige una, escribe el monto de la compra y el backend calcula el descuento. */
+function PromotionsActions({ card, actions }) {
+  const [promotionId, setPromotionId] = useState(null);
+  const selected = card.promotions.find(promotion => promotion.id === promotionId) ?? card.promotions[0];
+
+  return (
+    <Section title={card.promotions.length === 1 ? "Promoción para este cliente" : "Promociones para este cliente"}>
+      {card.promotions.length > 1 ? (
+        <View style={styles.chips}>
+          {card.promotions.map(promotion => (
+            <Pressable
+              key={promotion.id}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: promotion.id === selected.id }}
+              onPress={() => setPromotionId(promotion.id)}
+              style={[styles.chip, promotion.id === selected.id && styles.chipSelected]}
+            >
+              <Text style={[styles.chipText, promotion.id === selected.id && styles.chipTextSelected]}>
+                {promotion.discountLabel} · {promotion.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      <Notice icon="pricetag-outline" tone="success">
+        {selected.name}: {selected.discountLabel} de descuento{selected.description ? `. ${selected.description}` : ""}
+      </Notice>
+      <AmountAction
+        key={selected.id}
+        label="Monto de la compra"
+        buttonLabel="Aplicar descuento"
+        buttonIcon="pricetag-outline"
+        describe={amount => {
+          const discount = previewDiscount(selected, amount);
+          return `Descuento ${formatSoles(discount)} · Cobrar ${formatSoles(roundToCents(amount - discount))}.`;
+        }}
+        confirmTitle="¿Aplicar la promoción?"
+        confirmMessage={amount => {
+          const discount = previewDiscount(selected, amount);
+          return `${selected.name} para ${card.customer.fullName}: compra de ${formatSoles(amount)}, descuento de ${formatSoles(discount)}. Cobra ${formatSoles(roundToCents(amount - discount))}.`;
+        }}
+        loading={actions.pendingAction === "discount"}
+        disabled={!actions.hasBranch}
+        onSubmit={amount => actions.applyDiscount(selected, amount)}
       />
     </Section>
   );
@@ -239,7 +289,10 @@ function GiftCardActions({ card, actions }) {
 function Section({ title, children }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionHead}>
+        <View style={styles.sectionMark} />
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
       {children}
     </View>
   );
@@ -287,24 +340,26 @@ function Notice({ icon, tone = "warning", children }) {
 const styles = StyleSheet.create({
   wrapper: { gap: spacing.lg },
   section: { backgroundColor: colors.paper, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, padding: spacing.lg, gap: spacing.md },
-  sectionTitle: typography.subtitle,
+  sectionHead: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  sectionMark: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.caramel },
+  sectionTitle: { ...typography.title, flex: 1 },
   caption: { ...typography.body, color: colors.muted },
   notice: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.md, borderRadius: radius.md },
-  noticeText: { flex: 1, fontSize: 14, fontWeight: "600", lineHeight: 19 },
+  noticeText: { flex: 1, fontSize: 14, fontFamily: fonts.semibold, lineHeight: 19 },
   stepperRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  stepperLabel: { ...typography.body, fontWeight: "600" },
+  stepperLabel: { ...typography.body, fontFamily: fonts.semibold },
   stepper: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  stepperButton: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
-  stepperDisabled: { opacity: 0.4 },
-  stepperValue: { fontSize: 22, fontWeight: "800", minWidth: 28, textAlign: "center", color: colors.ink },
-  segmented: { flexDirection: "row", backgroundColor: colors.cream, borderRadius: radius.md, padding: 4 },
-  segment: { flex: 1, minHeight: 42, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" },
-  segmentSelected: { backgroundColor: colors.white, elevation: 1, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } },
-  segmentText: { fontSize: 14, fontWeight: "600", color: colors.muted },
-  segmentTextSelected: { color: colors.espresso, fontWeight: "800" },
+  stepperButton: { width: 46, height: 46, borderRadius: 23, borderWidth: 2, borderColor: colors.ink, backgroundColor: colors.paper, alignItems: "center", justifyContent: "center" },
+  stepperDisabled: { opacity: 0.3 },
+  stepperValue: { fontFamily: fonts.displayHeavy, fontSize: 30, lineHeight: 34, minWidth: 34, textAlign: "center", color: colors.ink },
+  segmented: { flexDirection: "row", backgroundColor: colors.espresso, borderRadius: radius.md, padding: 4 },
+  segment: { flex: 1, minHeight: 44, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  segmentSelected: { backgroundColor: colors.caramel },
+  segmentText: { fontSize: 15, fontFamily: fonts.semibold, color: colors.onDarkSoft },
+  segmentTextSelected: { color: colors.espresso, fontFamily: fonts.bold },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  chip: { paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.white },
-  chipSelected: { backgroundColor: colors.espresso, borderColor: colors.espresso },
-  chipText: { fontSize: 14, fontWeight: "700", color: colors.coffee },
-  chipTextSelected: { color: colors.cream }
+  chip: { paddingHorizontal: spacing.md, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.white },
+  chipSelected: { backgroundColor: colors.caramel, borderColor: colors.caramel },
+  chipText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.muted },
+  chipTextSelected: { color: colors.espresso, fontFamily: fonts.bold }
 });

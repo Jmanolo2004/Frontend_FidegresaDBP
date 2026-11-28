@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppButton } from "./AppButton";
 import { useAsync } from "../hooks/useAsync";
 import { CARD_TYPE_OPTIONS, getCardsByType } from "../services/programService";
-import { colors, radius, spacing, typography } from "../utils/theme";
+import { colors, fonts, radius, spacing, typography } from "../utils/theme";
 
 /**
  * Registro sin cámara: el cajero elige el tipo de tarjeta (estampillas, cashback, niveles o gift card)
@@ -145,9 +145,10 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.paper
   },
-  backText: { fontSize: 15, fontWeight: "700", color: colors.espresso },
+  backText: { fontFamily: fonts.bold, fontSize: 15, color: colors.espresso },
   listTitle: { ...typography.title },
   search: {
+    fontFamily: fonts.regular,
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: radius.md,
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     padding: spacing.md
   },
   avatar: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  avatarText: { color: colors.white, fontWeight: "700" },
+  avatarText: { fontFamily: fonts.bold, color: colors.white },
   rowBody: { flex: 1, gap: 2 },
   rowTitle: { ...typography.subtitle },
   rowText: { ...typography.caption }

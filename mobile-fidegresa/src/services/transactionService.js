@@ -9,12 +9,14 @@ export const TRANSACTION_LABELS = {
   POINTS_EARNED: "Puntos sumados",
   LEVEL_UP: "Subió de nivel",
   GIFT_CHARGE: "Cobro con gift card",
-  BALANCE_CHARGE: "Saldo usado"
+  BALANCE_CHARGE: "Saldo usado",
+  DISCOUNT: "Descuento de promoción",
+  REFERRAL_BONUS: "Premio por referido"
 };
 
 /** Indica si el movimiento suma (true) o descuenta (false) para mostrar el signo. */
 export function isCreditTransaction(type) {
-  return ["STAMP", "PURCHASE", "CASHBACK_EARNED", "POINTS_EARNED", "LEVEL_UP"].includes(type);
+  return ["STAMP", "PURCHASE", "CASHBACK_EARNED", "POINTS_EARNED", "LEVEL_UP", "REFERRAL_BONUS"].includes(type);
 }
 
 function normalizeTransaction(transaction) {
@@ -34,10 +36,12 @@ function normalizeTransaction(transaction) {
   };
 }
 
-/** GET /transactions?branchId&page&size → movimientos registrados por el equipo. */
-export async function getTransactions({ branchId, page = 0, size = 15, signal } = {}) {
+/** GET /transactions?branchId&programType&programId&page&size → movimientos del equipo, por local y por tarjeta. */
+export async function getTransactions({ branchId, programType, programId, page = 0, size = 15, signal } = {}) {
   const params = { page, size, sort: "createdAt,desc" };
   if (branchId) params.branchId = branchId;
+  if (programId) params.programId = programId;
+  else if (programType) params.programType = programType;
   const { data } = await apiClient.get("/transactions", { params, signal });
   const result = toPage(data);
   return { ...result, items: result.items.map(normalizeTransaction) };

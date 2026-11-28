@@ -25,8 +25,8 @@ const STATUS_OPTIONS = [
   { value: "LIMIT_REACHED", label: "Tope del mes" }
 ];
 const PILL = { PENDING: "pending", REWARDED: "active", LIMIT_REACHED: "inactive" };
-// Para el ranking se leen las invitaciones más recientes (el backend entrega hasta 100 por página).
-const RANKING_SAMPLE = 100;
+// Puestos del ranking de embajadoras (el backend cuenta todas las invitaciones).
+const RANKING_SIZE = 5;
 
 function Change({ current, previous }) {
   if (previous == null) return null;
@@ -36,18 +36,6 @@ function Change({ current, previous }) {
 }
 
 Change.propTypes = { current: PropTypes.number, previous: PropTypes.number };
-
-/** Clientes que más amigas trajeron, contando las invitaciones recientes. */
-function buildRanking(items) {
-  const byPerson = new Map();
-  items.forEach(item => {
-    const row = byPerson.get(item.referrerId) || { id: item.referrerId, name: item.referrerName, invited: 0, converted: 0 };
-    row.invited += 1;
-    if (item.status !== "PENDING") row.converted += 1;
-    byPerson.set(item.referrerId, row);
-  });
-  return [...byPerson.values()].sort((a, b) => b.converted - a.converted || b.invited - a.invited || a.name.localeCompare(b.name)).slice(0, 5);
-}
 
 function SettingsRow({ item, onSaved }) {
   const { showToast } = useToast();
@@ -109,13 +97,12 @@ export default function ReferralsPage() {
   const [size, setSize] = useState(10);
   const stats = useFetch(({ signal }) => referralService.getStats({}, { signal }), []);
   const list = useFetch(({ signal }) => referralService.getPage({ status, page, size }, { signal }), [status, page, size]);
-  const recent = useFetch(({ signal }) => referralService.getPage({ size: RANKING_SAMPLE }, { signal }), []);
+  const recent = useFetch(({ signal }) => referralService.getRanking({ limit: RANKING_SIZE }, { signal }), []);
   const settings = useFetch(({ signal }) => referralService.getSettings({ signal }), []);
 
   const totals = stats.data?.totals;
   const previous = stats.data?.previous;
-  const ranking = recent.data ? buildRanking(recent.data.content) : null;
-  const sampled = recent.data && recent.data.totalElements > RANKING_SAMPLE;
+  const ranking = recent.data ?? null;
   const activePrograms = settings.data?.filter(item => item.enabled).length ?? 0;
 
   return (
@@ -165,7 +152,6 @@ export default function ReferralsPage() {
               ))}
             </ol>
           )}
-          {sampled && <p className="rf-note">Calculado con las últimas {RANKING_SAMPLE} invitaciones.</p>}
         </article>
 
         <article className="panel rf-settings">

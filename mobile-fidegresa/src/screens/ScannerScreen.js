@@ -11,7 +11,7 @@ import { CardTypePicker } from "../components/CardTypePicker";
 import { useToast } from "../hooks/useToast";
 import { useBranch } from "../hooks/useBranch";
 import { extractCardToken } from "../utils/qrPayload";
-import { colors, programColors, radius, spacing, typography } from "../utils/theme";
+import { colors, fonts, programColors, radius, spacing, typography } from "../utils/theme";
 
 const FRAME_SIZE = 250;
 
@@ -148,48 +148,74 @@ export function ScannerScreen() {
   } else {
     // Pantalla principal del staff: escanear tarjeta o escanear recompensa. El tipo de tarjeta se detecta solo con el QR.
     body = (
-      <ScrollView contentContainerStyle={styles.fallback} keyboardShouldPersistTaps="handled">
-        <Text style={styles.fallbackTitle}>¿Qué quieres hacer?</Text>
-        <Text style={styles.fallbackText}>
-          {canUseCamera
-            ? "Escanea el QR del cliente. La app reconoce sola si es de estampillas, cashback, niveles o gift card."
-            : "Este equipo no tiene cámara disponible. Busca al cliente en la lista de abajo."}
-        </Text>
+      <ScrollView style={styles.sheet} contentContainerStyle={styles.sheetContent} keyboardShouldPersistTaps="handled">
+        {!canUseCamera ? (
+          <View style={styles.noCamera}>
+            <Ionicons name="videocam-off-outline" size={18} color={colors.warning} />
+            <Text style={styles.noCameraText}>Este equipo no tiene cámara disponible. Busca al cliente en la lista de abajo.</Text>
+          </View>
+        ) : null}
 
-        <ActionTile
-          icon="scan-outline"
-          title="Escanear tarjeta"
-          text="Suma sellos, cashback o puntos por la compra."
-          color={colors.espresso}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Escanear tarjeta"
+          accessibilityHint="Abre la cámara para leer el QR del cliente"
+          accessibilityState={{ disabled: !canUseCamera }}
           disabled={!canUseCamera}
           onPress={() => openCamera("card")}
-        />
-        <ActionTile
-          icon="gift-outline"
-          title="Escanear recompensa"
-          text="Canjea el premio, usa el saldo o cobra con gift card."
-          color={colors.caramel}
-          disabled={!canUseCamera}
-          onPress={() => openCamera("reward")}
-        />
-
-        <View style={styles.typesRow}>
-          {TYPE_CHIPS.map(chip => (
-            <View key={chip.label} style={[styles.typeChip, { backgroundColor: chip.color }]}>
-              <Text style={styles.typeChipText}>{chip.label}</Text>
+          style={({ pressed }) => [styles.mainTile, { opacity: !canUseCamera ? 0.45 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+        >
+          <View style={styles.mainTileTop}>
+            <View style={styles.mainIcon}>
+              <Ionicons name="scan" size={30} color={colors.caramel} />
             </View>
-          ))}
+            <Ionicons name="arrow-forward" size={26} color={colors.espresso} />
+          </View>
+          <Text style={styles.mainTitle}>Escanear tarjeta</Text>
+          <Text style={styles.mainText}>Suma sellos, cashback o puntos por la compra.</Text>
+        </Pressable>
+
+        <View style={styles.tileRow}>
+          <SmallTile
+            icon="gift-outline"
+            title="Canjear recompensa"
+            text="Premio, saldo o gift card"
+            background={colors.kraft}
+            ink={colors.espresso}
+            disabled={!canUseCamera}
+            onPress={() => openCamera("reward")}
+          />
+          <SmallTile
+            icon="people-outline"
+            title="Programa de referidos"
+            text="Invita a otros negocios a Fidegresa"
+            background={colors.success}
+            ink={colors.onDark}
+            onPress={() => router.push("/referrals")}
+          />
+        </View>
+
+        <View style={styles.ticker} accessibilityLabel="La app reconoce sola tarjetas de estampillas, cashback, niveles y gift card">
+          <Text style={styles.tickerLabel}>Reconoce sola</Text>
+          <View style={styles.tickerItems}>
+            {TYPE_CHIPS.map((chip, index) => (
+              <View key={chip.label} style={styles.tickerItem}>
+                {index > 0 ? <Ionicons name="star" size={11} color="#6b2f14" /> : null}
+                <Text style={styles.tickerText}>{chip.label}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <Pressable
           accessibilityRole="button"
           onPress={() => setListOpen(value => !value || !canUseCamera)}
-          style={styles.listToggle}
+          style={({ pressed }) => [styles.listToggle, pressed && { opacity: 0.75 }]}
           hitSlop={8}
         >
-          <Ionicons name="people-outline" size={18} color={colors.coffee} />
+          <Ionicons name="people-outline" size={18} color={colors.ink} />
           <Text style={styles.listToggleText}>{listOpen || !canUseCamera ? "Buscar cliente sin cámara" : "¿Sin cámara? Buscar cliente"}</Text>
-          <Ionicons name={listOpen || !canUseCamera ? "chevron-up" : "chevron-down"} size={18} color={colors.coffee} />
+          <Ionicons name={listOpen || !canUseCamera ? "chevron-up" : "chevron-down"} size={18} color={colors.ink} />
         </Pressable>
         {listOpen || !canUseCamera ? (
           <View style={styles.manualCard}>
@@ -203,7 +229,12 @@ export function ScannerScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <View style={styles.top}>
-        <Text style={styles.title}>Escanear tarjeta</Text>
+        {cameraOpen ? null : (
+          <>
+            <Text style={styles.eyebrow}>Fidegresa · Caja</Text>
+            <Text style={styles.title}>Escanea, suma{"\n"}y premia.</Text>
+          </>
+        )}
         <BranchBar />
       </View>
       {body}
@@ -218,7 +249,7 @@ const TYPE_CHIPS = [
   { label: "Gift card", color: programColors.GIFT_CARD }
 ];
 
-function ActionTile({ icon, title, text, color, onPress, disabled }) {
+function SmallTile({ icon, title, text, background, ink, onPress, disabled = false }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -226,16 +257,13 @@ function ActionTile({ icon, title, text, color, onPress, disabled }) {
       accessibilityState={{ disabled }}
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [styles.tile, { backgroundColor: color, opacity: disabled ? 0.45 : pressed ? 0.88 : 1 }]}
+      style={({ pressed }) => [styles.smallTile, { backgroundColor: background, opacity: disabled ? 0.45 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
     >
-      <View style={styles.tileIcon}>
-        <Ionicons name={icon} size={28} color={color} />
+      <Ionicons name={icon} size={26} color={ink} />
+      <View style={styles.smallBody}>
+        <Text style={[styles.smallTitle, { color: ink }]}>{title}</Text>
+        <Text style={[styles.smallText, { color: ink }]}>{text}</Text>
       </View>
-      <View style={styles.tileBody}>
-        <Text style={styles.tileTitle}>{title}</Text>
-        <Text style={styles.tileText}>{text}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={22} color={colors.white} />
     </Pressable>
   );
 }
@@ -251,9 +279,10 @@ function RoundButton({ icon, label, onPress }) {
 const CORNER = 34;
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.espresso },
-  top: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, gap: spacing.md },
-  title: { ...typography.title, color: colors.cream },
-  cameraWrap: { flex: 1, backgroundColor: "#000", overflow: "hidden", borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
+  top: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.lg, gap: spacing.sm },
+  eyebrow: { ...typography.label, color: colors.caramel },
+  title: { ...typography.hero, marginBottom: spacing.sm },
+  cameraWrap: { flex: 1, backgroundColor: "#000", overflow: "hidden", borderTopLeftRadius: 28, borderTopRightRadius: 28 },
   overlay: { flex: 1, justifyContent: "space-between" },
   frameArea: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg },
   frame: { width: FRAME_SIZE, height: FRAME_SIZE },
@@ -262,31 +291,30 @@ const styles = StyleSheet.create({
   cornerTR: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 14 },
   cornerBL: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 14 },
   cornerBR: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 14 },
-  hint: { color: colors.white, fontSize: 15, fontWeight: "700", backgroundColor: "rgba(0,0,0,0.5)", paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.pill, overflow: "hidden" },
+  hint: { color: colors.white, fontSize: 15, fontFamily: fonts.semibold, backgroundColor: "rgba(0,0,0,0.55)", paddingHorizontal: spacing.lg, paddingVertical: 8, borderRadius: radius.pill, overflow: "hidden" },
   controls: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.lg },
-  roundButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: colors.cream, alignItems: "center", justifyContent: "center" },
+  roundButton: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.onDark, alignItems: "center", justifyContent: "center" },
   manualButton: { flex: 1 },
-  tile: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: spacing.md, borderRadius: radius.lg, padding: spacing.lg, minHeight: 92 },
-  tileIcon: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.white, alignItems: "center", justifyContent: "center" },
-  tileBody: { flex: 1, gap: 2 },
-  tileTitle: { color: colors.white, fontSize: 19, fontWeight: "800" },
-  tileText: { color: "rgba(255,255,255,0.85)", fontSize: 14 },
-  typesRow: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: spacing.sm, marginTop: spacing.xs },
-  typeChip: { paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.pill },
-  typeChipText: { color: colors.white, fontSize: 12, fontWeight: "800" },
-  listToggle: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: spacing.sm, marginTop: spacing.sm },
-  listToggleText: { fontSize: 15, fontWeight: "700", color: colors.coffee },
-  fallback: { flexGrow: 1, alignItems: "center", padding: spacing.xl, gap: spacing.md, backgroundColor: colors.cream, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
-  fallbackIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.white, alignItems: "center", justifyContent: "center", marginTop: spacing.lg },
-  fallbackTitle: { ...typography.title, textAlign: "center" },
-  fallbackText: { ...typography.body, color: colors.muted, textAlign: "center", lineHeight: 21 },
-  fallbackButton: { alignSelf: "stretch" },
-  divider: { flexDirection: "row", alignItems: "center", gap: spacing.sm, alignSelf: "stretch", marginTop: spacing.md },
-  dividerLine: { flex: 1, height: 1, backgroundColor: colors.line },
-  dividerText: { ...typography.caption },
-  manualCard: { alignSelf: "stretch", backgroundColor: colors.paper, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.line },
-  modalBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: colors.overlay },
-  sheet: { backgroundColor: colors.cream, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, padding: spacing.xl, gap: spacing.lg },
-  sheetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  sheetTitle: typography.title
+  sheet: { flex: 1, backgroundColor: colors.cream, borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+  sheetContent: { padding: spacing.lg, paddingTop: spacing.xl, gap: spacing.md, paddingBottom: spacing.xxl },
+  noCamera: { flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.warningSoft, borderRadius: radius.md, padding: spacing.md },
+  noCameraText: { flex: 1, fontFamily: fonts.semibold, fontSize: 14, lineHeight: 19, color: colors.warning },
+  mainTile: { backgroundColor: colors.caramel, borderRadius: 24, padding: spacing.xl, gap: spacing.xs },
+  mainTileTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.lg },
+  mainIcon: { width: 58, height: 58, borderRadius: 29, backgroundColor: colors.espresso, alignItems: "center", justifyContent: "center" },
+  mainTitle: { fontFamily: fonts.displayHeavy, fontSize: 30, lineHeight: 33, letterSpacing: -0.6, color: colors.espresso },
+  mainText: { fontFamily: fonts.medium, fontSize: 15, lineHeight: 20, color: colors.espresso, opacity: 0.85 },
+  tileRow: { flexDirection: "row", gap: spacing.md },
+  smallTile: { flex: 1, minHeight: 138, borderRadius: 22, padding: spacing.lg, justifyContent: "space-between", gap: spacing.md },
+  smallBody: { gap: 2 },
+  smallTitle: { fontFamily: fonts.display, fontSize: 18, lineHeight: 21 },
+  smallText: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 17, opacity: 0.85 },
+  ticker: { backgroundColor: colors.kraftSoft, borderRadius: 18, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, gap: 6 },
+  tickerLabel: { ...typography.label, color: colors.muted },
+  tickerItems: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 4 },
+  tickerItem: { flexDirection: "row", alignItems: "center", gap: 8 },
+  tickerText: { fontFamily: fonts.display, fontSize: 17, color: colors.espresso },
+  listToggle: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 48, borderRadius: radius.pill, borderWidth: 2, borderColor: colors.ink, marginTop: spacing.xs },
+  listToggleText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
+  manualCard: { alignSelf: "stretch", backgroundColor: colors.paper, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.line }
 });

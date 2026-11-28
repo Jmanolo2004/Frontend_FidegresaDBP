@@ -4,15 +4,28 @@ import * as cardService from "../services/cardService";
 import { useBranch } from "./useBranch";
 import { useToast } from "./useToast";
 import { formatSoles } from "../utils/formatters";
-import { syncWalletPass } from "../services/walletSync";
 
 function levelName(card) {
   return card.program.levels.find(level => level.number === card.level)?.name || `Nivel ${card.level}`;
 }
 
+/** Texto de avance que calcula el backend ("Te faltan 2 sellos para: Un café gratis"), si llegó. */
+function progress(card) {
+  const text = card.display?.progressText;
+  return text ? ` ${text}.` : "";
+}
+
+/** ¿El movimiento completó la tarjeta o subió de nivel? Se celebra con una vibración más fuerte. */
+function milestone(before, after) {
+  if (after.type === cardService.PROGRAM_TYPES.LEVELS && after.level > before.level) return `¡Subió a ${levelName(after)}!`;
+  if (after.type === cardService.PROGRAM_TYPES.STAMPS && after.display?.completed && !before.display?.completed) return "¡Completó su tarjeta!";
+  return null;
+}
+
 /**
  * Operaciones del cajero sobre una tarjeta. Cada acción valida que haya un local elegido,
  * evita el doble envío y devuelve la tarjeta actualizada por el backend.
+ * El pase de Google Wallet del cliente lo actualiza el backend solo, después de cada movimiento.
  */
 export function useCardActions(card, onCardUpdated) {
   const { selectedBranch } = useBranch();
@@ -28,15 +41,18 @@ export function useCardActions(card, onCardUpdated) {
       }
       setPendingAction(actionName);
       try {
-        const updated = await request(selectedBranch.id);
+        const result = await request(selectedBranch.id);
+        const updated = result.card ?? result;
         onCardUpdated(updated);
-        // El pase de Google Wallet del cliente se actualiza en segundo plano con los nuevos valores.
-        syncWalletPass(updated.qrToken).then(result => {
-          if (result.updated) toast.success(result.message);
-          else if (result.message) toast.error(result.message);
-        });
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-        toast.success(typeof successMessage === "function" ? successMessage(updated) : successMessage);
+        const celebration = milestone(card, updated);
+        if (celebration) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {}), 180);
+        } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        }
+        const message = typeof successMessage === "function" ? successMessage(updated, result) : successMessage;
+        toast.success(celebration ? `${celebration} ${message}` : message);
         return true;
       } catch (error) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
@@ -54,18 +70,18 @@ export function useCardActions(card, onCardUpdated) {
       "stamps",
       branchId => cardService.addStamps(card.id, { branchId, quantity }),
       updated =>
-        `${quantity === 1 ? "Acumulaste una estampilla" : `Acumulaste ${quantity} estampillas`}. Lleva ${Math.min(updated.stampBalance, updated.program.requiredStamps)} de ${updated.program.requiredStamps}.`
+        `${quantity === 1 ? "Sello agregado" : `${quantity} sellos agregados`}: lleva ${Math.min(updated.stampBalance, updated.program.requiredStamps)} de ${updated.program.requiredStamps}.${progress(updated)}`
     );
 
   const redeemReward = reward =>
     execute("redeem", branchId => cardService.redeemReward(card.id, { branchId, rewardId: reward?.id ?? null }), `Premio canjeado: ${reward?.name ?? "premio del programa"}.`);
 
-  // Cashback: cuánto ganó y su saldo. Niveles: puntos sumados y el nivel en el que quedó.
+  // Cashback: cuánto ganó y su saldo. Niveles: puntos sumados y lo que le falta para el siguiente nivel.
   const registerPurchase = amount =>
     execute("purchase", branchId => cardService.registerPurchase(card.id, { branchId, amount }), updated =>
       updated.type === cardService.PROGRAM_TYPES.LEVELS
-        ? `Sumaste ${updated.points - card.points} puntos. Nivel actual: ${levelName(updated)} (${updated.points} pts).${updated.level > card.level ? " ¡Subió de nivel!" : ""}`
-        : `Cashback acumulado: +${formatSoles(updated.cashbackBalance - card.cashbackBalance)}. Saldo de la tarjeta: ${formatSoles(updated.cashbackBalance)}.`
+        ? `Sumó ${updated.points - card.points} puntos (${updated.points} en total).${progress(updated)}`
+        : `Cashback ganado: +${formatSoles(updated.cashbackBalance - card.cashbackBalance)}. Saldo: ${formatSoles(updated.cashbackBalance)}.`
     );
 
   // Cashback o gift card: cuánto se descontó y el saldo que le queda al cliente.
@@ -76,10 +92,18 @@ export function useCardActions(card, onCardUpdated) {
         : `Usaste ${formatSoles(amount)} de cashback. Saldo restante: ${formatSoles(updated.cashbackBalance)}.`
     );
 
+  // Promoción: el backend calcula el descuento; el cajero cobra el total que devuelve.
+  const applyDiscount = (promotion, amount) =>
+    execute(
+      "discount",
+      branchId => cardService.applyDiscount(card.id, { branchId, promotionId: promotion.id, amount }),
+      (updated, result) => `${result.promotionName}: descuento de ${formatSoles(result.discount)}. Cobra ${formatSoles(result.total)}.`
+    );
+
   const toggleBlocked = () => {
     const nextStatus = card.status === "BLOCKED" ? "ACTIVE" : "BLOCKED";
     return execute("status", () => cardService.updateCardStatus(card.id, nextStatus), nextStatus === "BLOCKED" ? "Tarjeta bloqueada." : "Tarjeta reactivada.");
   };
 
-  return { pendingAction, hasBranch: Boolean(selectedBranch), addStamps, redeemReward, registerPurchase, chargeBalance, toggleBlocked };
+  return { pendingAction, hasBranch: Boolean(selectedBranch), addStamps, redeemReward, registerPurchase, chargeBalance, applyDiscount, toggleBlocked };
 }

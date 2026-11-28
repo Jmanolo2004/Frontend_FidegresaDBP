@@ -26,10 +26,10 @@ const SECTIONS = [
   },
   {
     icon: "gift-outline",
-    title: "3. Escanear recompensa (canjear)",
+    title: "3. Canjear recompensa",
     steps: [
       "Úsalo cuando el cliente quiere usar su premio o su saldo.",
-      "Toca «Escanear recompensa» y escanea su QR. Arriba verás un aviso con lo que puede canjear.",
+      "Toca «Canjear recompensa» y escanea su QR. Arriba verás un aviso con lo que puede canjear.",
       "Si todavía no le alcanza (por ejemplo, le faltan sellos), el aviso te lo dice y no se registra nada."
     ]
   },
@@ -44,8 +44,28 @@ const SECTIONS = [
     ]
   },
   {
+    icon: "person-add-outline",
+    title: "5. Registrar cliente nuevo",
+    steps: [
+      "Escanea su código: si todavía no es cliente, la app te dice «No encontramos esta tarjeta» y te ofrece «Registrar cliente nuevo».",
+      "Escribe su nombre, celular y correo. El cumpleaños y el código de un amigo que lo invitó son opcionales.",
+      "Elige el programa del local al que se une, léele el texto de uso de datos y marca la casilla solo si acepta.",
+      "Al registrar, muéstrale el QR para que guarde su tarjeta en Google Wallet o envíaselo por WhatsApp. Si ya era cliente, la app te muestra su tarjeta.",
+      "Toca «Registrar su primera visita» para sumarle su primer sello o compra."
+    ]
+  },
+  {
+    icon: "pricetag-outline",
+    title: "6. Promociones",
+    steps: [
+      "Si el cliente tiene una promoción vigente, aparece arriba de las acciones de su tarjeta.",
+      "Escribe el monto de la compra: la app te muestra el descuento y cuánto cobrar. Confirma para aplicarla.",
+      "Cada promoción se puede usar una vez al día. Si te equivocas, anúlala en «Últimos movimientos»."
+    ]
+  },
+  {
     icon: "people-outline",
-    title: "5. Sin cámara",
+    title: "7. Sin cámara",
     steps: [
       "Si la cámara no funciona, en Escanear toca «¿Sin cámara? Buscar cliente».",
       "Elige el tipo de tarjeta y luego al cliente de la lista (puedes buscarlo por nombre)."
@@ -53,7 +73,7 @@ const SECTIONS = [
   },
   {
     icon: "arrow-undo-outline",
-    title: "6. Corregir un error",
+    title: "8. Corregir un error",
     steps: [
       "Si registraste algo por error, en la tarjeta del cliente ve a «Últimos movimientos» y toca «Anular».",
       "Solo se pueden anular movimientos recientes (los primeros minutos)."
@@ -61,7 +81,7 @@ const SECTIONS = [
   },
   {
     icon: "lock-closed-outline",
-    title: "7. Bloquear una tarjeta",
+    title: "9. Bloquear una tarjeta",
     steps: [
       "Si el cliente perdió su celular o ves un uso extraño, toca el candado arriba a la derecha de su tarjeta.",
       "Mientras esté bloqueada no se puede sumar ni canjear. Con el mismo candado la reactivas."
@@ -69,17 +89,26 @@ const SECTIONS = [
   },
   {
     icon: "time-outline",
-    title: "8. Historial",
+    title: "10. Historial",
     steps: [
       "Muestra todo lo que se registró, del más reciente al más antiguo, con el ícono del tipo de tarjeta.",
-      "Filtra por tu local o por «Todos los locales». Toca un movimiento para abrir la tarjeta del cliente."
+      "Arriba eliges el local. En «Locales» ves solo ese local o todos; en «Tarjetas», todas, un tipo (por ejemplo, solo cashback) o una tarjeta.",
+      "Toca un movimiento para abrir la tarjeta del cliente."
+    ]
+  },
+  {
+    icon: "people-outline",
+    title: "11. Programa de referidos",
+    steps: [
+      "En Escanear toca «Programa de referidos». Ahí está el enlace y el QR de tu negocio para invitar a otros dueños a Fidegresa.",
+      "Envíalo por WhatsApp o compártelo. Cuando el otro negocio se registra con él, aparece en la lista; al crear su primera tarjeta, figura «Con tarjeta»."
     ]
   },
   {
     icon: "help-circle-outline",
-    title: "9. Problemas frecuentes",
+    title: "12. Problemas frecuentes",
     steps: [
-      "«No encontramos esta tarjeta»: el QR no es de tu negocio o es una tarjeta de prueba antigua. Pide al cliente que abra su tarjeta otra vez.",
+      "«No encontramos esta tarjeta»: el QR no es de tu negocio o el cliente todavía no es parte del club. Regístralo con «Registrar cliente nuevo».",
       "«Sin conexión con el servidor»: revisa el internet. Si el servidor estuvo inactivo, el primer intento puede tardar hasta un minuto.",
       "«Elige tu local»: no se puede registrar nada hasta que elijas en qué local estás."
     ]

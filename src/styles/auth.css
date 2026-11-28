@@ -76,3 +76,5 @@
 .auth-screen .optional-label { color: var(--ink-soft); }
 .auth-showcase.is-register .auth-showcase-media img { object-position: 58% 30%; }
 .auth-screen .auth-showcase.is-register::before { background: linear-gradient(180deg, rgb(36 21 16 / 95%) 0%, rgb(36 21 16 / 80%) 30%, rgb(36 21 16 / 25%) 58%, rgb(36 21 16 / 55%) 100%); }
+.auth-referral { margin: -6px 0 18px; padding: 10px 14px; border: 1px dashed var(--line); border-radius: var(--radius-control); background: var(--green-soft); color: var(--green); font-size: 14px; }
+.auth-referral strong { letter-spacing: .04em; }

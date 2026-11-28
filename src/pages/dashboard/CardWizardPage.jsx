@@ -50,6 +50,8 @@ function toFormValues(card, selectedType) {
     estilo: card?.estilo || "elegante",
     imagen: card?.imagen || null,
     portada: card?.portada || null,
+    rewardCost: card?.rewardCost ?? "",
+    averageTicket: card?.averageTicket ?? "",
     ...rules,
     montos: (rules.montos || []).join(", ")
   };
@@ -68,6 +70,9 @@ function buildRules(values) {
   return { ...defaults, ...values };
 }
 
+// Vacío se guarda como null ("sin configurar"), que es distinto de S/ 0.00.
+const toOptionalAmount = value => String(value ?? "").trim() === "" ? null : Number(value);
+
 function buildCard(values, estado) {
   return {
     nombre: values.nombre.trim(),
@@ -81,7 +86,11 @@ function buildCard(values, estado) {
     estado,
     vigenciaMeses: Number(values.vigenciaMeses),
     terminos: values.terminos.trim(),
-    reglas: buildRules(values)
+    reglas: buildRules(values),
+    ...(values.tipo === "Estampillas" && {
+      rewardCost: toOptionalAmount(values.rewardCost),
+      averageTicket: toOptionalAmount(values.averageTicket)
+    })
   };
 }
 
@@ -109,6 +118,12 @@ function RuleFields({ type, form, errors }) {
         </FormField>
         <FormField label="Límite de sellos por día" error={errors.limitePorDia}>
           <input type="number" min="1" max="20" {...form.getFieldProps("limitePorDia")} />
+        </FormField>
+        <FormField label="Costo del premio para ti (S/)" error={errors.rewardCost} optional hint="Lo que te cuesta entregar un premio. Se usa para calcular tu retorno.">
+          <input type="number" min="0" step="0.01" inputMode="decimal" placeholder="4.50" {...form.getFieldProps("rewardCost")} />
+        </FormField>
+        <FormField label="Ticket promedio (S/)" error={errors.averageTicket} optional hint="Se usa cuando una visita se registra sin monto.">
+          <input type="number" min="0" step="0.01" inputMode="decimal" placeholder="18.00" {...form.getFieldProps("averageTicket")} />
         </FormField>
       </div>
     );
@@ -231,7 +246,9 @@ function CardWizardForm({ card, locations }) {
     }
   });
   const { showToast, showError } = useToast();
-  const [step, setStep] = useState(0);
+  // Al editar, ?paso=3 abre directamente las reglas (por ejemplo, desde el aviso de rentabilidad).
+  const requestedStep = Number(searchParams.get("paso")) - 1;
+  const [step, setStep] = useState(isEditing && STEPS[requestedStep] ? requestedStep : 0);
   const [previewTab, setPreviewTab] = useState("front");
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(true);
   const submitStatus = useRef("Activa");

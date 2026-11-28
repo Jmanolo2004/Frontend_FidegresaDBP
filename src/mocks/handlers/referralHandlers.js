@@ -64,7 +64,31 @@ function counts(list, from, to) {
   return { linkOpens: signups * 3 + converted, signups, converted, rewards };
 }
 
+/** Igual que GET /referrals/ranking: todas las invitaciones (o las creadas en from..to), por convertidas, invitadas y nombre. */
+function ranking(list, query) {
+  const limit = query.limit === undefined ? 5 : Number(query.limit);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw badRequest("El límite del ranking va de 1 a 50.");
+  const ranged = query.from || query.to;
+  const byPerson = new Map();
+  list.filter(item => !ranged || ((!query.from || day(item.createdAt) >= query.from) && (!query.to || day(item.createdAt) <= query.to)))
+    .forEach(item => {
+      const row = byPerson.get(item.referrerId) || { id: item.referrerId, name: item.referrerName, invited: 0, converted: 0 };
+      row.invited += 1;
+      if (item.status !== "PENDING") row.converted += 1;
+      byPerson.set(item.referrerId, row);
+    });
+  return [...byPerson.values()]
+    .sort((a, b) => b.converted - a.converted || b.invited - a.invited || a.name.localeCompare(b.name, "es", { sensitivity: "base" }) || a.id - b.id)
+    .slice(0, limit);
+}
+
 export const referralHandlers = [
+  {
+    method: "get",
+    path: "/referrals/ranking",
+    auth: true,
+    handler: ({ query }) => respond(ranking(referralsOf(getDatabase()), query))
+  },
   {
     method: "get",
     path: "/referrals/stats",

@@ -168,6 +168,7 @@ Base: `/api/v1`. Las rutas marcadas con ✅ ya existen en el backend (`DBP-repo-
 | GET / POST / PUT / PATCH | `/branches`, `/branches/{id}`, `/branches/{id}/status`, `/branches/{id}/position` | Locales |
 | GET / PATCH / POST | `/geo/customers`, `/geo/settings`, `/geo/audiences` | Geolocalización |
 | GET / PATCH / POST | `/settings`, `/settings/reset`, `/notices`, `/metrics?period&metric` | Configuración, avisos y métricas |
+| GET | `/metrics/profitability?from&to&branchId` | Rentabilidad: ventas de clientes recurrentes, costo de premios y retorno |
 
 ## Despliegue
 

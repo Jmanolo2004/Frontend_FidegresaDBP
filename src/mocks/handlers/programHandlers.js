@@ -17,6 +17,15 @@ function assertNumber(value, min, max, message, integer = true) {
   return number;
 }
 
+// Monto opcional en soles: si no llega conserva el actual; null o vacío lo borra.
+function optionalMoney(body, key, current, message) {
+  if (body[key] === undefined) return current[key] ?? null;
+  const text = String(body[key] ?? "").trim();
+  if (!text) return null;
+  if (!/^\d{1,5}(\.\d{1,2})?$/.test(text)) throw badRequest(message);
+  return Number(text);
+}
+
 function sanitizeRules(tipo, rules = {}) {
   if (!rules || typeof rules !== "object" || Array.isArray(rules)) throw badRequest("Revisa las reglas de la tarjeta.");
   if (tipo === "Estampillas") {
@@ -127,6 +136,8 @@ function sanitizeProgram(body, db, current = {}) {
     vigenciaMeses,
     terminos: String(body.terminos ?? current.terminos ?? "").trim().slice(0, 2000),
     reglas: sanitizeRules(tipo, body.reglas ?? current.reglas),
+    rewardCost: optionalMoney(body, "rewardCost", current, "El costo del premio debe ser un monto entre S/ 0.00 y S/ 99999.99, con hasta 2 decimales."),
+    averageTicket: optionalMoney(body, "averageTicket", current, "El ticket promedio debe ser un monto entre S/ 0.00 y S/ 99999.99, con hasta 2 decimales."),
     creadaEn: current.creadaEn || new Date().toISOString(),
     actualizadaEn: new Date().toISOString()
   };

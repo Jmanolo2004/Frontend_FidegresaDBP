@@ -14,6 +14,7 @@ import ConnectionErrorPage from "../pages/public/ConnectionErrorPage";
 const LandingPage = lazy(() => import("../pages/public/LandingPage"));
 const LoginPage = lazy(() => import("../pages/public/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/public/RegisterPage"));
+const InvitePage = lazy(() => import("../pages/public/InvitePage"));
 const TermsPage = lazy(() => import("../pages/public/TermsPage"));
 const PrivacyPage = lazy(() => import("../pages/public/PrivacyPage"));
 const NotFoundPage = lazy(() => import("../pages/public/NotFoundPage"));
@@ -41,6 +42,7 @@ export const ROUTES = {
   home: "/",
   login: "/login",
   register: "/registro",
+  invite: "/unete/:code",
   terms: "/terminos",
   privacy: "/privacidad",
   connectionError: "/sin-conexion",
@@ -76,6 +78,7 @@ export const router = createBrowserRouter([
       { path: ROUTES.home, element: <LandingPage /> },
       { path: ROUTES.terms, element: <TermsPage /> },
       { path: ROUTES.privacy, element: <PrivacyPage /> },
+      { path: ROUTES.invite, element: <InvitePage /> },
       { path: ROUTES.connectionError, element: <ConnectionErrorPage /> },
       // Páginas públicas que abre la clienta desde el QR del local o el enlace de una amiga.
       { path: "/m/:slug", element: <PublicMenuPage /> },

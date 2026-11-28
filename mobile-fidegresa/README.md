@@ -9,7 +9,9 @@ App para el cajero de un negocio afiliado a Fidegresa. Escanea con la cámara el
 | **Niveles** | Registrar una compra (suma puntos y sube de nivel) |
 | **Gift card** | Cobrar un monto con el saldo de la gift card |
 
-Además puede bloquear o reactivar una tarjeta, anular un movimiento reciente y revisar el historial del local.
+Además puede **registrar clientes nuevos** (con su consentimiento) y entregarles su tarjeta con un QR para guardarla en Google Wallet, **aplicar las promociones** vigentes del cliente, bloquear o reactivar una tarjeta, anular un movimiento reciente y revisar el historial del local.
+
+El pase de Google Wallet del cliente lo actualiza el backend solo después de cada movimiento; la app no necesita hacer nada.
 
 Hecha con **React Native + Expo (SDK 58)** y **Expo Router**. Consume únicamente el backend de Fidegresa (Spring Boot).
 

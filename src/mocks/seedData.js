@@ -37,6 +37,10 @@ export function createSeedData() {
     "Atención rápida y productos frescos, lo recomiendo.",
     "Una forma sencilla de agradecer a quienes volvemos."
   ];
+  // Programas activos de cada local, para que cada movimiento quede ligado a una tarjeta que existe ahí.
+  const programsByLocation = { 1:{Estampillas:1,Cashback:3,Niveles:5,Giftcard:7}, 2:{Estampillas:2,Giftcard:8}, 3:{Cashback:4} };
+  const cashbackMinimum = { 3:10, 4:15 };
+  const cardTypes = ["Estampillas","Cashback","Niveles","Giftcard"];
   const visitsByCustomer=[];
   const customers = names.map((name,index) => {
     const location = locations[Math.floor(index / 6)];
@@ -59,15 +63,22 @@ export function createSeedData() {
       return candidate;
     }).concat(lastDays).sort((first,second)=>second-first);
     const visits = visitDays.map((daysAgo,visitIndex) => {
-      const premioCanjeado = location.id%2===1&&visitIndex>0&&visitIndex%10===0;
+      const programs = programsByLocation[location.id] || {};
+      const programType = programs[cardTypes[index%4]] ? cardTypes[index%4] : Object.keys(programs)[0];
+      const premioCanjeado = Boolean(programs.Estampillas)&&visitIndex>0&&visitIndex%10===0;
       // Algunos escaneos no llevan compra: el canje del premio es gratis y otras veces el cliente solo consulta su saldo.
       const soloEscaneo = premioCanjeado || (index*7 + visitIndex*3) % 9 === 0;
+      const usaCashback = programType==="Cashback" && !soloEscaneo && visitIndex%6===5;
+      const tipo = premioCanjeado ? "REDEMPTION" : soloEscaneo ? "CONSULT" : !programType ? "VISIT" :
+        programType==="Estampillas" ? "STAMP" : programType==="Giftcard" || usaCashback ? "BALANCE_CHARGE" : "PURCHASE";
       return {
         id:`${index+1}-${visitIndex+1}`,
         clienteId:index+1,
         ubicacionId:location.id,
         fecha:dateDaysAgo(daysAgo),
-        monto:soloEscaneo ? 0 : Number((18 + ((index*13 + visitIndex*11) % 73) + (location.id*2.5)).toFixed(2)),
+        programaId:premioCanjeado ? programs.Estampillas : programs[programType] ?? null,
+        tipo,
+        monto:soloEscaneo ? 0 : usaCashback ? cashbackMinimum[programs.Cashback] : Number((18 + ((index*13 + visitIndex*11) % 73) + (location.id*2.5)).toFixed(2)),
         premioCanjeado
       };
     });
@@ -105,8 +116,8 @@ export function createSeedData() {
   });
   const visits = visitsByCustomer.flat();
   const cards = [
-    { id:1, nombre:"Un café con cariño", tipo:"Estampillas", negocio:locations[0].nombre, descripcion:"Cada visita te acerca a una recompensa.", colores:{primario:"#d9a514",acento:"#a8650b"}, estilo:"elegante", imagen:null, portada:coverCafePlaza, estado:"Activa", vigenciaMeses:12, terminos:"Una estampilla por visita. No acumulable con otras promociones.", reglas:{sellosMeta:10,premio:"Un café gratis",iconoSello:"star",selloPor:"visita",montoMinimo:15,limitePorDia:1} },
-    { id:2, nombre:"Dulce encuentro", tipo:"Estampillas", negocio:locations[1].nombre, descripcion:"Premiamos cada momento dulce.", colores:{primario:"#f2b8c6",acento:"#b2365f"}, estilo:"vibrante", imagen:null, portada:null, estado:"Activa", vigenciaMeses:6, terminos:"Válido para compras en Dulce Encuentro.", reglas:{sellosMeta:8,premio:"Una porción de torta",iconoSello:"reward",selloPor:"compra mínima",montoMinimo:20,limitePorDia:2} },
+    { id:1, nombre:"Un café con cariño", tipo:"Estampillas", negocio:locations[0].nombre, descripcion:"Cada visita te acerca a una recompensa.", colores:{primario:"#d9a514",acento:"#a8650b"}, estilo:"elegante", imagen:null, portada:coverCafePlaza, estado:"Activa", vigenciaMeses:12, terminos:"Una estampilla por visita. No acumulable con otras promociones.", reglas:{sellosMeta:10,premio:"Un café gratis",iconoSello:"star",selloPor:"visita",montoMinimo:15,limitePorDia:1}, rewardCost:4.5, averageTicket:18 },
+    { id:2, nombre:"Dulce encuentro", tipo:"Estampillas", negocio:locations[1].nombre, descripcion:"Premiamos cada momento dulce.", colores:{primario:"#f2b8c6",acento:"#b2365f"}, estilo:"vibrante", imagen:null, portada:null, estado:"Activa", vigenciaMeses:6, terminos:"Válido para compras en Dulce Encuentro.", reglas:{sellosMeta:8,premio:"Una porción de torta",iconoSello:"reward",selloPor:"compra mínima",montoMinimo:20,limitePorDia:2}, rewardCost:6.5, averageTicket:26 },
     { id:3, nombre:"Cashback de la Plaza", tipo:"Cashback", negocio:locations[0].nombre, descripcion:"Recibe saldo con cada compra.", colores:{primario:"#0f4a32",acento:"#9fd8b4"}, estilo:"minimal", imagen:null, portada:coverCafePlaza, estado:"Activa", vigenciaMeses:12, terminos:"El saldo se acumula en la cuenta del cliente.", reglas:{porcentaje:5,topeMensual:100,saldoMinimoCanje:10,expiraDias:180} },
     { id:4, nombre:"Cashback Barbería Norte", tipo:"Cashback", negocio:locations[2].nombre, descripcion:"Un beneficio para volver a tu barbería.", colores:{primario:"#1b2230",acento:"#e0b45a"}, estilo:"elegante", imagen:null, portada:null, estado:"En pausa", vigenciaMeses:3, terminos:"Saldo válido solo en Barbería Norte.", reglas:{porcentaje:8,topeMensual:150,saldoMinimoCanje:15,expiraDias:90} },
     { id:5, nombre:"Círculo de la Plaza", tipo:"Niveles", negocio:locations[0].nombre, descripcion:"Más visitas, más beneficios.", colores:{primario:"#8e3be3",acento:"#ffd166"}, estilo:"minimal", imagen:null, portada:coverCafePlaza, estado:"Activa", vigenciaMeses:12, terminos:"Los puntos no son transferibles.", reglas:{niveles:[{nombre:"Bronce",desdePuntos:0,beneficio:"Acceso al programa",color:"#b8794f"},{nombre:"Plata",desdePuntos:100,beneficio:"5% de descuento",color:"#9da5ad"},{nombre:"Oro",desdePuntos:300,beneficio:"Bebida de cortesía",color:"#d4a84e"}],puntosPorSol:1} },
