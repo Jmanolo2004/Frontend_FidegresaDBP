@@ -1,16 +1,5 @@
-import { relativeLuminance } from "../components/cards/passTheme.js";
-
 // Reglas del formulario público de la tarjeta (/tarjeta/:code). Sin React, para probarlas con node --test.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const HEX = /^#[0-9a-f]{6}$/i;
-
-/** El color del botón y de las etiquetas: el más oscuro de la tarjeta, para que el texto blanco siempre se lea. */
-export function brandColor(colors) {
-  const candidates = [colors?.acento, colors?.primario].filter(color => HEX.test(color || ""));
-  const dark = candidates.find(color => relativeLuminance(color) <= 0.28);
-  if (dark) return dark;
-  return candidates.length ? `color-mix(in srgb, ${candidates[0]} 45%, #241510)` : "#241510";
-}
 
 /** "AAAA-MM-DD" solo si la fecha existe (sin 31 de febrero) y no es futura. */
 export function birthDateOf({ day, month, year }) {
