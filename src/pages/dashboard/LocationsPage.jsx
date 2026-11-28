@@ -15,7 +15,7 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useSettings } from "../../hooks/useSettings";
 import { branchService } from "../../services/branchService";
 import { pluralize } from "../../utils/format";
-import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
+import { findSubscriptionPlan, locationsLimitText } from "../../utils/subscriptionPlans";
 
 export default function LocationsPage() {
   useDocumentTitle("Ubicaciones");
@@ -40,8 +40,7 @@ export default function LocationsPage() {
     if (!plan) {
       setLimitMessage("No se reconoce tu plan actual. Revisa la suscripción en Configuración.");
     } else if (list.length >= plan.maxLocations) {
-      const maximum = plan === SUBSCRIPTION_PLANS[SUBSCRIPTION_PLANS.length - 1];
-      setLimitMessage(`Límite de locales alcanzado: ${plan.name} permite hasta ${plan.maxLocations}. Los locales pausados también cuentan.${maximum ? " Es el plan máximo disponible." : ""}`);
+      setLimitMessage(`Límite de locales alcanzado: ${plan.name} incluye ${locationsLimitText(plan)}. Los locales pausados también cuentan. Mejora tu plan en Configuración${plan.id === "crece" ? " o escríbenos para ampliar tus sucursales" : ""}.`);
     } else {
       setLimitMessage("");
       setDialog({ open: true, location: null });
