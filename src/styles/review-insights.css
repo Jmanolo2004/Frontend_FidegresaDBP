@@ -1,0 +1,49 @@
+/* Reseñas: resumen con IA y encuesta de satisfacción */
+.ai-summary, .survey-panel { display: grid; gap: 14px; margin-bottom: 14px; }
+.ai-summary-head, .survey-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.ai-summary-eyebrow { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 4px; color: var(--caramel); font-size: 12.5px; font-weight: 700; }
+.ai-summary-head h2, .survey-head h2 { margin: 0; color: var(--brown-dark); font: 700 20px/1.2 var(--font-display); }
+.survey-head p { margin: 4px 0 0; max-width: 70ch; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.survey-head .survey-channel { font-size: 13px; }
+.ai-summary-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.ai-summary-text { margin: 0; color: var(--text); font-size: 15.5px; line-height: 1.6; }
+.ai-insights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ai-insight { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--cream); }
+.ai-insight h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; color: var(--brown-dark); font-size: 14px; }
+.ai-insight ul { display: grid; gap: 6px; margin: 0; padding-left: 18px; color: var(--text); font-size: 13.5px; line-height: 1.45; }
+.ai-summary-meta { margin: 0; color: var(--muted); font-size: 12.5px; }
+.ai-summary-note { margin: 0; padding: 8px 12px; border-radius: 8px; background: #fbf0dc; color: #7a4a12; font-size: 13px; }
+.ai-summary-empty { margin: 0; max-width: 75ch; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.ai-summary-error { margin: 0; color: var(--danger); font-size: 13.5px; font-weight: 600; }
+.ai-summary-loading { display: grid; gap: 8px; }
+
+.survey-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.survey-stats > div { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; }
+.survey-stats span { color: var(--muted); font-size: 12.5px; }
+.survey-stats strong { color: var(--brown-dark); font: 700 24px var(--font-display); }
+.survey-stats strong small { color: var(--muted); font: 500 13px var(--font-ui); }
+.survey-change { color: var(--muted); font-size: 12px; }
+.survey-change.up { color: var(--green); }
+.survey-change.down { color: var(--danger); }
+.survey-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.survey-table th { padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; text-align: left; }
+.survey-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); }
+.survey-table tr:last-child td { border-bottom: 0; }
+.survey-form { display: grid; gap: 14px; }
+.survey-switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.survey-switch div { display: grid; gap: 2px; }
+.survey-switch small { color: var(--muted); font-size: 12.5px; }
+
+.dark-theme .ai-insight { background: #2b241f; }
+.dark-theme .ai-summary-note { background: #3a2f22; color: #f0d2a8; }
+
+@media (max-width: 900px) {
+  .ai-insights, .survey-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ai-summary-head, .survey-head { flex-direction: column; }
+  .ai-summary-actions { justify-content: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .ai-insights, .survey-stats { grid-template-columns: 1fr; }
+  .survey-table th:nth-child(2), .survey-table td:nth-child(2) { display: none; }
+}
