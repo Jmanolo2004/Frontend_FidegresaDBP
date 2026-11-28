@@ -249,39 +249,62 @@ function LevelsActions({ card, actions }) {
   );
 }
 
+/** Gift card: el staff carga saldo cuando el cliente la compra o la recarga, y cobra con ese saldo. */
 function GiftCardActions({ card, actions }) {
   const balance = card.giftBalance;
-  if (balance <= 0) {
-    return (
-      <Section title="Cobrar con gift card">
-        <Notice icon="alert-circle-outline" tone="warning">
-          Esta gift card ya no tiene saldo.
-        </Notice>
-      </Section>
-    );
-  }
-
-  const quickAmounts = [20, 50]
+  const [mode, setMode] = useState(balance > 0 ? "charge" : "load");
+  const disabled = !actions.hasBranch;
+  const quickCharges = [20, 50]
     .filter(value => value < balance)
     .map(value => ({ label: formatSoles(value), value }))
-    .concat([{ label: `Todo (${formatSoles(balance)})`, value: balance }]);
+    .concat(balance > 0 ? [{ label: `Todo (${formatSoles(balance)})`, value: balance }] : []);
+  const quickLoads = [20, 50, 100].map(value => ({ label: formatSoles(value), value }));
 
   return (
-    <Section title="Cobrar con gift card">
-      <AmountAction
-        label="Monto a cobrar"
-        buttonLabel="Cobrar"
-        buttonIcon="card-outline"
-        max={balance}
-        maxLabel={`La gift card solo tiene ${formatSoles(balance)}.`}
-        quickAmounts={quickAmounts}
-        describe={amount => `Quedarán ${formatSoles(Math.max(0, roundToCents(balance - amount)))} en la gift card.`}
-        confirmTitle="¿Cobrar con la gift card?"
-        confirmMessage={amount => `Se descontarán ${formatSoles(amount)} de la gift card de ${card.customer.fullName}.`}
-        loading={actions.pendingAction === "charge"}
-        disabled={!actions.hasBranch}
-        onSubmit={amount => actions.chargeBalance(amount, updated => `Cobro registrado. Quedan ${formatSoles(updated.giftBalance)}.`)}
+    <Section title="Gift card">
+      <Segmented
+        value={mode}
+        onChange={setMode}
+        options={[
+          { value: "charge", label: "Cobrar" },
+          { value: "load", label: "Recargar saldo" }
+        ]}
       />
+      {mode === "load" ? (
+        <AmountAction
+          key="load"
+          label="Monto a recargar"
+          buttonLabel="Recargar saldo"
+          buttonIcon="add-circle-outline"
+          quickAmounts={quickLoads}
+          describe={amount => `La gift card quedará con ${formatSoles(roundToCents(balance + amount))}.`}
+          confirmTitle="¿Recargar la gift card?"
+          confirmMessage={amount => `Se cargarán ${formatSoles(amount)} a la gift card de ${card.customer.fullName}. Cobra ese monto al cliente.`}
+          loading={actions.pendingAction === "load"}
+          disabled={disabled}
+          onSubmit={amount => actions.loadGiftCard(amount)}
+        />
+      ) : balance <= 0 ? (
+        <Notice icon="alert-circle-outline" tone="warning">
+          Esta gift card no tiene saldo. Usa «Recargar saldo» cuando el cliente la compre o la recargue.
+        </Notice>
+      ) : (
+        <AmountAction
+          key="charge"
+          label="Monto a cobrar"
+          buttonLabel="Cobrar"
+          buttonIcon="card-outline"
+          max={balance}
+          maxLabel={`La gift card solo tiene ${formatSoles(balance)}.`}
+          quickAmounts={quickCharges}
+          describe={amount => `Quedarán ${formatSoles(Math.max(0, roundToCents(balance - amount)))} en la gift card.`}
+          confirmTitle="¿Cobrar con la gift card?"
+          confirmMessage={amount => `Se descontarán ${formatSoles(amount)} de la gift card de ${card.customer.fullName}.`}
+          loading={actions.pendingAction === "charge"}
+          disabled={disabled}
+          onSubmit={amount => actions.chargeBalance(amount, updated => `Cobro registrado. Quedan ${formatSoles(updated.giftBalance)}.`)}
+        />
+      )}
     </Section>
   );
 }
