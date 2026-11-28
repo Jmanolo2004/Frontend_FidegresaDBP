@@ -3,6 +3,22 @@ import { badRequest, notFound, respond, toPage } from "../http";
 
 const hasReply = review => Boolean(String(review.respuesta || "").trim());
 
+let suggestionTurn = -1;
+const DEMO_REPLIES = {
+  high: [
+    "¡Muchas gracias por tu visita y por tus palabras! Nos alegra mucho que la hayas pasado bien. Te esperamos pronto.",
+    "Gracias por compartir tu experiencia. Es un gusto atenderte y que disfrutes lo que preparamos. ¡Vuelve cuando quieras!"
+  ],
+  mid: [
+    "Gracias por tu visita y por tu comentario. Tomamos nota de lo que nos cuentas para mejorar en tu próxima visita.",
+    "Agradecemos tu opinión. Queremos que tu siguiente experiencia sea mejor y ya estamos trabajando en lo que mencionas."
+  ],
+  low: [
+    "Lamentamos que tu experiencia no haya sido la esperada. Tomamos en cuenta tu comentario y nos gustaría saber más: escríbenos para ayudarte.",
+    "Gracias por contarnos lo que pasó y disculpa las molestias. Lo vamos a revisar con el equipo; escríbenos para poder solucionarlo."
+  ]
+};
+
 export const reviewHandlers = [
   {
     method: "get",
@@ -54,5 +70,20 @@ export const reviewHandlers = [
       saveDatabase();
       return respond(review);
     }
+  },
+  {
+    // Respuesta sugerida en modo demo: no usa IA, elige un texto según la calificación (model "demo").
+    method: "post",
+    path: "/reviews/:id/reply-suggestion",
+    auth: true,
+    handler: ({ params }) => {
+      const review = getDatabase().resenas.find(item => Number(item.id) === Number(params.id));
+      if (!review) throw notFound("No encontramos esta reseña.");
+      const rating = Number(review.calificacion);
+      const options = DEMO_REPLIES[rating >= 4 ? "high" : rating === 3 ? "mid" : "low"];
+      suggestionTurn += 1;
+      return respond({ reviewId: review.id, suggestion: options[suggestionTurn % options.length], model: "demo" });
+    }
   }
 ];
+

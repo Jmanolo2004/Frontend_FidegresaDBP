@@ -10,5 +10,7 @@ export const reviewService = {
     apiClient.get("/reviews/ai-summary", { params: { branchId: branchId || undefined }, ...options }).then(response => response.data),
   /** Genera un resumen nuevo con IA (por defecto, el mes en curso). La IA puede tardar: se le da más tiempo que al resto. */
   generateAiSummary: ({ branchId, from, to } = {}) =>
-    apiClient.post("/reviews/ai-summary", { branchId: branchId || null, from, to }, { timeout: 60000 }).then(response => response.data)
+    apiClient.post("/reviews/ai-summary", { branchId: branchId || null, from, to }, { timeout: 60000 }).then(response => response.data),
+  /** Respuesta sugerida con IA para una reseña ({ reviewId, suggestion, model }). No guarda nada: se publica con reply(). */
+  suggestReply: id => apiClient.post(`/reviews/${id}/reply-suggestion`, {}, { timeout: 60000 }).then(response => response.data)
 };
