@@ -17,6 +17,8 @@ const RegisterPage = lazy(() => import("../pages/public/RegisterPage"));
 const TermsPage = lazy(() => import("../pages/public/TermsPage"));
 const PrivacyPage = lazy(() => import("../pages/public/PrivacyPage"));
 const NotFoundPage = lazy(() => import("../pages/public/NotFoundPage"));
+const PublicMenuPage = lazy(() => import("../pages/public/PublicMenuPage"));
+const ReferralRedirectPage = lazy(() => import("../pages/public/ReferralRedirectPage"));
 
 const MetricsPage = lazy(() => import("../pages/dashboard/MetricsPage"));
 const CustomersPage = lazy(() => import("../pages/dashboard/CustomersPage"));
@@ -73,6 +75,9 @@ export const router = createBrowserRouter([
       { path: ROUTES.terms, element: <TermsPage /> },
       { path: ROUTES.privacy, element: <PrivacyPage /> },
       { path: ROUTES.connectionError, element: <ConnectionErrorPage /> },
+      // Páginas públicas que abre la clienta desde el QR del local o el enlace de una amiga.
+      { path: "/m/:slug", element: <PublicMenuPage /> },
+      { path: "/r/:code", element: <ReferralRedirectPage /> },
       {
         element: <PublicOnlyRoute />,
         children: [
