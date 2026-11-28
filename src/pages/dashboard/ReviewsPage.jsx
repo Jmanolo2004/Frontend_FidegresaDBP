@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 import { PageHeader } from "../../components/common/PageHeader";
 import { PanelHeading } from "../../components/common/PanelHeading";
 import { FilterSelect } from "../../components/common/FilterSelect";
@@ -9,11 +10,14 @@ import { Stars } from "../../components/common/Stars";
 import { Skeleton, TableSkeleton } from "../../components/common/Skeleton";
 import { ReviewItem } from "../../components/reviews/ReviewItem";
 import { ReplyDialog } from "../../components/reviews/ReplyDialog";
+import { AiSummaryPanel } from "../../components/reviews/AiSummaryPanel";
+import { SurveyPanel } from "../../components/reviews/SurveyPanel";
 import { useFetch } from "../../hooks/useFetch";
 import { usePagination } from "../../hooks/usePagination";
 import { useSettings } from "../../hooks/useSettings";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { reviewService } from "../../services/reviewService";
+import "../../styles/review-insights.css";
 
 const SENTIMENT_OPTIONS = [
   { value: "Todas", label: "Todas las opiniones" },
@@ -33,6 +37,11 @@ export default function ReviewsPage() {
   const { refreshNotices } = useSettings();
   const { page, size, filters, setPage, setSize, setFilter, setFilters } = usePagination({ opinion: "Todas", respuesta: "Todas" });
   const [replyingTo, setReplyingTo] = useState(null);
+  // El local elegido en la barra superior (?branchId=); sin local, el resumen y la encuesta son de todo el negocio.
+  const [searchParams] = useSearchParams();
+  const { branches = [] } = useOutletContext() || {};
+  const branchId = searchParams.get("branchId") || null;
+  const branchName = branches.find(branch => String(branch.id) === String(branchId))?.nombre;
 
   const summary = useFetch(({ signal }) => reviewService.getSummary({ signal }), []);
   const reviews = useFetch(
@@ -99,6 +108,9 @@ export default function ReviewsPage() {
       ) : (
         !summary.error && <Skeleton height={150} radius={13} className="skeleton-block" />
       )}
+
+      <AiSummaryPanel branchId={branchId} branchName={branchName} />
+      <SurveyPanel branchId={branchId} />
 
       <article className="panel review-panel">
         <PanelHeading title="Comentarios de clientes" subtitle="Responde a tus clientes y cuida su experiencia.">
