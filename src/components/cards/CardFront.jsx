@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import qrImage from "../../assets/illustrative-qr.png";
 import { Icon } from "../common/Icon";
+import { QrCode } from "../common/QrCode";
 import { CARD_TYPE_CONFIG } from "./cardTypes";
 import { passStyle } from "./passTheme";
 
@@ -19,8 +20,8 @@ const CARD_SHAPE = PropTypes.shape({
   reglas: PropTypes.object
 });
 
-// Datos de ejemplo para las vistas previas; el detalle de un cliente pasa sus datos reales.
-const SAMPLE = { stamps: 6, client: "Lucía M.", cashbackBalance: 24.5, points: 180 };
+// Las vistas previas muestran la tarjeta como recién creada (todo en 0); el detalle de un cliente pasa sus datos reales.
+const SAMPLE = { stamps: 0, client: "Tu cliente", balance: 0, points: 0 };
 
 const DEFAULT_LEVELS = [
   { nombre: "Bronce", desdePuntos: 0 },
@@ -29,8 +30,7 @@ const DEFAULT_LEVELS = [
 ];
 
 function formatSoles(value) {
-  const amount = Number(value) || 0;
-  return `S/ ${Number.isInteger(amount) ? amount : amount.toFixed(2)}`;
+  return `S/ ${(Number(value) || 0).toFixed(2)}`;
 }
 
 function PassLogo({ card }) {
@@ -66,14 +66,17 @@ function PassStrip({ card, children }) {
 
 PassStrip.propTypes = { card: CARD_SHAPE.isRequired, children: PropTypes.node };
 
-function PassQr() {
+/** Con value dibuja el QR real de la tarjeta (el que escanea la caja); sin value, uno ilustrativo. */
+function PassQr({ value }) {
   return (
     <div className="pass-qr">
-      <img src={qrImage} alt="Código QR ilustrativo de la tarjeta" />
-      <span>Fidegresa</span>
+      {value ? <QrCode value={value} size={132} label="Código QR de tu tarjeta" margin={1} /> : <img src={qrImage} alt="Código QR ilustrativo de la tarjeta" />}
+      <span>{value ? value.replace(/^FDG-/, "") : "Fidegresa"}</span>
     </div>
   );
 }
+
+PassQr.propTypes = { value: PropTypes.string };
 
 function StampPass({ card, stamps, client }) {
   const goal = Math.max(1, Number(card.reglas?.sellosMeta || card.estampillas || 10));
@@ -141,7 +144,7 @@ function TierPass({ card, client, points }) {
 TierPass.propTypes = { card: CARD_SHAPE.isRequired, client: PropTypes.string.isRequired, points: PropTypes.number };
 
 function GiftPass({ card, client, balance }) {
-  const amount = balance ?? card.reglas?.montos?.[1] ?? card.reglas?.montos?.[0] ?? card.saldo ?? 100;
+  const amount = balance ?? SAMPLE.balance;
   return (
     <>
       <div className="pass-header">
@@ -170,7 +173,7 @@ function CashbackPass({ card, client, balance }) {
       <div className="pass-cashback-body">
         <h3>{card.nombre || card.negocio || "Cashback"}</h3>
         <div className="pass-fields pass-fields-tight">
-          <PassField label="SALDO" value={formatSoles(balance ?? SAMPLE.cashbackBalance)} />
+          <PassField label="SALDO" value={formatSoles(balance ?? SAMPLE.balance)} />
           <PassField label="CASHBACK" value={`${rate}%`} align="end" />
         </div>
         <PassField label="NOMBRE DEL CLIENTE" value={client} />
@@ -181,7 +184,7 @@ function CashbackPass({ card, client, balance }) {
 
 CashbackPass.propTypes = { card: CARD_SHAPE.isRequired, client: PropTypes.string.isRequired, balance: PropTypes.number };
 
-export function CardFront({ card, size = "md", stamps, client, balance, points, compact = false }) {
+export function CardFront({ card, size = "md", stamps, client, balance, points, qrValue, compact = false }) {
   const typeLabel = CARD_TYPE_CONFIG[card.tipo]?.label || "Tarjeta de fidelización";
   const clientName = client || SAMPLE.client;
   const type = card.tipo || "Estampillas";
@@ -200,7 +203,7 @@ export function CardFront({ card, size = "md", stamps, client, balance, points, 
     >
       <div className="wallet-pass-inner">
         {body}
-        {!compact && <PassQr />}
+        {!compact && <PassQr value={qrValue} />}
         {isCashback && <PassStrip card={card} />}
       </div>
     </div>
@@ -214,5 +217,6 @@ CardFront.propTypes = {
   client: PropTypes.string,
   balance: PropTypes.number,
   points: PropTypes.number,
+  qrValue: PropTypes.string,
   compact: PropTypes.bool
 };

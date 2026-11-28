@@ -2,6 +2,7 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { Link, useLoaderData, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { CardFlip } from "../../components/cards/CardFlip";
+import { JoinQrPanel } from "../../components/cards/JoinQrPanel";
 import { PhoneMockup } from "../../components/cards/PhoneMockup";
 import { Avatar } from "../../components/common/Avatar";
 import { ConfirmDialog } from "../../components/common/ConfirmDialog";
@@ -14,9 +15,9 @@ import { Pagination } from "../../components/common/Pagination";
 import { Skeleton } from "../../components/common/Skeleton";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
+import { useLiveRefresh } from "../../hooks/useLiveRefresh";
 import { usePagination } from "../../hooks/usePagination";
 import { useToast } from "../../hooks/useToast";
-import { GoogleWalletDialog } from "../../components/wallet/GoogleWalletDialog";
 import { loyaltyProgramService } from "../../services/loyaltyProgramService";
 import { formatDate, formatMoney, timeAgo } from "../../utils/format";
 
@@ -67,11 +68,20 @@ export default function CardDetailPage() {
   const { showToast, showError } = useToast();
   const [card, setCard] = useState(loadedCard);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [walletOpen, setWalletOpen] = useState(false);
   const activeTab = TABS.some(tab => tab.id === searchParams.get("vista")) ? searchParams.get("vista") : "resumen";
   const pagination = usePagination();
   const customerPage = useFetch(({ signal }) => loyaltyProgramService.getCustomers(programId, { page: pagination.page, size: pagination.size }, { signal }), [programId, pagination.page, pagination.size], { enabled: activeTab === "clientes" });
   useDocumentTitle(card?.nombre || "Tarjeta");
+  // En vivo: lo que el staff suma desde la app de caja (estampillas, saldo, puntos, canjes) aparece sin recargar.
+  useLiveRefresh(async () => {
+    try {
+      const fresh = await loyaltyProgramService.getById(programId);
+      if (fresh) setCard(previous => (previous ? { ...previous, ...fresh } : fresh));
+    } catch {
+      // Un fallo de red momentáneo no debe molestar: se reintenta en el siguiente ciclo.
+    }
+    if (activeTab === "clientes") customerPage.refresh();
+  }, 10000, Boolean(card) && !loadedCard?.notFound);
 
   if (loadedCard?.notFound) {
     return <EmptyState message="No encontramos la tarjeta que buscas. Puede que se haya eliminado." actionLabel="Volver a tarjetas" onAction={() => navigate("/panel/tarjetas")} />;
@@ -142,11 +152,9 @@ export default function CardDetailPage() {
           <p>{card.descripcion || "Programa de fidelización para tus clientes."}</p>
           <p><strong>Local:</strong> {card.negocio}</p>
           <p><strong>Creada:</strong> {formatDate(card.creadaEn)}</p>
-          <button type="button" className="google-wallet-button" onClick={() => setWalletOpen(true)}>
-            <Icon name="card" size={18} />
-            <span>Agregar a Google Wallet</span>
-          </button>
+          <p className="card-detail-wallet-note"><Icon name="card" size={16} />Tus clientes guardan esta tarjeta en Google Wallet al completar el formulario de registro.</p>
         </div>
+        <JoinQrPanel card={card} />
       </div>
 
       <div className="card-detail-tabs" role="tablist" aria-label="Información de la tarjeta">
@@ -220,7 +228,6 @@ export default function CardDetailPage() {
 
       {activeTab === "cliente" && <article className="panel card-detail-panel"><PanelHeading title="En el celular del cliente" subtitle="Vista ilustrativa de la tarjeta digital" /><PhoneMockup card={card} /></article>}
 
-      <GoogleWalletDialog open={walletOpen} card={card} detail={ruleDescription(card)} onClose={() => setWalletOpen(false)} />
       <ConfirmDialog open={deleteOpen} title="Eliminar tarjeta" description={`¿Quieres eliminar “${card.nombre}”? Esta acción no se puede deshacer.`} confirmLabel="Eliminar tarjeta" onConfirm={removeCard} onClose={() => setDeleteOpen(false)} />
     </>
   );

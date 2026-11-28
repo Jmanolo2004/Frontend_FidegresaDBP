@@ -237,7 +237,7 @@ function CardWizardForm({ card, locations }) {
         const saved = isEditing
           ? await loyaltyProgramService.update(card.id, payload)
           : await loyaltyProgramService.create(payload);
-        showToast(isEditing ? "Tarjeta actualizada correctamente." : status === "Borrador" ? "Borrador guardado correctamente." : "Tarjeta publicada correctamente.");
+        showToast(isEditing ? "Tarjeta actualizada correctamente." : status === "Borrador" ? "Borrador guardado correctamente." : "Tarjeta creada. Ya puedes compartir su QR de registro.");
         savedSuccessfully.current = true;
         navigate(`/panel/tarjetas/${saved.id}`);
       } catch (error) {
@@ -439,6 +439,12 @@ function CardWizardForm({ card, locations }) {
                     <textarea maxLength="2000" rows="5" placeholder="Agrega condiciones que deban conocer tus clientes." {...form.getFieldProps("terminos")} />
                   </FormField>
                   <p className="card-wizard-example">{CARD_TYPE_CONFIG[form.values.tipo]?.example}</p>
+                  {!isEditing && (
+                    <p className="card-wizard-start-note">
+                      <Icon name="card" size={16} />
+                      <span>La tarjeta empieza en 0: sin clientes, sellos, saldo ni canjes. Al pulsar <strong>Crear tarjeta</strong> se registra su diseño en Google Wallet y se genera el QR de registro para tus clientes.</span>
+                    </p>
+                  )}
                   {form.errors.form && <p className="field-error" role="alert">{form.errors.form}</p>}
                 </div>
               )}
@@ -453,7 +459,7 @@ function CardWizardForm({ card, locations }) {
                 <div className="card-wizard-submit-actions">
                   <button type="submit" className="secondary-button" disabled={form.isSubmitting} onClick={() => { submitStatus.current = "Borrador"; }}>Guardar borrador</button>
                   <button type="submit" className="primary-button" disabled={form.isSubmitting} onClick={() => { submitStatus.current = form.values.estado === "Borrador" ? "Activa" : form.values.estado; }}>
-                    {form.isSubmitting ? "Guardando…" : "Publicar tarjeta"}
+                    {form.isSubmitting ? "Guardando…" : isEditing ? "Guardar cambios" : "Crear tarjeta"}
                   </button>
                 </div>
               )}
