@@ -1,0 +1,30 @@
+/* Detalle del cliente: avance en cada tarjeta */
+.cp-list { display: grid; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.cp-item { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--cream); }
+.cp-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.cp-head strong { color: var(--brown-dark); font-size: 15px; }
+.cp-type { color: var(--muted); font-size: 12.5px; }
+.cp-blocked { padding: 2px 8px; border-radius: 999px; background: #f6e1dd; color: var(--danger); font-size: 12px; font-weight: 700; }
+.cp-text { margin: 0; color: var(--text); font-size: 14px; line-height: 1.5; }
+.cp-amount { margin: 0; color: var(--brown-dark); font: 700 28px/1.1 var(--font-display); }
+.cp-amount small { color: var(--muted); font: 500 14px var(--font-ui); }
+
+.cp-stamps { display: flex; flex-wrap: wrap; gap: 7px; }
+.cp-stamps span { display: grid; place-items: center; width: 26px; height: 26px; border: 2px dashed var(--line); border-radius: 50%; color: #fff; }
+.cp-stamps span.is-on { border-style: solid; }
+
+.cp-bar { height: 10px; overflow: hidden; border-radius: 999px; background: var(--line); }
+.cp-bar span { display: block; height: 100%; border-radius: inherit; background: var(--caramel); transition: width .5s ease; }
+
+.cp-tiers { display: flex; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cp-tiers li { flex: 1; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 12.5px; font-weight: 600; text-align: center; }
+.cp-tiers li.is-done { border-color: var(--tier); color: var(--text); }
+.cp-tiers li.is-current { border: 2px solid var(--tier); background: color-mix(in srgb, var(--tier) 30%, #fff); color: var(--brown-dark); font-weight: 750; }
+.dark-theme .cp-tiers li.is-current { background: color-mix(in srgb, var(--tier) 35%, #2b241f); color: #fff; }
+
+.dark-theme .cp-item { background: #2b241f; }
+.dark-theme .cp-blocked { background: #4a2a25; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-bar span { transition: none; }
+}
