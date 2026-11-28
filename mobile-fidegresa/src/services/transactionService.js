@@ -9,6 +9,7 @@ export const TRANSACTION_LABELS = {
   POINTS_EARNED: "Puntos sumados",
   LEVEL_UP: "Subió de nivel",
   GIFT_CHARGE: "Cobro con gift card",
+  GIFT_LOAD: "Recarga de gift card",
   BALANCE_CHARGE: "Saldo usado",
   DISCOUNT: "Descuento de promoción",
   REFERRAL_BONUS: "Premio por referido"
@@ -16,7 +17,7 @@ export const TRANSACTION_LABELS = {
 
 /** Indica si el movimiento suma (true) o descuenta (false) para mostrar el signo. */
 export function isCreditTransaction(type) {
-  return ["STAMP", "PURCHASE", "CASHBACK_EARNED", "POINTS_EARNED", "LEVEL_UP", "REFERRAL_BONUS"].includes(type);
+  return ["STAMP", "PURCHASE", "CASHBACK_EARNED", "POINTS_EARNED", "LEVEL_UP", "REFERRAL_BONUS", "GIFT_LOAD"].includes(type);
 }
 
 function normalizeTransaction(transaction) {

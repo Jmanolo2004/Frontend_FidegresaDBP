@@ -442,7 +442,7 @@ function CardWizardForm({ card, locations }) {
                   {!isEditing && (
                     <p className="card-wizard-start-note">
                       <Icon name="card" size={16} />
-                      <span>La tarjeta empieza en 0: sin clientes, sellos, saldo ni canjes. Al pulsar <strong>Crear tarjeta</strong> se registra su diseño en Google Wallet y se genera el QR de registro para tus clientes.</span>
+                      <span>La tarjeta empieza en 0: sin clientes, sellos, saldo ni canjes. Al pulsar <strong>Crear tarjeta</strong> se genera su QR de registro, y cada cliente la guarda en su Google Wallet al registrarse con ese QR.</span>
                     </p>
                   )}
                   {form.errors.form && <p className="field-error" role="alert">{form.errors.form}</p>}

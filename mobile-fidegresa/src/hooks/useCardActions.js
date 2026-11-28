@@ -84,6 +84,12 @@ export function useCardActions(card, onCardUpdated) {
         : `Cashback ganado: +${formatSoles(updated.cashbackBalance - card.cashbackBalance)}. Saldo: ${formatSoles(updated.cashbackBalance)}.`
     );
 
+  // Gift card: la compra en caja carga saldo (el cliente paga la recarga y el monto queda en su tarjeta).
+  const loadGiftCard = amount =>
+    execute("load", branchId => cardService.registerPurchase(card.id, { branchId, amount }), updated =>
+      `Recarga de ${formatSoles(amount)} lista. Saldo de la gift card: ${formatSoles(updated.giftBalance)}.`
+    );
+
   // Cashback o gift card: cuánto se descontó y el saldo que le queda al cliente.
   const chargeBalance = amount =>
     execute("charge", branchId => cardService.chargeBalance(card.id, { branchId, amount }), updated =>
@@ -105,5 +111,5 @@ export function useCardActions(card, onCardUpdated) {
     return execute("status", () => cardService.updateCardStatus(card.id, nextStatus), nextStatus === "BLOCKED" ? "Tarjeta bloqueada." : "Tarjeta reactivada.");
   };
 
-  return { pendingAction, hasBranch: Boolean(selectedBranch), addStamps, redeemReward, registerPurchase, chargeBalance, applyDiscount, toggleBlocked };
+  return { pendingAction, hasBranch: Boolean(selectedBranch), addStamps, redeemReward, registerPurchase, loadGiftCard, chargeBalance, applyDiscount, toggleBlocked };
 }
