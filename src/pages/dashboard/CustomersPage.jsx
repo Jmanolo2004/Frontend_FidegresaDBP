@@ -10,6 +10,7 @@ import { Icon } from "../../components/common/Icon";
 import { TableSkeleton } from "../../components/common/Skeleton";
 import { CustomerTable } from "../../components/customers/CustomerTable";
 import { CustomerDialog } from "../../components/customers/CustomerDialog";
+import { CustomerInsights } from "../../components/customers/CustomerInsights";
 import { useFetch } from "../../hooks/useFetch";
 import { usePagination } from "../../hooks/usePagination";
 import { useToast } from "../../hooks/useToast";
@@ -130,6 +131,8 @@ export default function CustomersPage() {
           </div>
         }
       />
+
+      <CustomerInsights />
 
       <article className="panel activity-panel">
         <PanelHeading title="Directorio de clientes" subtitle="Encuentra a alguien y revisa cómo participa" />
