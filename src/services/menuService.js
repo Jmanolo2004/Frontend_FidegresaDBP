@@ -13,6 +13,8 @@ export const toApiPath = url => url.replace(/^\/api\/v1/, "");
 
 /** Menú de un local: catálogo PDF, catálogo web, invitación al club y productos oficiales. */
 export const menuService = {
+  /** Enlace público del menú del local (/m/{slug}) para el QR que se imprime. */
+  getPublicLink: (branchId, options) => apiClient.get(`/branches/${branchId}/public-link`, options).then(data),
   getCatalogs: (branchId, options) => apiClient.get(`/branches/${branchId}/catalogs`, options).then(data),
   uploadPdfFile: (branchId, file) => apiClient.post(`/branches/${branchId}/catalogs/pdf/files`, upload(file), multipart).then(data),
   deletePdfFile: (branchId, fileId) => apiClient.delete(`/branches/${branchId}/catalogs/pdf/files/${fileId}`).then(data),

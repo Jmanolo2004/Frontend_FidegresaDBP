@@ -1,5 +1,6 @@
 import { getDatabase, saveDatabase } from "../database";
 import { badRequest, conflict, nextId, notFound, requireText, respond } from "../http";
+import { liveInvitation, liveWebUrl } from "./menuHandlers";
 
 // Menú público del modo demo: misma forma que PublicMenuDtos del backend (sin productos, igual que la API).
 const PREFIX = { Estampillas: "EST", Cashback: "CAS", Niveles: "NIV" };
@@ -61,6 +62,19 @@ function lastNineDigits(phone) {
 export const publicMenuHandlers = [
   {
     method: "get",
+    path: "/branches/:branchId/public-link",
+    auth: true,
+    handler: ({ params }) => {
+      const db = getDatabase();
+      const branch = db.ubicaciones.find(place => Number(place.id) === Number(params.branchId));
+      if (!branch) throw notFound("Local no encontrado.");
+      const slug = slugify(branch.nombre);
+      // url null, igual que el backend sin PUBLIC_WEB_URL: el panel lo arma con su propio dominio.
+      return respond({ slug, path: `/m/${slug}`, url: null });
+    }
+  },
+  {
+    method: "get",
     path: "/public/menus/:slug",
     handler: ({ params }) => {
       const db = getDatabase();
@@ -72,10 +86,11 @@ export const publicMenuHandlers = [
         business: { name: branch.nombre, primaryColor: db.configuracion?.colorPrincipal || null },
         branch: { name: branch.nombre, category: branch.categoria, address: branch.direccion, district: branch.distrito, schedule: branch.horario },
         pdf: null,
-        webUrl: null,
-        invitation: stamps
+        webUrl: liveWebUrl(db, branch),
+        // La invitación que configuró el dueño en Menú; si no hay, una sugerida para que el demo muestre el pop up.
+        invitation: liveInvitation(db, branch) || (stamps
           ? { title: "Únete y gana tu primer sello", text: "Regístrate en menos de un minuto y recibe tu tarjeta digital para sumar beneficios desde hoy.", buttonLabel: "Quiero mi tarjeta", imageUrl: null, programId: stamps.id }
-          : null,
+          : null),
         programs: programs.map(program => ({
           id: program.id,
           name: program.nombre,

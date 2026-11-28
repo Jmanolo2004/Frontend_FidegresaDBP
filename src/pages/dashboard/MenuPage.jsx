@@ -10,6 +10,7 @@ import { Skeleton } from "../../components/common/Skeleton";
 import { InvitationCard, PdfCatalogCard, ProductCard, WebCatalogCard } from "../../components/menu/MenuCards";
 import { InvitationDialog } from "../../components/menu/InvitationDialog";
 import { ProductDialog } from "../../components/menu/ProductDialog";
+import { MenuQrCard } from "../../components/menu/MenuQrCard";
 import { useFetch } from "../../hooks/useFetch";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useToast } from "../../hooks/useToast";
@@ -175,6 +176,8 @@ export default function MenuPage() {
           </button>
         </div>
       </section>
+
+      {branchId && <MenuQrCard branchId={branchId} branchName={branch?.nombre} />}
 
       {menu.error && !data ? (
         <ErrorState error={menu.error} onRetry={menu.reload} />

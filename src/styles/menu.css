@@ -7,6 +7,17 @@
 .menu-branch-select { min-width: 190px; min-height: 39px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); }
 
 .menu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+/* QR del menú público */
+.menu-qr { display: flex; align-items: center; gap: 22px; margin-bottom: 18px; padding: 20px 22px; }
+.menu-qr-code { display: grid; place-items: center; flex: none; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.menu-qr-code .qr-code { display: block; }
+.menu-qr-copy { display: grid; gap: 8px; min-width: 0; }
+.menu-qr-copy h2 { margin: 0; color: var(--brown-dark); font: 700 20px var(--font-display); }
+.menu-qr-copy p { margin: 0; max-width: 62ch; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.menu-qr-url { overflow: hidden; color: var(--brown); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.menu-qr-error { color: var(--danger); }
+.menu-qr-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.menu-qr-actions a { text-decoration: none; }
 .menu-card { display: flex; flex-direction: column; gap: 14px; }
 .menu-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .menu-card-head h2 { margin: 0; color: var(--brown-dark); font-size: 17px; font-weight: 750; }
@@ -74,6 +85,7 @@
 }
 @media (max-width: 700px) {
   .menu-hero { flex-wrap: wrap; }
+  .menu-qr { flex-direction: column; align-items: flex-start; }
   .menu-hero-actions { width: 100%; margin-left: 0; }
   .menu-branch-select { flex: 1; min-width: 0; }
   .menu-products-head { flex-direction: column; }
