@@ -72,10 +72,31 @@ export const customerHandlers = [
       const visits = db.visitas
         .filter(visit => visit.clienteId === customer.id)
         .sort((first, second) => new Date(second.fecha) - new Date(first.fecha));
-      const card = db.tarjetas.find(item => item.negocio === customer.tarjeta) || null;
+      // La tarjeta del cliente es la del mismo tipo que usa (si el local no la tiene, cualquiera de ese tipo).
+      const card =
+        db.tarjetas.find(item => item.negocio === customer.tarjeta && item.tipo === customer.tipoTarjeta) ||
+        db.tarjetas.find(item => item.tipo === customer.tipoTarjeta) ||
+        db.tarjetas.find(item => item.negocio === customer.tarjeta) ||
+        null;
+      const spent = Number(visits.reduce((total, visit) => total + visit.monto, 0).toFixed(2));
+      const giftAmounts = card?.reglas?.montos?.length ? card.reglas.montos : [100];
       return respond({
         ...withLocal(db, customer),
-        totalGastado: Number(visits.reduce((total, visit) => total + visit.monto, 0).toFixed(2)),
+        totalGastado: spent,
+        // Misma forma que "tarjetas" del detalle del backend: saldos de cada tarjeta del cliente.
+        tarjetas: card
+          ? [{
+              id: Number(customer.id) * 10,
+              estado: "ACTIVE",
+              programaId: card.id,
+              programa: card.nombre,
+              tipo: card.tipo,
+              estampillas: card.tipo === "Estampillas" ? customer.estampillas : 0,
+              saldoCashback: card.tipo === "Cashback" ? customer.saldoCashback || Number(((spent * (card.reglas?.porcentaje || 5)) / 100 % 60).toFixed(2)) : 0,
+              puntos: card.tipo === "Niveles" ? customer.visitas * 13 : 0,
+              saldoGiftcard: card.tipo === "Giftcard" ? Number((giftAmounts[customer.id % giftAmounts.length] * 0.6).toFixed(2)) : 0
+            }]
+          : [],
         visitasRecientes: visits.slice(0, 8),
         premiosCanjeados: visits.filter(visit => visit.premioCanjeado).length,
         tarjetaPrograma: card,

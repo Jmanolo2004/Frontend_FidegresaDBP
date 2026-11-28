@@ -7,7 +7,7 @@ import "../../styles/invite.css";
 import { StampMark } from "../../components/landing/StampMark";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { useFetch } from "../../hooks/useFetch";
-import { cleanReferralCode, referralService } from "../../services/referralService";
+import { businessReferralService, cleanReferralCode } from "../../services/businessReferralService";
 
 const BENEFITS = [
   { title: "Tarjetas en Google Wallet", text: "Estampillas, cashback, niveles o gift cards: tus clientes las guardan en su celular, sin descargar nada." },
@@ -22,14 +22,14 @@ const BENEFITS = [
 export default function InvitePage() {
   const { code: rawCode } = useParams();
   const code = cleanReferralCode(rawCode);
-  const invite = useFetch(({ signal }) => referralService.getBusinessInvite(code, { signal }), [code], { enabled: Boolean(code) });
+  const invite = useFetch(({ signal }) => businessReferralService.getBusinessInvite(code, { signal }), [code], { enabled: Boolean(code) });
   const valid = Boolean(code) && !invite.error;
   const businessName = invite.data?.businessName;
 
   useDocumentTitle(businessName ? `${businessName} te invita` : "Te invitaron a Fidegresa");
 
   useEffect(() => {
-    if (valid) referralService.remember(code);
+    if (valid) businessReferralService.remember(code);
   }, [valid, code]);
 
   const registerUrl = valid ? `/registro?ref=${encodeURIComponent(code)}` : "/registro";

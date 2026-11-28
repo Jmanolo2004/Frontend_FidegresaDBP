@@ -10,7 +10,7 @@ import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { BUSINESS_CATEGORIES, DISTRICT_NAMES } from "../../utils/constants";
 import { findSubscriptionPlan, SUBSCRIPTION_PLANS } from "../../utils/subscriptionPlans";
 import { email, maxLength, minLength, required, strongPassword } from "../../utils/validators";
-import { cleanReferralCode, referralService } from "../../services/referralService";
+import { businessReferralService, cleanReferralCode } from "../../services/businessReferralService";
 
 const rules = {
   businessName: [required("Escribe el nombre de tu negocio."), maxLength(60, "Usa hasta 60 caracteres.")],
@@ -47,7 +47,7 @@ export default function RegisterPage() {
   const query = new URLSearchParams(location.search);
   const selectedPlan = findSubscriptionPlan(query.get("plan"));
   // Invitación de otro negocio (/unete/CÓDIGO): el código va en el registro para que cuente en sus referidos.
-  const referralCode = cleanReferralCode(query.get("ref")) || referralService.remembered();
+  const referralCode = cleanReferralCode(query.get("ref")) || businessReferralService.remembered();
 
   const form = useForm({
     initialValues: { ...initialValues, planId: selectedPlan?.id || "", simulatedPaymentConfirmed: false },
@@ -71,7 +71,7 @@ export default function RegisterPage() {
           simulatedPaymentConfirmed: values.simulatedPaymentConfirmed,
           ...(referralCode ? { referralCode } : {})
         });
-        referralService.forget();
+        businessReferralService.forget();
         if (result.locationNotCreated) {
           navigate("/panel/ubicaciones", { replace: true, state: { registrationLimit: true } });
         } else {

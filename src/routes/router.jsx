@@ -18,16 +18,21 @@ const InvitePage = lazy(() => import("../pages/public/InvitePage"));
 const TermsPage = lazy(() => import("../pages/public/TermsPage"));
 const PrivacyPage = lazy(() => import("../pages/public/PrivacyPage"));
 const NotFoundPage = lazy(() => import("../pages/public/NotFoundPage"));
+const PublicMenuPage = lazy(() => import("../pages/public/PublicMenuPage"));
+const ReferralRedirectPage = lazy(() => import("../pages/public/ReferralRedirectPage"));
+const SurveyPage = lazy(() => import("../pages/public/SurveyPage"));
 
 const MetricsPage = lazy(() => import("../pages/dashboard/MetricsPage"));
 const CustomersPage = lazy(() => import("../pages/dashboard/CustomersPage"));
 const TeamPage = lazy(() => import("../pages/dashboard/TeamPage"));
 const CustomerDetailPage = lazy(() => import("../pages/dashboard/CustomerDetailPage"));
 const ReviewsPage = lazy(() => import("../pages/dashboard/ReviewsPage"));
+const ReferralsPage = lazy(() => import("../pages/dashboard/ReferralsPage"));
 const CardsPage = lazy(() => import("../pages/dashboard/CardsPage"));
 const CardWizardPage = lazy(() => import("../pages/dashboard/CardWizardPage"));
 const CardDetailPage = lazy(() => import("../pages/dashboard/CardDetailPage"));
 const LocationsPage = lazy(() => import("../pages/dashboard/LocationsPage"));
+const MenuPage = lazy(() => import("../pages/dashboard/MenuPage"));
 const GeolocationPage = lazy(() => import("../pages/dashboard/GeolocationPage"));
 const AudienceWizardPage = lazy(() => import("../pages/dashboard/AudienceWizardPage"));
 const AudienceDetailPage = lazy(() => import("../pages/dashboard/AudienceDetailPage"));
@@ -75,6 +80,10 @@ export const router = createBrowserRouter([
       { path: ROUTES.privacy, element: <PrivacyPage /> },
       { path: ROUTES.invite, element: <InvitePage /> },
       { path: ROUTES.connectionError, element: <ConnectionErrorPage /> },
+      // Páginas públicas que abre la clienta desde el QR del local o el enlace de una amiga.
+      { path: "/m/:slug", element: <PublicMenuPage /> },
+      { path: "/r/:code", element: <ReferralRedirectPage /> },
+      { path: "/encuesta/:token", element: <SurveyPage /> },
       {
         element: <PublicOnlyRoute />,
         children: [
@@ -101,6 +110,7 @@ export const router = createBrowserRouter([
               },
               { path: "equipo", element: <TeamPage />, handle: { crumb: "Equipo" } },
               { path: "resenas", element: <ReviewsPage />, handle: { crumb: "Reseñas" } },
+              { path: "referidos", element: <ReferralsPage />, handle: { crumb: "Referidos" } },
               {
                 path: "tarjetas",
                 handle: { crumb: "Tarjetas" },
@@ -112,6 +122,7 @@ export const router = createBrowserRouter([
                 ]
               },
               { path: "ubicaciones", element: <LocationsPage />, handle: { crumb: "Ubicaciones" } },
+              { path: "menu", element: <MenuPage />, handle: { crumb: "Menú" } },
               {
                 path: "geolocalizacion",
                 handle: { crumb: "Geolocalización" },

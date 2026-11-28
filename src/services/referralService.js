@@ -1,41 +1,13 @@
 import { apiClient } from "../api/apiClient";
 
-const publicRequest = { skipAuth: true, skipRefresh: true };
-const STORAGE_KEY = "fidegresa.referralCode";
-
-/** Código de invitación: letras y números, como lo genera el backend. */
-export function cleanReferralCode(value) {
-  const code = String(value ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  return code.length >= 4 && code.length <= 20 ? code : "";
-}
-
+/** Programa de referidos: un cliente invita a una amiga y ambos reciben un premio en su primera visita o compra. */
 export const referralService = {
-  /** GET /public/business-referrals/{code} → { code, businessName } del negocio que invita. */
-  getBusinessInvite: (code, options = {}) =>
-    apiClient.get(`/public/business-referrals/${encodeURIComponent(code)}`, { ...publicRequest, ...options }).then(response => response.data),
-
-  /** Guarda el código mientras dure la visita, por si pasa por la landing antes de registrarse. */
-  remember(code) {
-    try {
-      if (code) sessionStorage.setItem(STORAGE_KEY, code);
-    } catch {
-      // Sin almacenamiento (modo privado): el código sigue en la dirección.
-    }
-  },
-
-  remembered() {
-    try {
-      return cleanReferralCode(sessionStorage.getItem(STORAGE_KEY));
-    } catch {
-      return "";
-    }
-  },
-
-  forget() {
-    try {
-      sessionStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // Nada que limpiar.
-    }
-  }
+  getStats: ({ from, to } = {}, options) => apiClient.get("/referrals/stats", { params: { from, to }, ...options }).then(response => response.data),
+  getPage: ({ status, page = 0, size = 10 } = {}, options) =>
+    apiClient.get("/referrals", { params: { status: status || undefined, page, size }, ...options }).then(response => response.data),
+  /** Ranking de embajadoras con todas las invitaciones (el backend las cuenta); limit de 1 a 50. */
+  getRanking: ({ from, to, limit = 5 } = {}, options) =>
+    apiClient.get("/referrals/ranking", { params: { from, to, limit }, ...options }).then(response => response.data),
+  getSettings: options => apiClient.get("/referrals/settings", options).then(response => response.data),
+  saveSettings: (programId, body, options) => apiClient.put(`/referrals/settings/${programId}`, body, options).then(response => response.data)
 };

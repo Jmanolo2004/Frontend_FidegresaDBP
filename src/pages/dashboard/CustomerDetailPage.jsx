@@ -9,15 +9,20 @@ import { Icon } from "../../components/common/Icon";
 import { ErrorState } from "../../components/common/ErrorState";
 import { PageSkeleton } from "../../components/common/Skeleton";
 import { CardFront } from "../../components/cards/CardFront";
+import { CardProgress, customerCards } from "../../components/customers/CardProgress";
+import { createDefaultRules } from "../../components/cards/cardTypes";
 import { useFetch } from "../../hooks/useFetch";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { customerService } from "../../services/customerService";
-import { formatDate, formatMoney, timeAgo } from "../../utils/format";
+import { loyaltyProgramService } from "../../services/loyaltyProgramService";
+import { formatDate, formatMoney, formatNumber, timeAgo } from "../../utils/format";
+import "../../styles/card-progress.css";
 
 export default function CustomerDetailPage() {
   const { customerId } = useParams();
   const navigate = useNavigate();
   const { data: customer, error, reload } = useFetch(({ signal }) => customerService.getById(customerId, { signal }), [customerId]);
+  const programs = useFetch(({ signal }) => loyaltyProgramService.getAll({}, { signal }), []);
   useDocumentTitle(customer?.nombre || "Cliente");
 
   if (error) {
@@ -40,7 +45,18 @@ export default function CustomerDetailPage() {
   if (!customer) return <PageSkeleton />;
 
   const card = customer.tarjetaPrograma;
-  const stampsGoal = card?.estampillas || 10;
+  const mainCard = customerCards(customer)[0];
+  const mainRules = { ...createDefaultRules(card?.tipo), ...(card?.reglas || {}) };
+  // Cuarta cifra según el tipo de tarjeta: sellos, saldo, puntos o gift card.
+  const cardKpi = {
+    Cashback: { label: "Saldo cashback", value: formatMoney(mainCard?.saldoCashback ?? customer.saldoCashback), explanation: "Saldo disponible para su próxima visita." },
+    Niveles: { label: "Puntos", value: formatNumber(mainCard?.puntos ?? 0), explanation: "Puntos acumulados para subir de nivel." },
+    Giftcard: { label: "Saldo gift card", value: formatMoney(mainCard?.saldoGiftcard ?? 0), explanation: "Saldo de regalo que le queda." }
+  }[card?.tipo] || {
+    label: "Estampillas",
+    value: `${mainCard?.estampillas ?? customer.estampillas}/${mainRules.sellosMeta || 10}`,
+    explanation: "Progreso hacia su próxima recompensa."
+  };
 
   return (
     <>
@@ -57,12 +73,7 @@ export default function CustomerDetailPage() {
         <KpiCard label="Visitas" value={customer.visitas} explanation="Visitas registradas con su tarjeta." icon="visits" />
         <KpiCard label="Total comprado" value={formatMoney(customer.totalGastado)} explanation="Compras registradas en el programa." icon="chart" />
         <KpiCard label="Premios canjeados" value={customer.premiosCanjeados} explanation="Recompensas obtenidas hasta hoy." icon="reward" />
-        <KpiCard
-          label={card?.tipo === "Cashback" ? "Saldo cashback" : "Estampillas"}
-          value={card?.tipo === "Cashback" ? formatMoney(customer.saldoCashback) : `${customer.estampillas}/${stampsGoal}`}
-          explanation={card?.tipo === "Cashback" ? "Saldo disponible para su próxima visita." : "Progreso hacia su próxima recompensa."}
-          icon="star"
-        />
+        <KpiCard label={cardKpi.label} value={cardKpi.value} explanation={cardKpi.explanation} icon="star" />
       </div>
 
       <div className="dashboard-grid customer-detail-grid">
@@ -103,8 +114,15 @@ export default function CustomerDetailPage() {
           </div>
         </article>
         <article className="panel">
-          <PanelHeading title="Tarjeta digital" subtitle="Así ve su tarjeta en el celular" />
-          {card ? <CardFront card={card} size="md" stamps={customer.estampillas} client={customer.nombre} /> : <div className="empty-state">Este cliente aún no tiene una tarjeta asignada.</div>}
+          <PanelHeading title="Tarjeta digital" subtitle="Así ve su tarjeta y cuánto le falta para su premio" />
+          {card ? (
+            <>
+              <CardFront card={card} size="md" stamps={mainCard?.estampillas ?? customer.estampillas} client={customer.nombre} />
+              <CardProgress customer={customer} programs={programs.data} />
+            </>
+          ) : (
+            <div className="empty-state">Este cliente aún no tiene una tarjeta asignada.</div>
+          )}
         </article>
       </div>
 
