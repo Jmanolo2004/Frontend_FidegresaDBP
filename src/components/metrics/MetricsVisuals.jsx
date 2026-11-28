@@ -331,6 +331,19 @@ function CashbackTrendChart({ series }) {
 }
 CashbackTrendChart.propTypes = { series: PropTypes.arrayOf(PropTypes.object).isRequired };
 
+// Solo muestra datos reales del backend: el detalle por nivel aparece cuando la API envía "transitions".
+function TierMovements({ kpis }) {
+  const transitions = Array.isArray(kpis.transitions) ? kpis.transitions.filter(item => item.count > 0) : [];
+  if (transitions.length) {
+    return <div className="metrics-tier-flow">{transitions.map(item => <span key={`${item.from}-${item.to}`}>{item.from} → {item.to} <b>{item.count}</b></span>)}</div>;
+  }
+  if (!kpis.promotions) return <p className="metrics-tier-note">Ningún cliente subió de nivel en este periodo.</p>;
+  return <div className="metrics-tier-flow">
+    <span>{kpis.promotions === 1 ? "Cliente que subió de nivel" : "Clientes que subieron de nivel"} <b>{kpis.promotions}</b></span>
+  </div>;
+}
+TierMovements.propTypes = { kpis: PropTypes.object.isRequired };
+
 export function TiersPanel({ data, cardId, trend, compareLabel }) {
   const max = Math.max(1, ...data.levels.map(item => item.count));
   return <ProgramPanel title="Niveles" subtitle="Crecimiento y movimiento de tus clientes entre niveles" cardId={cardId} trend={trend} compareLabel={compareLabel} stats={[
@@ -339,7 +352,7 @@ export function TiersPanel({ data, cardId, trend, compareLabel }) {
     { label: "Días para subir", value: data.kpis.daysToUpgrade }, { label: "Gasto promedio", value: formatMoney(data.kpis.averageSpend) }
   ]}>
     <div className="metrics-program-detail-grid"><div><h3>Clientes por nivel</h3><div className="metrics-level-bars">{data.levels.map(item => <div key={item.name}><span>{item.name}</span><i><b style={{ width: `${item.count / max * 100}%` }} /></i><strong>{item.count}</strong></div>)}</div></div>
-      <div><h3>Movimientos en el periodo</h3><div className="metrics-tier-flow"><span>Bronce → Plata <b>{Math.round(data.kpis.promotions * .52)}</b></span><span>Plata → Oro <b>{Math.round(data.kpis.promotions * .34)}</b></span><span>Oro → Diamante <b>{Math.round(data.kpis.promotions * .14)}</b></span></div></div>
+      <div><h3>Movimientos en el periodo</h3><TierMovements kpis={data.kpis} /></div>
     </div>
   </ProgramPanel>;
 }
