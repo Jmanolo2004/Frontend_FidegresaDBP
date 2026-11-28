@@ -1,0 +1,54 @@
+/* Referidos: resultados, embajadoras, premio por invitar e invitaciones */
+.rf-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 15px; }
+.rf-stats .panel { display: grid; gap: 4px; padding: 16px 18px; }
+.rf-stats span { color: var(--muted); font-size: 13px; }
+.rf-stats strong { color: var(--brown-dark); font: 700 30px/1.1 var(--font-display); }
+.rf-change { color: var(--muted); font-size: 12px; }
+.rf-change.up { color: var(--green); }
+.rf-change.down { color: var(--danger); }
+
+.rf-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 14px; margin-bottom: 15px; }
+.rf-ranking-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.rf-ranking-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.rf-ranking-list li:last-child { border-bottom: 0; }
+.rf-place { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--cream); color: var(--muted); font: 700 14px var(--font-display); }
+.rf-place.place-1 { background: #f3d98b; color: #5c4208; }
+.rf-place.place-2 { background: #dfe3e7; color: #3e464d; }
+.rf-place.place-3 { background: #ecc9a8; color: #5a3518; }
+.rf-ranking-list li:first-child .customer-link { font-size: 15.5px; font-weight: 750; }
+.rf-ranking-count { color: var(--text); font-size: 13.5px; text-align: right; }
+.rf-ranking-count strong { font-size: 15px; }
+.rf-ranking-count small { color: var(--muted); font-size: 12.5px; }
+
+.rf-settings-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.rf-setting { display: grid; grid-template-columns: minmax(0, 1fr) 190px auto auto; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.rf-setting:last-child { border-bottom: 0; }
+.rf-setting-name { display: grid; gap: 1px; min-width: 0; }
+.rf-setting-name strong { color: var(--text); font-size: 14.5px; }
+.rf-setting-name span { color: var(--muted); font-size: 12.5px; }
+.rf-setting-value { display: flex; align-items: center; gap: 8px; }
+.rf-setting-value .form-control { width: 80px; }
+.rf-setting-value small { color: var(--muted); font-size: 12.5px; }
+.rf-setting .rf-error { grid-column: 1 / -1; }
+
+.rf-error { margin: 0; color: var(--danger); font-size: 13.5px; font-weight: 600; }
+.rf-empty, .rf-note { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.rf-note { margin-top: 10px; font-size: 12.5px; }
+.rf-footnote { display: flex; align-items: center; gap: 6px; margin: 0 0 20px; color: var(--muted); font-size: 13px; }
+
+.dark-theme .rf-place.place-1 { background: #6b5317; color: #fbe7b0; }
+.dark-theme .rf-place.place-2 { background: #4a5057; color: #eef0f2; }
+.dark-theme .rf-place.place-3 { background: #6b4527; color: #f6dcc3; }
+
+@media (max-width: 1000px) {
+  .rf-grid { grid-template-columns: 1fr; }
+  .rf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .rf-setting { grid-template-columns: minmax(0, 1fr) auto; }
+  .rf-setting-name { grid-column: 1 / -1; }
+  .rf-setting .secondary-button { grid-column: 1 / -1; justify-self: start; }
+  .rf-ranking-list li { grid-template-columns: 30px minmax(0, 1fr); }
+  .rf-ranking-count { grid-column: 2; text-align: left; }
+}

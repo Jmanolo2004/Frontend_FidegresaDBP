@@ -15,6 +15,7 @@ import { publicMenuHandlers } from "./handlers/publicMenuHandlers";
 import { menuHandlers } from "./handlers/menuHandlers";
 import { aiSummaryHandlers, surveyHandlers } from "./handlers/surveyHandlers";
 import { promotionHandlers, segmentHandlers } from "./handlers/segmentHandlers";
+import { referralHandlers } from "./handlers/referralHandlers";
 
 /*
  * Servidor de demostración: responde con la misma forma que el backend REST
@@ -38,7 +39,8 @@ const routes = [
   ...surveyHandlers,
   ...aiSummaryHandlers,
   ...segmentHandlers,
-  ...promotionHandlers
+  ...promotionHandlers,
+  ...referralHandlers
 ].map(route => ({
   ...route,
   matcher: new RegExp(`^${route.path.replace(/:(\w+)/g, "(?<$1>[^/]+)")}$`)

@@ -26,6 +26,7 @@ const CustomersPage = lazy(() => import("../pages/dashboard/CustomersPage"));
 const TeamPage = lazy(() => import("../pages/dashboard/TeamPage"));
 const CustomerDetailPage = lazy(() => import("../pages/dashboard/CustomerDetailPage"));
 const ReviewsPage = lazy(() => import("../pages/dashboard/ReviewsPage"));
+const ReferralsPage = lazy(() => import("../pages/dashboard/ReferralsPage"));
 const CardsPage = lazy(() => import("../pages/dashboard/CardsPage"));
 const CardWizardPage = lazy(() => import("../pages/dashboard/CardWizardPage"));
 const CardDetailPage = lazy(() => import("../pages/dashboard/CardDetailPage"));
@@ -106,6 +107,7 @@ export const router = createBrowserRouter([
               },
               { path: "equipo", element: <TeamPage />, handle: { crumb: "Equipo" } },
               { path: "resenas", element: <ReviewsPage />, handle: { crumb: "Reseñas" } },
+              { path: "referidos", element: <ReferralsPage />, handle: { crumb: "Referidos" } },
               {
                 path: "tarjetas",
                 handle: { crumb: "Tarjetas" },
